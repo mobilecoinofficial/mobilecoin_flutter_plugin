@@ -1,12 +1,11 @@
 package com.mobilecoin.mobilecoin_flutter;
 
+import com.mobilecoin.lib.PaymentRequest;
 import com.mobilecoin.lib.PrintableWrapper;
 import com.mobilecoin.lib.TransferPayload;
 import com.mobilecoin.lib.PublicAddress;
 import com.mobilecoin.lib.exceptions.SerializationException;
 
-import io.flutter.plugin.common.MethodCall;
-import io.flutter.plugin.common.MethodChannel.Result;
 import androidx.annotation.Keep;
 
 @Keep
@@ -30,7 +29,7 @@ public class FfiPrintableWrapper {
     public static int fromPublicAddress(int publicAddressId) throws SerializationException {
         PublicAddress publicAddress = (PublicAddress) ObjectStorage.objectForKey(publicAddressId);
         PrintableWrapper printableWrapper = PrintableWrapper.fromPublicAddress(publicAddress);
-        Integer hashCode = printableWrapper.hashCode();
+        final int hashCode = printableWrapper.hashCode();
         ObjectStorage.addObject(hashCode, printableWrapper);
         return hashCode;
     }
@@ -66,6 +65,19 @@ public class FfiPrintableWrapper {
         TransferPayload transferPayload = printableWrapper.getTransferPayload();
         final int hashCode = transferPayload.hashCode();
         ObjectStorage.addObject(hashCode, transferPayload);
+        return hashCode;
+    }
+
+    public static boolean hasPaymentRequest(int wrapperId) {
+        PrintableWrapper printableWrapper = (PrintableWrapper) ObjectStorage.objectForKey(wrapperId);
+        return printableWrapper.hasPaymentRequest();
+    }
+
+    public static int getPaymentRequest(int wrapperId) {
+        PrintableWrapper printableWrapper = (PrintableWrapper) ObjectStorage.objectForKey(wrapperId);
+        PaymentRequest paymentRequest = printableWrapper.getPaymentRequest();
+        final int hashCode = paymentRequest.hashCode();
+        ObjectStorage.addObject(hashCode, paymentRequest);
         return hashCode;
     }
 }

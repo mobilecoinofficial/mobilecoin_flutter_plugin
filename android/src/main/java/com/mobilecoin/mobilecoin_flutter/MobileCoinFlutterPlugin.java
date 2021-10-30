@@ -3,6 +3,8 @@ package com.mobilecoin.mobilecoin_flutter;
 import androidx.annotation.NonNull;
 import androidx.annotation.VisibleForTesting;
 
+import com.mobilecoin.lib.PaymentRequest;
+import com.mobilecoin.lib.PrintableWrapper;
 import com.mobilecoin.lib.exceptions.AttestationException;
 import com.mobilecoin.lib.exceptions.BadEntropyException;
 import com.mobilecoin.lib.exceptions.FeeRejectedException;
@@ -146,6 +148,10 @@ public class MobileCoinFlutterPlugin implements FlutterPlugin, MethodCallHandler
                     return api.printableWrapperHasTransferPayload((int) call.argument("id"));
                 case "PrintableWrapper#getTransferPayload":
                     return api.printableWrapperGetTransferPayload((int) call.argument("id"));
+                case "PrintableWrapper#hasPaymentRequest":
+                    return api.printableWrapperHasPaymentRequest((int) call.argument("id"));
+                case "PrintableWrapper#getPaymentRequest":
+                    return api.printableWrapperGetPaymentRequest((int) call.argument("id"));
                 case "PrintableWrapper#fromTransferPayload":
                     return api.printableWrapperFromTransferPayload((int) call.argument("id"));
                 case "PublicAddress#fromBytes":
@@ -158,6 +164,12 @@ public class MobileCoinFlutterPlugin implements FlutterPlugin, MethodCallHandler
                     return api.transferPayloadGetMemo((int) call.argument("id"));
                 case "TransferPayload#getPublicKey":
                     return api.transferPayloadGetPublicKey((int) call.argument("id"));
+                case "PaymentRequest#getMemo":
+                    return api.paymentRequestGetMemo((int) call.argument("id"));
+                case "PaymentRequest#getPublicAddress":
+                    return api.paymentRequestGetPublicAddress((int) call.argument("id"));
+                case "PaymentRequest#getValue":
+                    return api.paymentRequestGetValue((int) call.argument("id"));
                 case "Mnemonic#fromBip39Entropy":
                     return api.mnemonicFromBip39Entropy((byte[]) call.argument("bip39Entropy"));
                 case "Mnemonic#toBip39Entropy":
@@ -258,6 +270,19 @@ public class MobileCoinFlutterPlugin implements FlutterPlugin, MethodCallHandler
         int printableWrapperGetTransferPayload(int printableWrapperId);
 
         /**
+         * Returns true if the given <code>PrintableWrapper</code> has a paymentRequest
+         * payload.
+         */
+        boolean printableWrapperHasPaymentRequest(int printableWrapperId);
+
+        /**
+         * Retrieves the <code>PaymentRequest</code> associated with the given
+         * <code>PrintableWrapper</code>, stores the payment request in local object
+         * storage, and returns its hash code.
+         */
+        int printableWrapperGetPaymentRequest(int printableWrapperId);
+
+        /**
          * Returns the <code>PrintableWrapper</code> associated with the given
          * <code>transferPayloadId</code>.
          */
@@ -294,10 +319,40 @@ public class MobileCoinFlutterPlugin implements FlutterPlugin, MethodCallHandler
          */
         int transferPayloadGetPublicKey(int transferPayloadId);
 
+        /**
+         * Looks up the given <code>PaymentRequest</code> in local object storage, then
+         * returns its amount value as a <code>String</code>.
+         */
+        String paymentRequestGetValue(int paymentRequestId);
+
+        /**
+         * Looks up the given <code>PaymentRequest</code> in local object storage, then
+         * returns its memo.
+         */
+        String paymentRequestGetMemo(int paymentRequestId);
+
+        /**
+         * Looks up the given <code>PaymentRequest</code> in local object storage, then
+         * retrieves its public address, stores that public address in local object storage, and
+         * then returns the public address' hash code.
+         */
+        int paymentRequestGetPublicAddress(int paymentRequestId);
+
+        /**
+         * Convert the given b39 entropy into the mnemonic phrase
+         * The mnemonic phrase is a string of 24 words delimited by a space
+         */
         String mnemonicFromBip39Entropy(byte[] entropy) throws BadEntropyException;
 
+        /**
+         * Convert mnemonic phrase into the b39 entropy
+         * The mnemonic phrase is a string of 24 words delimited by a space
+         */
         byte[] mnemonicToBip39Entropy(String mnemonicPhrase) throws BadMnemonicException;
 
+        /**
+         * Returns a list of all allowed words for mnemonic phrases as a <code>String</code>
+         */
         String mnemonicAllWords() throws BadMnemonicException;
     }
 
@@ -382,6 +437,16 @@ public class MobileCoinFlutterPlugin implements FlutterPlugin, MethodCallHandler
         }
 
         @Override
+        public boolean printableWrapperHasPaymentRequest(int printableWrapperId) {
+            return FfiPrintableWrapper.hasPaymentRequest(printableWrapperId);
+        }
+
+        @Override
+        public int printableWrapperGetPaymentRequest(int printableWrapperId) {
+            return FfiPrintableWrapper.getPaymentRequest(printableWrapperId);
+        }
+
+        @Override
         public int printableWrapperFromTransferPayload(int transferPayloadId) throws SerializationException {
             return FfiPrintableWrapper.fromTransferPayload(transferPayloadId);
         }
@@ -409,6 +474,21 @@ public class MobileCoinFlutterPlugin implements FlutterPlugin, MethodCallHandler
         @Override
         public int transferPayloadGetPublicKey(int transferPayloadId) {
             return FfiTransferPayload.getPublicKey(transferPayloadId);
+        }
+
+        @Override
+        public String paymentRequestGetValue(int paymentRequestId) {
+            return FfiPaymentRequest.getValue(paymentRequestId);
+        }
+
+        @Override
+        public String paymentRequestGetMemo(int paymentRequestId) {
+            return FfiPaymentRequest.getMemo(paymentRequestId);
+        }
+
+        @Override
+        public int paymentRequestGetPublicAddress(int paymentRequestId) {
+            return FfiPaymentRequest.getPublicAddress(paymentRequestId);
         }
 
         @Override

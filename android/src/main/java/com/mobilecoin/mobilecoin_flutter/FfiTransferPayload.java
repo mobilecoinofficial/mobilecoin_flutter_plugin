@@ -3,8 +3,6 @@ package com.mobilecoin.mobilecoin_flutter;
 import com.mobilecoin.lib.RistrettoPublic;
 import com.mobilecoin.lib.TransferPayload;
 
-import io.flutter.plugin.common.MethodCall;
-import io.flutter.plugin.common.MethodChannel.Result;
 import androidx.annotation.Keep;
 
 @Keep

@@ -1,5 +1,7 @@
 package com.mobilecoin.mobilecoin_flutter;
 
+import android.text.TextUtils;
+
 import androidx.annotation.Keep;
 import com.mobilecoin.lib.Mnemonics;
 import com.mobilecoin.lib.exceptions.BadEntropyException;
@@ -20,6 +22,6 @@ public class FfiMnemonic {
     }
 
     public static String allWords() throws BadMnemonicException {
-        return String.join(",", Mnemonics.wordsByPrefix(""));
+        return TextUtils.join(",", Mnemonics.wordsByPrefix(""));
     }
 }
