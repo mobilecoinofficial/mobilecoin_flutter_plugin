@@ -11,7 +11,9 @@ import MobileCoin
 struct FfiPrintableWrapper{
     struct FromB58String: Command {
         func execute(args: [String : Any], result: @escaping FlutterResult) throws {
-            let b58String: String = args["b58String"] as! String
+            guard let b58String: String = args["b58String"] as? String else {
+                throw PluginError.invalidArguments
+            }
             let decoded = Base58Coder.decode(b58String)
             switch decoded {
             case .publicAddress(let publicAddress):
@@ -30,19 +32,24 @@ struct FfiPrintableWrapper{
                 result(hashCode)
                 break;
             default:
-                break;
+                throw PluginError.unimplemented
             }
         }
     }
     struct ToB58String: Command {
         func execute(args: [String : Any], result: @escaping FlutterResult) throws {
-            let id: Int = args["id"] as! Int
-            let obj = ObjectStorage.objectForKey(id)
+            guard let id: Int = args["id"] as? Int,
+                  let obj = ObjectStorage.objectForKey(id) else {
+                      throw PluginError.invalidArguments
+                  }
             if let publicAddress = obj as? PublicAddress {
                 let b58String = Base58Coder.encode(publicAddress)
                 result(b58String)
             } else if let transferPayload = obj as? TransferPayload {
                 let b58String = Base58Coder.encode(transferPayload)
+                result(b58String)
+            } else if let paymentRequest = obj as? PaymentRequest {
+                let b58String = Base58Coder.encode(paymentRequest)
                 result(b58String)
             } else {
                 throw PluginError.unimplemented
@@ -51,13 +58,19 @@ struct FfiPrintableWrapper{
     }
     struct FromPublicAddress: Command {
         func execute(args: [String : Any], result: @escaping FlutterResult) throws {
-            let id: Int = args["id"] as! Int
-            result(id)
+            if let id: Int = args["id"] as? Int {
+                result(id)
+            } else {
+                throw PluginError.invalidArguments
+            }
+            
         }
     }
     struct HasPublicAddress: Command {
         func execute(args: [String : Any], result: @escaping FlutterResult) throws {
-            let id: Int = args["id"] as! Int
+            guard let id: Int = args["id"] as? Int else {
+                throw PluginError.invalidArguments
+            }
             if let _ = ObjectStorage.objectForKey(id) as? PublicAddress {
                 result(true)
             } else {
@@ -67,7 +80,9 @@ struct FfiPrintableWrapper{
     }
     struct GetPublicAddress: Command {
         func execute(args: [String : Any], result: @escaping FlutterResult) throws {
-            let id: Int = args["id"] as! Int
+            guard let id: Int = args["id"] as? Int else {
+                throw PluginError.invalidArguments
+            }
             if let _ = ObjectStorage.objectForKey(id) as? PublicAddress {
                 result(id)
             } else {
@@ -77,13 +92,17 @@ struct FfiPrintableWrapper{
     }
     struct FromTransferPayload: Command {
         func execute(args: [String : Any], result: @escaping FlutterResult) throws {
-            let id: Int = args["id"] as! Int
+            guard let id: Int = args["id"] as? Int else {
+                throw PluginError.invalidArguments
+            }
             result(id)
         }
     }
     struct HasTransferPayload: Command {
         func execute(args: [String : Any], result: @escaping FlutterResult) throws {
-            let id: Int = args["id"] as! Int
+            guard let id: Int = args["id"] as? Int else {
+                throw PluginError.invalidArguments
+            }
             if let _ = ObjectStorage.objectForKey(id) as? TransferPayload {
                 result(true)
             } else {
@@ -93,7 +112,9 @@ struct FfiPrintableWrapper{
     }
     struct GetTransferPayload: Command {
         func execute(args: [String : Any], result: @escaping FlutterResult) throws {
-            let id: Int = args["id"] as! Int
+            guard let id: Int = args["id"] as? Int else {
+                throw PluginError.invalidArguments
+            }
             if let _ = ObjectStorage.objectForKey(id) as? TransferPayload {
                 result(id)
             } else {
@@ -103,7 +124,9 @@ struct FfiPrintableWrapper{
     }
     struct HasPaymentRequest: Command {
         func execute(args: [String : Any], result: @escaping FlutterResult) throws {
-            let id: Int = args["id"] as! Int
+            guard let id: Int = args["id"] as? Int else {
+                throw PluginError.invalidArguments
+            }
             if let _ = ObjectStorage.objectForKey(id) as? PaymentRequest {
                 result(true)
             } else {
@@ -113,7 +136,9 @@ struct FfiPrintableWrapper{
     }
     struct GetPaymentRequest: Command {
         func execute(args: [String : Any], result: @escaping FlutterResult) throws {
-            let id: Int = args["id"] as! Int
+            guard let id: Int = args["id"] as? Int else {
+                throw PluginError.invalidArguments
+            }
             if let _ = ObjectStorage.objectForKey(id) as? PaymentRequest {
                 result(id)
             } else {

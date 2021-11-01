@@ -19,6 +19,6 @@ public class PicoMob {
     }
 
     BigDecimal getMobFractionAsBigDecimal() {
-        return new BigDecimal(picoMob).divide(new BigDecimal(1e12));
+        return new BigDecimal(picoMob).divide(new BigDecimal("1e12"));
     }
 }

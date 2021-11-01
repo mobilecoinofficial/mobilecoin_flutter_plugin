@@ -11,10 +11,12 @@ import MobileCoin
 struct FfiAccountKey {
     struct FromBip39Entropy: Command {
         func execute(args: [String: Any], result: @escaping FlutterResult) throws {
-            let entropy = args["bip39Entropy"] as! FlutterStandardTypedData;
-            let fogReportUri: String = args["fogReportUri"] as! String
-            let fogAuthoritySpki = args["fogAuthoritySpki"] as! FlutterStandardTypedData;
-            let reportId: String = args["reportId"] as! String
+            guard let entropy = args["bip39Entropy"] as? FlutterStandardTypedData,
+                  let fogReportUri: String = args["fogReportUri"] as? String,
+                  let fogAuthoritySpki = args["fogAuthoritySpki"] as? FlutterStandardTypedData,
+                  let reportId: String = args["reportId"] as? String else {
+                      throw PluginError.invalidArguments
+                  }
             let accountKey = AccountKey.make(entropy: entropy.data, fogReportUrl: fogReportUri, fogReportId: reportId, fogAuthoritySpki: fogAuthoritySpki.data,  accountIndex: 0)
             switch accountKey {
             case .success(let accountKey):
@@ -28,7 +30,9 @@ struct FfiAccountKey {
     }
     struct GetPublicAddress: Command {
         func execute(args: [String : Any], result: @escaping FlutterResult) throws {
-            let addressId: Int = args["id"] as! Int
+            guard let addressId: Int = args["id"] as? Int else {
+                throw PluginError.invalidArguments
+            }
             let accountKey: AccountKey = ObjectStorage.objectForKey(addressId) as! AccountKey
             let publicAddress: PublicAddress = accountKey.publicAddress
             let hashCode = publicAddress.hashValue

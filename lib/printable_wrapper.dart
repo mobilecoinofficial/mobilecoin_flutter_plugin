@@ -8,17 +8,13 @@ import 'platform_object.dart';
 class PrintableWrapper extends PlatformObject {
   PrintableWrapper(int objectId) : super(id: objectId);
 
-  static Future<PrintableWrapper?> fromB58String(String b58String) async {
-    try {
-      final objectId = await MobileCoinFlutterPluginChannelApi.instance
-          .printableWrapperFromB58String(b58String: b58String);
-      return PrintableWrapper(objectId);
-    } catch (e) {
-      return null;
-    }
+  static Future<PrintableWrapper> fromB58String(String b58String) async {
+    final objectId = await MobileCoinFlutterPluginChannelApi.instance
+        .printableWrapperFromB58String(b58String: b58String);
+    return PrintableWrapper(objectId);
   }
 
-  Future<String?> toB58String() async {
+  Future<String> toB58String() async {
     return await MobileCoinFlutterPluginChannelApi.instance
         .printableWrapperToB58String(printableWrapperId: id);
   }

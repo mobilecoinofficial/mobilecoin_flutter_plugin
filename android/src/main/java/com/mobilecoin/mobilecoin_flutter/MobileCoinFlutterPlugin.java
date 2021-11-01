@@ -3,8 +3,6 @@ package com.mobilecoin.mobilecoin_flutter;
 import androidx.annotation.NonNull;
 import androidx.annotation.VisibleForTesting;
 
-import com.mobilecoin.lib.PaymentRequest;
-import com.mobilecoin.lib.PrintableWrapper;
 import com.mobilecoin.lib.exceptions.AttestationException;
 import com.mobilecoin.lib.exceptions.BadEntropyException;
 import com.mobilecoin.lib.exceptions.FeeRejectedException;
@@ -17,8 +15,6 @@ import com.mobilecoin.lib.exceptions.SerializationException;
 import com.mobilecoin.lib.exceptions.TransactionBuilderException;
 import com.mobilecoin.lib.exceptions.FogReportException;
 import com.mobilecoin.lib.exceptions.InvalidUriException;
-import com.mobilecoin.lib.Mnemonics;
-import com.mobilecoin.lib.exceptions.BadEntropyException;
 import com.mobilecoin.lib.exceptions.BadMnemonicException;
 
 import java.math.BigInteger;
@@ -45,7 +41,7 @@ public class MobileCoinFlutterPlugin implements FlutterPlugin, MethodCallHandler
     /// and unregister it
     /// when the Flutter Engine is detached from the Activity
     private MethodChannel channel;
-    private ExecutorService executorService = Executors.newFixedThreadPool(EXECUTOR_THREAD_POOL_SIZE);
+    private final ExecutorService executorService = Executors.newFixedThreadPool(EXECUTOR_THREAD_POOL_SIZE);
 
     private final ChannelMessageDispatcher dispatcher;
 
@@ -109,71 +105,82 @@ public class MobileCoinFlutterPlugin implements FlutterPlugin, MethodCallHandler
             this.api = api;
         }
 
+        @NonNull
+        private <T> T getCallArgument(@NonNull MethodCall call, @NonNull String key) {
+            T argument = call.argument(key);
+            if (null ==  argument) {
+                throw new IllegalArgumentException();
+            }
+            return argument;
+        }
+
         public Object onMethodCall(@NonNull final MethodCall call) throws Exception {
             String message = call.method;
             switch (message) {
                 case "MobileCoinClient#create":
-                    return api.createMobileCoinClient((Integer) call.argument("accountKey"),
-                            (String) call.argument("fogUrl"), (String) call.argument("consensusUrl"));
+                    return api.createMobileCoinClient(getCallArgument(call, "accountKey"),
+                            getCallArgument(call, "fogUrl"), getCallArgument(call, "consensusUrl"));
                 case "MobileCoinClient#getAccountActivity":
-                    return api.getAccountActivity((Integer) call.argument("id"));
+                    return api.getAccountActivity(getCallArgument(call, "id"));
 
                 case "MobileCoinClient#getBalance":
-                    BigInteger balance = api.getBalance((Integer) call.argument("id"));
+                    BigInteger balance = api.getBalance(getCallArgument(call, "id"));
                     return balance.toString();
                 case "MobileCoinClient#setAuthorization":
-                    return api.setAuthorization((int) call.argument("id"), (String) call.argument("username"),
-                            (String) call.argument("password"));
+                    return api.setAuthorization(getCallArgument(call, "id"), getCallArgument(call,
+                            "username"),
+                            getCallArgument(call, "password"));
                 case "MobileCoinClient#sendFunds":
-                    return api.sendFunds((int) call.argument("id"), (int) call.argument("recipient"),
-                            PicoMob.parsePico((String) call.argument("fee")),
-                            PicoMob.parsePico((String) call.argument("amount")));
+                    return api.sendFunds(getCallArgument(call, "id"), getCallArgument(call,
+                            "recipient"),
+                            PicoMob.parsePico(getCallArgument(call, "fee")),
+                            PicoMob.parsePico(getCallArgument(call,"amount")));
                 case "AccountKey#fromBip39Entropy":
-                    return api.getAccountKeyFromBip39Entropy((byte[]) call.argument("bip39Entropy"),
-                            (String) call.argument("fogReportUri"), (String) call.argument("reportId"),
-                            (byte[]) call.argument("fogAuthoritySpki"));
+                    return api.getAccountKeyFromBip39Entropy(getCallArgument(call,"bip39Entropy"),
+                            call.argument("fogReportUri"), getCallArgument(call,"reportId"),
+                            call.argument("fogAuthoritySpki"));
                 case "AccountKey#getPublicAddress":
-                    return api.getAccountKeyPublicAddress((int) call.argument("id"));
+                    return api.getAccountKeyPublicAddress(getCallArgument(call,"id"));
                 case "PrintableWrapper#fromB58String":
-                    return api.printableWrapperFromB58String((String) call.argument("b58String"));
+                    return api.printableWrapperFromB58String(getCallArgument(call,"b58String"));
                 case "PrintableWrapper#toB58String":
-                    return api.printableWrapperToB58String((int) call.argument("id"));
+                    return api.printableWrapperToB58String(getCallArgument(call,"id"));
                 case "PrintableWrapper#hasPublicAddress":
-                    return api.printableWrapperHasPublicAddress((int) call.argument("id"));
+                    return api.printableWrapperHasPublicAddress(getCallArgument(call,"id"));
                 case "PrintableWrapper#getPublicAddress":
-                    return api.printableWrapperGetPublicAddress((int) call.argument("id"));
+                    return api.printableWrapperGetPublicAddress(getCallArgument(call,"id"));
                 case "PrintableWrapper#fromPublicAddress":
-                    return api.printableWrapperFromPublicAddress((int) call.argument("id"));
+                    return api.printableWrapperFromPublicAddress(getCallArgument(call,"id"));
                 case "PrintableWrapper#hasTransferPayload":
-                    return api.printableWrapperHasTransferPayload((int) call.argument("id"));
+                    return api.printableWrapperHasTransferPayload(getCallArgument(call,"id"));
                 case "PrintableWrapper#getTransferPayload":
-                    return api.printableWrapperGetTransferPayload((int) call.argument("id"));
+                    return api.printableWrapperGetTransferPayload(getCallArgument(call,"id"));
                 case "PrintableWrapper#hasPaymentRequest":
-                    return api.printableWrapperHasPaymentRequest((int) call.argument("id"));
+                    return api.printableWrapperHasPaymentRequest(getCallArgument(call,"id"));
                 case "PrintableWrapper#getPaymentRequest":
-                    return api.printableWrapperGetPaymentRequest((int) call.argument("id"));
+                    return api.printableWrapperGetPaymentRequest(getCallArgument(call,"id"));
                 case "PrintableWrapper#fromTransferPayload":
-                    return api.printableWrapperFromTransferPayload((int) call.argument("id"));
+                    return api.printableWrapperFromTransferPayload(getCallArgument(call,"id"));
                 case "PublicAddress#fromBytes":
-                    return api.publicAddressFromBytes((byte[]) call.argument("serializedBytes"));
+                    return api.publicAddressFromBytes(getCallArgument(call,"serializedBytes"));
                 case "PublicAddress#toByteArray":
-                    return api.publicAddressToByteArray((int) call.argument("id"));
+                    return api.publicAddressToByteArray(getCallArgument(call,"id"));
                 case "TransferPayload#getBip39Entropy":
-                    return api.transferPayloadGetBip39Entropy((int) call.argument("id"));
+                    return api.transferPayloadGetBip39Entropy(getCallArgument(call,"id"));
                 case "TransferPayload#getMemo":
-                    return api.transferPayloadGetMemo((int) call.argument("id"));
+                    return api.transferPayloadGetMemo(getCallArgument(call,"id"));
                 case "TransferPayload#getPublicKey":
-                    return api.transferPayloadGetPublicKey((int) call.argument("id"));
+                    return api.transferPayloadGetPublicKey(getCallArgument(call,"id"));
                 case "PaymentRequest#getMemo":
-                    return api.paymentRequestGetMemo((int) call.argument("id"));
+                    return api.paymentRequestGetMemo(getCallArgument(call,"id"));
                 case "PaymentRequest#getPublicAddress":
-                    return api.paymentRequestGetPublicAddress((int) call.argument("id"));
+                    return api.paymentRequestGetPublicAddress(getCallArgument(call,"id"));
                 case "PaymentRequest#getValue":
-                    return api.paymentRequestGetValue((int) call.argument("id"));
+                    return api.paymentRequestGetValue(getCallArgument(call,"id"));
                 case "Mnemonic#fromBip39Entropy":
-                    return api.mnemonicFromBip39Entropy((byte[]) call.argument("bip39Entropy"));
+                    return api.mnemonicFromBip39Entropy(getCallArgument(call,"bip39Entropy"));
                 case "Mnemonic#toBip39Entropy":
-                    return api.mnemonicToBip39Entropy((String) call.argument("mnemonicPhrase"));
+                    return api.mnemonicToBip39Entropy(getCallArgument(call,"mnemonicPhrase"));
                 case "Mnemonic#allWords":
                     return api.mnemonicAllWords();
                 default:
@@ -379,7 +386,7 @@ public class MobileCoinFlutterPlugin implements FlutterPlugin, MethodCallHandler
         @Override
         public Void setAuthorization(int mobileClientId, @NonNull String username, @NonNull String password) {
             FfiMobileCoinClient.setAuthorization(mobileClientId, username, password);
-            return (Void) null;
+            return null;
         }
 
         @Override

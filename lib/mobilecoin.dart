@@ -44,7 +44,7 @@ class MobileCoinFlutterPluginChannelApi {
     return BigInt.parse(balanceString);
   }
 
-  Future<String?> getAccountActivity({required int mobileCoinClientId}) async {
+  Future<String> getAccountActivity({required int mobileCoinClientId}) async {
     final Map<String, dynamic> params = <String, dynamic>{
       'id': mobileCoinClientId,
     };
@@ -115,13 +115,13 @@ class MobileCoinFlutterPluginChannelApi {
         "PrintableWrapper#fromB58String", params);
   }
 
-  Future<String?> printableWrapperToB58String({
+  Future<String> printableWrapperToB58String({
     required int printableWrapperId,
   }) async {
     final Map<String, dynamic> params = <String, dynamic>{
       'id': printableWrapperId,
     };
-    return _channel.invokeMethod("PrintableWrapper#toB58String", params);
+    return await _channel.invokeMethod("PrintableWrapper#toB58String", params);
   }
 
   Future<bool> printableWrapperHasPublicAddress({

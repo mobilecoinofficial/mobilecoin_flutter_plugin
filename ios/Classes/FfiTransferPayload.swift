@@ -9,11 +9,13 @@ import Foundation
 import MobileCoin
 
 struct FfiTransferPayload {
-
+    
     struct GetBip39Entropy: Command {
         func execute(args: [String : Any], result: @escaping FlutterResult) throws {
-            let payloadId: Int = args["id"] as! Int
-            let transferPayload = ObjectStorage.objectForKey(payloadId) as! TransferPayload
+            guard let payloadId: Int = args["id"] as? Int,
+                  let transferPayload = ObjectStorage.objectForKey(payloadId) as? TransferPayload else {
+                      throw PluginError.invalidArguments
+                  }
             // TODO: iOS SDK needs to add support for the bip39 entropy
             result(transferPayload.rootEntropy)
         }
@@ -21,19 +23,22 @@ struct FfiTransferPayload {
     
     struct GetMemo: Command {
         func execute(args: [String : Any], result: @escaping FlutterResult) throws {
-            let payloadId: Int = args["id"] as! Int
-            let transferPayload = ObjectStorage.objectForKey(payloadId) as! TransferPayload
+            guard let payloadId: Int = args["id"] as? Int,
+                  let transferPayload = ObjectStorage.objectForKey(payloadId) as? TransferPayload else {
+                      throw PluginError.invalidArguments
+                  }
             result(transferPayload.memo)
         }
     }
-
+    
     struct GetPublicKey: Command {
         func execute(args: [String : Any], result: @escaping FlutterResult) throws {
-            let payloadId: Int = args["id"] as! Int
-            let transferPayload = ObjectStorage.objectForKey(payloadId) as! TransferPayload
+            guard let payloadId: Int = args["id"] as? Int,
+                  let transferPayload = ObjectStorage.objectForKey(payloadId) as? TransferPayload else {
+                      throw PluginError.invalidArguments
+                  }
             let hashCode = transferPayload.hashValue
             result(hashCode)
         }
     }
 }
-

@@ -12,22 +12,11 @@ class Ffi {
 
     static void processSuccess(final Result result, final Object value) {
         final Handler handler = new Handler(Looper.getMainLooper());
-        handler.post(new Runnable() {
-            @Override
-            public void run() {
-                result.success(value);
-            }
-        });
+        handler.post(() -> result.success(value));
     }
 
     static void processError(final Result result, final String message, final Object details) {
         final Handler handler = new Handler(Looper.getMainLooper());
-        handler.post(new Runnable() {
-            @Override
-            public void run() {
-                // TODO: error codes?
-                result.error("-1", message, details);
-            }
-        });
+        handler.post(() -> result.error("NATIVE", message, details));
     }
 }

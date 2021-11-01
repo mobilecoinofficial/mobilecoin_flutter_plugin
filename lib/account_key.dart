@@ -11,13 +11,20 @@ class AccountKey extends PlatformObject {
   String fogReportUri;
   String reportId;
 
-  AccountKey(int objectId, this.bip39Entropy, this.fogReportUri,
-      this.fogAuthoritySpki, this.reportId)
-      : super(id: objectId);
+  AccountKey(
+    int objectId,
+    this.bip39Entropy,
+    this.fogReportUri,
+    this.fogAuthoritySpki,
+    this.reportId,
+  ) : super(id: objectId);
 
   static Future<AccountKey> fromBip39Entropy(
-      Uint8List entropy, String fogReportUri,
-      {required Uint8List fogAuthoritySpki, required String reportId}) async {
+    Uint8List entropy,
+    String fogReportUri, {
+    required Uint8List fogAuthoritySpki,
+    required String reportId,
+  }) async {
     final objectId = await MobileCoinFlutterPluginChannelApi.instance
         .getAccountKeyFromBip39Entropy(
       entropy: entropy,

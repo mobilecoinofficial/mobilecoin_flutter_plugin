@@ -8,6 +8,8 @@ import com.mobilecoin.lib.exceptions.SerializationException;
 
 import androidx.annotation.Keep;
 
+import java.util.Objects;
+
 @Keep
 public class FfiPrintableWrapper {
 
@@ -42,6 +44,7 @@ public class FfiPrintableWrapper {
     public static int getPublicAddress(int wrapperId) {
         PrintableWrapper printableWrapper = (PrintableWrapper) ObjectStorage.objectForKey(wrapperId);
         PublicAddress publicAddress = printableWrapper.getPublicAddress();
+        Objects.requireNonNull(publicAddress);
         final int hashCode = publicAddress.hashCode();
         ObjectStorage.addObject(hashCode, publicAddress);
         return hashCode;
@@ -50,7 +53,7 @@ public class FfiPrintableWrapper {
     public static int fromTransferPayload(int payloadId) throws SerializationException {
         TransferPayload transferPayload = (TransferPayload) ObjectStorage.objectForKey(payloadId);
         PrintableWrapper printableWrapper = PrintableWrapper.fromTransferPayload(transferPayload);
-        Integer hashCode = printableWrapper.hashCode();
+        final int hashCode = printableWrapper.hashCode();
         ObjectStorage.addObject(hashCode, printableWrapper);
         return hashCode;
     }
@@ -63,6 +66,7 @@ public class FfiPrintableWrapper {
     public static int getTransferPayload(int wrapperId) {
         PrintableWrapper printableWrapper = (PrintableWrapper) ObjectStorage.objectForKey(wrapperId);
         TransferPayload transferPayload = printableWrapper.getTransferPayload();
+        Objects.requireNonNull(transferPayload);
         final int hashCode = transferPayload.hashCode();
         ObjectStorage.addObject(hashCode, transferPayload);
         return hashCode;
@@ -76,6 +80,7 @@ public class FfiPrintableWrapper {
     public static int getPaymentRequest(int wrapperId) {
         PrintableWrapper printableWrapper = (PrintableWrapper) ObjectStorage.objectForKey(wrapperId);
         PaymentRequest paymentRequest = printableWrapper.getPaymentRequest();
+        Objects.requireNonNull(paymentRequest);
         final int hashCode = paymentRequest.hashCode();
         ObjectStorage.addObject(hashCode, paymentRequest);
         return hashCode;

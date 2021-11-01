@@ -5,7 +5,6 @@ import android.net.Uri;
 import android.util.Base64;
 import androidx.annotation.Keep;
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 
 import com.mobilecoin.lib.AccountKey;
 import com.mobilecoin.lib.MobileCoinClient;
@@ -29,10 +28,11 @@ import com.mobilecoin.lib.exceptions.InvalidUriException;
 import java.text.SimpleDateFormat;
 
 import org.json.JSONException;
-import java.math.BigDecimal;
 import java.math.BigInteger;
 import org.json.JSONArray;
 import org.json.JSONObject;
+
+import java.util.Locale;
 import java.util.Set;
 import java.util.Date;
 
@@ -53,14 +53,12 @@ public class FfiMobileCoinClient {
         return hashCode;
     }
 
-    @Nullable
     public static BigInteger getBalance(int mobileClientId)
             throws InvalidFogResponse, NetworkException, AttestationException {
         MobileCoinClient mobileCoinClient = (MobileCoinClient) ObjectStorage.objectForKey(mobileClientId);
         return mobileCoinClient.getBalance().getAmountPicoMob();
     }
 
-    @Nullable
     public static String getAccountActivity(int mobileClientId)
             throws NetworkException, InvalidFogResponse, AttestationException, JSONException {
         MobileCoinClient mobileCoinClient = (MobileCoinClient) ObjectStorage.objectForKey(mobileClientId);
@@ -89,7 +87,7 @@ public class FfiMobileCoinClient {
     }
 
     private static String formatDate(Date date) {
-        return new SimpleDateFormat("MM/dd/yyyy KK:mm:ss a Z").format(date);
+        return new SimpleDateFormat("MM/dd/yyyy KK:mm:ss a Z", Locale.US).format(date);
     }
 
     public static void setAuthorization(int mobileClientId, @NonNull String username, @NonNull String password) {
