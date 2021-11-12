@@ -1,8 +1,10 @@
 package com.mobilecoin.mobilecoin_flutter;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.annotation.VisibleForTesting;
 
+import com.mobilecoin.lib.UnsignedLong;
 import com.mobilecoin.lib.exceptions.AttestationException;
 import com.mobilecoin.lib.exceptions.BadEntropyException;
 import com.mobilecoin.lib.exceptions.FeeRejectedException;
@@ -151,6 +153,8 @@ public class MobileCoinFlutterPlugin implements FlutterPlugin, MethodCallHandler
                     return api.printableWrapperGetPublicAddress(getCallArgument(call,"id"));
                 case "PrintableWrapper#fromPublicAddress":
                     return api.printableWrapperFromPublicAddress(getCallArgument(call,"id"));
+                case "PrintableWrapper#fromPaymentRequest":
+                    return api.printableWrapperFromPaymentRequest(getCallArgument(call,"id"));
                 case "PrintableWrapper#hasTransferPayload":
                     return api.printableWrapperHasTransferPayload(getCallArgument(call,"id"));
                 case "PrintableWrapper#getTransferPayload":
@@ -171,6 +175,9 @@ public class MobileCoinFlutterPlugin implements FlutterPlugin, MethodCallHandler
                     return api.transferPayloadGetMemo(getCallArgument(call,"id"));
                 case "TransferPayload#getPublicKey":
                     return api.transferPayloadGetPublicKey(getCallArgument(call,"id"));
+                case "PaymentRequest#create":
+                    return api.paymentRequestCreate(getCallArgument(call,"publicAddressId"),
+                            getCallArgument(call, "amount"), getCallArgument(call, "memo"));
                 case "PaymentRequest#getMemo":
                     return api.paymentRequestGetMemo(getCallArgument(call,"id"));
                 case "PaymentRequest#getPublicAddress":
@@ -277,6 +284,12 @@ public class MobileCoinFlutterPlugin implements FlutterPlugin, MethodCallHandler
         int printableWrapperGetTransferPayload(int printableWrapperId);
 
         /**
+         * Returns the <code>PrintableWrapper</code> associated with the given
+         * <code>paymentRequestId</code>.
+         */
+        int printableWrapperFromPaymentRequest(int paymentRequestId) throws SerializationException;
+
+        /**
          * Returns true if the given <code>PrintableWrapper</code> has a paymentRequest
          * payload.
          */
@@ -325,6 +338,13 @@ public class MobileCoinFlutterPlugin implements FlutterPlugin, MethodCallHandler
          * then returns the public key's hash code.
          */
         int transferPayloadGetPublicKey(int transferPayloadId);
+
+        /**
+         * Creates a new <code>PaymentRequest</code> in local object storage, then
+         * returns its id.
+         */
+        int paymentRequestCreate(int publicAddressId, @Nullable String amount,
+                                 @Nullable String memo);
 
         /**
          * Looks up the given <code>PaymentRequest</code> in local object storage, then
@@ -444,6 +464,11 @@ public class MobileCoinFlutterPlugin implements FlutterPlugin, MethodCallHandler
         }
 
         @Override
+        public int printableWrapperFromPaymentRequest(int paymentRequestId) throws SerializationException {
+            return FfiPrintableWrapper.fromPaymentRequest(paymentRequestId);
+        }
+
+        @Override
         public boolean printableWrapperHasPaymentRequest(int printableWrapperId) {
             return FfiPrintableWrapper.hasPaymentRequest(printableWrapperId);
         }
@@ -481,6 +506,14 @@ public class MobileCoinFlutterPlugin implements FlutterPlugin, MethodCallHandler
         @Override
         public int transferPayloadGetPublicKey(int transferPayloadId) {
             return FfiTransferPayload.getPublicKey(transferPayloadId);
+        }
+
+        @Override
+        public int paymentRequestCreate(int publicAddressId, @Nullable String amount,
+                                        @Nullable String memo) {
+            UnsignedLong unsignedAmount =
+                    amount == null ? null : UnsignedLong.fromBigInteger(new BigInteger(amount));
+            return FfiPaymentRequest.create(publicAddressId, unsignedAmount, memo);
         }
 
         @Override

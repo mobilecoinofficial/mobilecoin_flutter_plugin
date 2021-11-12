@@ -270,7 +270,7 @@ class MobileCoinFlutterPluginChannelApi {
     final Map<String, dynamic> params = <String, dynamic>{
       'publicAddressId': publicAddress.id,
       'memo': memo,
-      'amount': amount?.toString(),
+      'amount': amount?.picoCountAsString(),
     };
     return await _channel.invokeMethod("PaymentRequest#create", params);
   }

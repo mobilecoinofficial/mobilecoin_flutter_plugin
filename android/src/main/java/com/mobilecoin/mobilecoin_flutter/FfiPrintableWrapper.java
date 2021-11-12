@@ -72,6 +72,13 @@ public class FfiPrintableWrapper {
         return hashCode;
     }
 
+    public static int fromPaymentRequest(int paymentRequestId) throws SerializationException {
+        PaymentRequest paymentRequest = (PaymentRequest) ObjectStorage.objectForKey(paymentRequestId);
+        PrintableWrapper printableWrapper = PrintableWrapper.fromPaymentRequest(paymentRequest);
+        final int hashCode = printableWrapper.hashCode();
+        ObjectStorage.addObject(hashCode, printableWrapper);
+        return hashCode;
+    }
     public static boolean hasPaymentRequest(int wrapperId) {
         PrintableWrapper printableWrapper = (PrintableWrapper) ObjectStorage.objectForKey(wrapperId);
         return printableWrapper.hasPaymentRequest();

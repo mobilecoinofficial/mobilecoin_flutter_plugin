@@ -1,15 +1,25 @@
 package com.mobilecoin.mobilecoin_flutter;
 
+import com.mobilecoin.lib.AccountKey;
 import com.mobilecoin.lib.PaymentRequest;
 import com.mobilecoin.lib.PublicAddress;
 import com.mobilecoin.lib.UnsignedLong;
 
 import androidx.annotation.Keep;
+import androidx.annotation.Nullable;
 
 @Keep
 public class FfiPaymentRequest {
 
-    private FfiPaymentRequest() {
+    public static int create(int publicAddressId, @Nullable UnsignedLong amount,
+                             @Nullable String memo) {
+        PublicAddress publicAddress = (PublicAddress) ObjectStorage.objectForKey(publicAddressId);
+        if (memo == null) memo = "";
+        if (amount == null) amount = UnsignedLong.ZERO;
+        PaymentRequest paymentRequest = new PaymentRequest(publicAddress, amount, memo);
+        final int hashCode = paymentRequest.hashCode();
+        ObjectStorage.addObject(hashCode, paymentRequest);
+        return hashCode;
     }
 
     public static String getValue(int requestId) {
