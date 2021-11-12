@@ -50,6 +50,8 @@ class CommandFactory {
             return FfiPrintableWrapper.GetTransferPayload()
         case "PrintableWrapper#hasTransferPayload":
             return FfiPrintableWrapper.HasTransferPayload()
+        case "PrintableWrapper#fromPaymentRequest":
+            return FfiPrintableWrapper.FromPaymentRequest()
         case "PrintableWrapper#getPaymentRequest":
             return FfiPrintableWrapper.GetPaymentRequest()
         case "PrintableWrapper#hasPaymentRequest":
@@ -60,6 +62,8 @@ class CommandFactory {
             return FfiTransferPayload.GetMemo()
         case "TransferPayload#getPublicKey":
             return FfiTransferPayload.GetPublicKey()
+        case "PaymentRequest#create":
+            return FfiPaymentRequest.Create()
         case "PaymentRequest#getMemo":
             return FfiPaymentRequest.GetMemo()
         case "PaymentRequest#getValue":

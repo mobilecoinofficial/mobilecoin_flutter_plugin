@@ -2,6 +2,7 @@ import 'dart:typed_data';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
+import 'package:mobilecoin_flutter/public_address.dart';
 
 import 'account_key.dart';
 import 'picomob.dart';
@@ -174,6 +175,16 @@ class MobileCoinFlutterPluginChannelApi {
         "PrintableWrapper#getTransferPayload", params);
   }
 
+  Future<int> printableWrapperFromPaymentRequest({
+    required int paymentRequestId,
+  }) async {
+    final Map<String, dynamic> params = <String, dynamic>{
+      'id': paymentRequestId,
+    };
+    return await _channel.invokeMethod(
+        "PrintableWrapper#fromPaymentRequest", params);
+  }
+
   Future<bool> printableWrapperHasPaymentRequest({
     required int printableWrapperId,
   }) async {
@@ -249,6 +260,19 @@ class MobileCoinFlutterPluginChannelApi {
       'id': transferPayloadId,
     };
     return await _channel.invokeMethod("TransferPayload#getPublicKey", params);
+  }
+
+  Future<int> paymentRequestCreate({
+    required PublicAddress publicAddress,
+    String? memo,
+    PicoMob? amount,
+  }) async {
+    final Map<String, dynamic> params = <String, dynamic>{
+      'publicAddressId': publicAddress.id,
+      'memo': memo,
+      'amount': amount?.toString(),
+    };
+    return await _channel.invokeMethod("PaymentRequest#create", params);
   }
 
   Future<String> paymentRequestGetMemo({

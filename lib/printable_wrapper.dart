@@ -56,6 +56,14 @@ class PrintableWrapper extends PlatformObject {
     return TransferPayload(objectId);
   }
 
+  static Future<PrintableWrapper> fromPaymentRequest(
+      PaymentRequest paymentRequest) async {
+    final objectId = await MobileCoinFlutterPluginChannelApi.instance
+        .printableWrapperFromPaymentRequest(
+            paymentRequestId: paymentRequest.id);
+    return PrintableWrapper(objectId);
+  }
+
   Future<bool> hasPaymentRequest() async {
     return await MobileCoinFlutterPluginChannelApi.instance
         .printableWrapperHasPaymentRequest(printableWrapperId: id);

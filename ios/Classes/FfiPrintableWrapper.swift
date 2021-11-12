@@ -122,6 +122,14 @@ struct FfiPrintableWrapper{
             }
         }
     }
+    struct FromPaymentRequest: Command {
+        func execute(args: [String : Any], result: @escaping FlutterResult) throws {
+            guard let id: Int = args["id"] as? Int else {
+                throw PluginError.invalidArguments
+            }
+            result(id)
+        }
+    }
     struct HasPaymentRequest: Command {
         func execute(args: [String : Any], result: @escaping FlutterResult) throws {
             guard let id: Int = args["id"] as? Int else {
