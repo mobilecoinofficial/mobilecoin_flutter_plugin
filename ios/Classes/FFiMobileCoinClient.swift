@@ -161,7 +161,7 @@ struct FfiMobileCoinClient {
             }
         }
     }
-    
+
     struct GetAccountActivity: Command {
         func execute(args: [String : Any], result: @escaping FlutterResult) throws {
             guard let clientId: Int = args["id"] as? Int,
@@ -215,6 +215,43 @@ struct FfiMobileCoinClient {
             }
         }
     }
+
+    struct CheckTransactionStatus: Command {
+        func execute(args: [String : Any], result: @escaping FlutterResult) throws {
+            guard let mobileClientId: Int = args["id"] as? Int,
+                  let transactionId: Int = args["transactionId"] as? Int else {
+                result(-1)
+                throw PluginError.invalidArguments
+            }
+
+            guard let mobileCoinClient: MobileCoinClient = ObjectStorage.objectForKey(mobileClientId) as? MobileCoinClient else {
+                result(-2)
+                throw PluginError.invalidArguments
+            }
+
+            guard let transaction: Transaction = ObjectStorage.objectForKey(transactionId) as? Transaction else {
+                result(-3)
+                throw PluginError.invalidArguments
+            }
+
+            mobileCoinClient.updateBalance {_ in}
+            mobileCoinClient.status(of: transaction) { (statusResult: Result<TransactionStatus, ConnectionError>) in
+                switch statusResult {
+                case .success(let status):
+                    switch status {
+                    case .unknown:
+                        result(0)
+                    case .accepted(block: _):
+                        result(1)
+                    case .failed:
+                        result(2)
+                    }
+                case .failure(let error):
+                    result(FlutterError(code: "NATIVE", message: error.localizedDescription, details: nil))
+                }
+            }
+        }
+    }
     
     struct SendFunds: Command {
         func execute(args: [String : Any], result: @escaping FlutterResult) throws {
@@ -226,40 +263,19 @@ struct FfiMobileCoinClient {
                   let amount = UInt64(amountString) else {
                       throw PluginError.invalidArguments
                   }
-            var checkStatus: (() -> Void)!
             guard let recipient: PublicAddress = ObjectStorage.objectForKey(recipientId) as? PublicAddress,
                   let mobileCoinClient: MobileCoinClient = ObjectStorage.objectForKey(mobileClientId) as? MobileCoinClient else {
                       throw PluginError.invalidArguments
                   }
             mobileCoinClient.prepareTransaction(to: recipient, amount: amount, fee: fee) { (pendingTx: Result<(transaction: Transaction, receipt: Receipt), TransactionPreparationError>) in
                 switch pendingTx {
-                case .success(let (transaction, receipt)):
+                case .success(let (transaction, _)):
                     mobileCoinClient.submitTransaction(transaction) { (txResult: Result<(), TransactionSubmissionError>) in
                         switch txResult {
                         case .success():
-                            checkStatus = {
-                                mobileCoinClient.updateBalance {_ in}
-                                mobileCoinClient.status(of: transaction) { (statusResult: Result<TransactionStatus, ConnectionError>) in
-                                    switch statusResult {
-                                    case .success(let status):
-                                        switch status {
-                                        case .unknown:
-                                            DispatchQueue.global(qos: .background).asyncAfter(deadline: DispatchTime.now() + .seconds(2)) {
-                                                checkStatus()
-                                            }
-                                        case .accepted(block: _):
-                                            let hashCode = receipt.hashValue
-                                            ObjectStorage.addObject(receipt, forKey: hashCode)
-                                            result(hashCode)
-                                        case .failed:
-                                            result(FlutterError(code: "NATIVE", message: "Transaction failed", details: nil))
-                                        }
-                                    case .failure(let error):
-                                        result(FlutterError(code: "NATIVE", message: error.localizedDescription, details: nil))
-                                    }
-                                }
-                            }
-                            checkStatus()
+                            let hashCode = transaction.hashValue
+                            ObjectStorage.addObject(transaction, forKey: hashCode)
+                            result(hashCode)
                         case .failure(let error):
                             result(FlutterError(code: "NATIVE", message: error.localizedDescription, details: nil))
                         }

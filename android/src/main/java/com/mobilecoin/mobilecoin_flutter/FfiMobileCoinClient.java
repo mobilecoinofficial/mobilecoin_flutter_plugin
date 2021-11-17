@@ -10,7 +10,6 @@ import com.mobilecoin.lib.AccountKey;
 import com.mobilecoin.lib.MobileCoinClient;
 import com.mobilecoin.lib.PendingTransaction;
 import com.mobilecoin.lib.PublicAddress;
-import com.mobilecoin.lib.Receipt;
 import com.mobilecoin.lib.Transaction;
 import com.mobilecoin.lib.AccountActivity;
 import com.mobilecoin.lib.OwnedTxOut;
@@ -95,6 +94,22 @@ public class FfiMobileCoinClient {
         mobileCoinClient.setFogBasicAuthorization(username, password);
     }
 
+    public static int checkTransactionStatus(int mobileClientId, int transactionId) throws AttestationException, InvalidFogResponse, NetworkException {
+        MobileCoinClient mobileCoinClient = (MobileCoinClient) ObjectStorage.objectForKey(mobileClientId);
+        Transaction transaction = (Transaction) ObjectStorage.objectForKey(transactionId);
+
+        Transaction.Status status = mobileCoinClient.getTransactionStatus(transaction);
+        switch (status) {
+            case ACCEPTED:
+                return 1;
+            case FAILED:
+                return 2;
+            case UNKNOWN:
+            default:
+                return 0;
+        }
+    }
+
     public static int sendFunds(int mobileClientId, int recipientId, @NonNull PicoMob fee, @NonNull PicoMob amount)
             throws InvalidTransactionException, InsufficientFundsException, AttestationException, InvalidFogResponse,
             FragmentedAccountException, FeeRejectedException, InterruptedException, NetworkException,
@@ -106,16 +121,10 @@ public class FfiMobileCoinClient {
                 fee.getPicoCountAsBigInt());
         mobileCoinClient.submitTransaction(pending.getTransaction());
 
-        Transaction.Status status;
-        do {
-            Thread.sleep(1000);
-            status = mobileCoinClient.getTransactionStatus(pending.getTransaction());
-        } while (status == Transaction.Status.UNKNOWN);
+        Transaction transaction = pending.getTransaction();
+        final int transactionHashCode = transaction.hashCode();
+        ObjectStorage.addObject(transactionHashCode, transaction);
 
-        Receipt receipt = pending.getReceipt();
-        final int receiptId = receipt.hashCode();
-        ObjectStorage.addObject(receiptId, receipt);
-
-        return receiptId;
+        return transactionHashCode;
     }
 }

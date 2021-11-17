@@ -137,6 +137,8 @@ public class MobileCoinFlutterPlugin implements FlutterPlugin, MethodCallHandler
                             "recipient"),
                             PicoMob.parsePico(getCallArgument(call, "fee")),
                             PicoMob.parsePico(getCallArgument(call,"amount")));
+                case "MobileCoinClient#checkTransactionStatus":
+                    return api.checkTransactionStatus(getCallArgument(call, "id"), getCallArgument(call, "transactionId"));
                 case "AccountKey#fromBip39Entropy":
                     return api.getAccountKeyFromBip39Entropy(getCallArgument(call,"bip39Entropy"),
                             call.argument("fogReportUri"), getCallArgument(call,"reportId"),
@@ -227,6 +229,13 @@ public class MobileCoinFlutterPlugin implements FlutterPlugin, MethodCallHandler
                 throws InvalidFogResponse, InterruptedException, InvalidTransactionException, AttestationException,
                 FeeRejectedException, InsufficientFundsException, FragmentedAccountException, NetworkException,
                 TransactionBuilderException, FogReportException;
+
+        /**
+         * Checks to see if a transaction has gone through, given a transactionId
+         * returns an integer representing the results.
+         */
+        Integer checkTransactionStatus(int mobileClientId, int transactionId)
+                throws AttestationException, InvalidFogResponse, NetworkException;
 
         /**
          */
@@ -415,6 +424,13 @@ public class MobileCoinFlutterPlugin implements FlutterPlugin, MethodCallHandler
                 FeeRejectedException, InsufficientFundsException, FragmentedAccountException, NetworkException,
                 TransactionBuilderException, FogReportException {
             return FfiMobileCoinClient.sendFunds(mobileClientId, recipientId, fee, amount);
+        }
+
+
+        @Override
+        public Integer checkTransactionStatus(int mobileClientId, int transactionId)
+                throws AttestationException, InvalidFogResponse, NetworkException {
+            return FfiMobileCoinClient.checkTransactionStatus(mobileClientId, transactionId);
         }
 
         @Override

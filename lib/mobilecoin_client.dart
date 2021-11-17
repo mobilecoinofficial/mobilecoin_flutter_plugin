@@ -1,9 +1,9 @@
 import 'dart:async';
 import 'package:mobilecoin_flutter/mobilecoin.dart';
+import 'package:mobilecoin_flutter/transaction.dart';
 
 import 'picomob.dart';
 import 'public_address.dart';
-import 'receipt.dart';
 
 import 'account_key.dart';
 import 'platform_object.dart';
@@ -27,19 +27,28 @@ class MobileCoinClient extends PlatformObject {
     return MobileCoinClient(accountKey, objectId);
   }
 
-  Future<Receipt> sendFunds(
+  Future<Transaction> sendFunds(
     PublicAddress recipient,
     PicoMob amount,
     PicoMob fee,
   ) async {
-    final receiptId =
+    final transactionId =
         await MobileCoinFlutterPluginChannelApi.instance.sendFunds(
       mobileClientId: id,
       recipientId: recipient.id,
       fee: fee,
       amount: amount,
     );
-    return Receipt(receiptId);
+    return Transaction(transactionId);
+  }
+
+  Future<int> checkTransactionStatus(
+    int transactionId,
+  ) async {
+    final result = await MobileCoinFlutterPluginChannelApi.instance
+        .checkTransactionStatus(
+            mobileClientId: id, transactionId: transactionId);
+    return result;
   }
 
   Future<BigInt> getBalance() async {

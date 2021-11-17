@@ -30,6 +30,8 @@ class CommandFactory {
             return FfiMobileCoinClient.SetAuthorization()
         case "MobileCoinClient#sendFunds":
             return FfiMobileCoinClient.SendFunds()
+        case "MobileCoinClient#checkTransactionStatus":
+            return FfiMobileCoinClient.CheckTransactionStatus()
         case "PublicAddress#fromBytes":
             return FfiPublicAddress.FromBytes()
         case "PublicAddress#toByteArray":

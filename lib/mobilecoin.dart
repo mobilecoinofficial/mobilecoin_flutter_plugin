@@ -69,6 +69,19 @@ class MobileCoinFlutterPluginChannelApi {
     return await _channel.invokeMethod("MobileCoinClient#sendFunds", params);
   }
 
+  Future<int> checkTransactionStatus({
+    required int mobileClientId,
+    required int transactionId,
+  }) async {
+    final Map<String, dynamic> params = <String, dynamic>{
+      'id': mobileClientId,
+      'transactionId': transactionId,
+    };
+
+    return await _channel.invokeMethod(
+        "MobileCoinClient#checkTransactionStatus", params);
+  }
+
   ///Set the basic HTTP authorization username and password for future requests
   Future<void> setAuthorization({
     required int mobileClientId,
