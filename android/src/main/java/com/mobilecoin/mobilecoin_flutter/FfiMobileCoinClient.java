@@ -41,7 +41,8 @@ public class FfiMobileCoinClient {
     private FfiMobileCoinClient() {
     }
 
-    public static int create(int accountKeyId, String fogUrl, String consensusUrl) throws InvalidUriException {
+    public static int create(int accountKeyId, String fogUrl, String consensusUrl, boolean useTestNet)
+            throws InvalidUriException {
         AccountKey accountKey = (AccountKey) ObjectStorage.objectForKey(accountKeyId);
 
         MobileCoinClient mobileCoinClient = new MobileCoinClient(accountKey, Uri.parse(fogUrl),

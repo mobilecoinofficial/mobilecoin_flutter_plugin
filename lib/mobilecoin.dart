@@ -27,11 +27,13 @@ class MobileCoinFlutterPluginChannelApi {
     required AccountKey accountKey,
     required String fogUrl,
     required String consensusUrl,
+    required bool useTestNet,
   }) async {
     final Map<String, dynamic> params = <String, dynamic>{
       'accountKey': accountKey.id,
       'fogUrl': fogUrl,
-      'consensusUrl': consensusUrl
+      'consensusUrl': consensusUrl,
+      'useTestNet': useTestNet,
     };
     return await _channel.invokeMethod("MobileCoinClient#create", params);
   }

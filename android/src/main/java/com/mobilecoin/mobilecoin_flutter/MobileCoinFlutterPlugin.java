@@ -110,7 +110,7 @@ public class MobileCoinFlutterPlugin implements FlutterPlugin, MethodCallHandler
         @NonNull
         private <T> T getCallArgument(@NonNull MethodCall call, @NonNull String key) {
             T argument = call.argument(key);
-            if (null ==  argument) {
+            if (null == argument) {
                 throw new IllegalArgumentException();
             }
             return argument;
@@ -203,7 +203,7 @@ public class MobileCoinFlutterPlugin implements FlutterPlugin, MethodCallHandler
          * Creates a new <code>FftMobileCoinClient</code> and returns the hashCode of
          * the new instance.
          */
-        Integer createMobileCoinClient(Integer accountKey, String fogUrl, String consensusUrl)
+        Integer createMobileCoinClient(Integer accountKey, String fogUrl, String consensusUrl, boolean useTestNet)
                 throws InvalidUriException;
 
         /**
@@ -369,25 +369,26 @@ public class MobileCoinFlutterPlugin implements FlutterPlugin, MethodCallHandler
 
         /**
          * Looks up the given <code>PaymentRequest</code> in local object storage, then
-         * retrieves its public address, stores that public address in local object storage, and
-         * then returns the public address' hash code.
+         * retrieves its public address, stores that public address in local object
+         * storage, and then returns the public address' hash code.
          */
         int paymentRequestGetPublicAddress(int paymentRequestId);
 
         /**
-         * Convert the given b39 entropy into the mnemonic phrase
-         * The mnemonic phrase is a string of 24 words delimited by a space
+         * Convert the given b39 entropy into the mnemonic phrase The mnemonic phrase is
+         * a string of 24 words delimited by a space
          */
         String mnemonicFromBip39Entropy(byte[] entropy) throws BadEntropyException;
 
         /**
-         * Convert mnemonic phrase into the b39 entropy
-         * The mnemonic phrase is a string of 24 words delimited by a space
+         * Convert mnemonic phrase into the b39 entropy The mnemonic phrase is a string
+         * of 24 words delimited by a space
          */
         byte[] mnemonicToBip39Entropy(String mnemonicPhrase) throws BadMnemonicException;
 
         /**
-         * Returns a list of all allowed words for mnemonic phrases as a <code>String</code>
+         * Returns a list of all allowed words for mnemonic phrases as a
+         * <code>String</code>
          */
         String mnemonicAllWords() throws BadMnemonicException;
     }
@@ -395,9 +396,9 @@ public class MobileCoinFlutterPlugin implements FlutterPlugin, MethodCallHandler
     static class DefaultMobileCoinFlutterPluginChannelApi implements MobileCoinFlutterPluginChannelApi {
 
         @Override
-        public Integer createMobileCoinClient(Integer accountKey, String fogUrl, String consensusUrl)
-                throws InvalidUriException {
-            return FfiMobileCoinClient.create(accountKey, fogUrl, consensusUrl);
+        public Integer createMobileCoinClient(Integer accountKey, String fogUrl, String consensusUrl,
+                boolean useTestNet) throws InvalidUriException {
+            return FfiMobileCoinClient.create(accountKey, fogUrl, consensusUrl, useTestNet);
         }
 
         @Override

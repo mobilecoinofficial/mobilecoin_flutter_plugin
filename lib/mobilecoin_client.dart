@@ -17,12 +17,14 @@ class MobileCoinClient extends PlatformObject {
     AccountKey accountKey,
     String fogUrl,
     String consensusUrl,
+    bool useTestNet,
   ) async {
     final objectId =
         await MobileCoinFlutterPluginChannelApi.instance.createMobileCoinClient(
       accountKey: accountKey,
       fogUrl: fogUrl,
       consensusUrl: consensusUrl,
+      useTestNet: useTestNet,
     );
     return MobileCoinClient(accountKey, objectId);
   }
