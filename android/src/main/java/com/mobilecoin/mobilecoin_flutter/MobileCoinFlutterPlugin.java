@@ -119,81 +119,79 @@ public class MobileCoinFlutterPlugin implements FlutterPlugin, MethodCallHandler
         public Object onMethodCall(@NonNull final MethodCall call) throws Exception {
             String message = call.method;
             switch (message) {
-                case "MobileCoinClient#create":
-                    return api.createMobileCoinClient(getCallArgument(call, "accountKey"),
-                            getCallArgument(call, "fogUrl"), getCallArgument(call, "consensusUrl"));
-                case "MobileCoinClient#getAccountActivity":
-                    return api.getAccountActivity(getCallArgument(call, "id"));
+            case "MobileCoinClient#create":
+                return api.createMobileCoinClient(getCallArgument(call, "accountKey"), getCallArgument(call, "fogUrl"),
+                        getCallArgument(call, "consensusUrl"), getCallArgument(call, "useTestNet"));
+            case "MobileCoinClient#getAccountActivity":
+                return api.getAccountActivity(getCallArgument(call, "id"));
 
-                case "MobileCoinClient#getBalance":
-                    BigInteger balance = api.getBalance(getCallArgument(call, "id"));
-                    return balance.toString();
-                case "MobileCoinClient#setAuthorization":
-                    return api.setAuthorization(getCallArgument(call, "id"), getCallArgument(call,
-                            "username"),
-                            getCallArgument(call, "password"));
-                case "MobileCoinClient#sendFunds":
-                    return api.sendFunds(getCallArgument(call, "id"), getCallArgument(call,
-                            "recipient"),
-                            PicoMob.parsePico(getCallArgument(call, "fee")),
-                            PicoMob.parsePico(getCallArgument(call,"amount")));
-                case "MobileCoinClient#checkTransactionStatus":
-                    return api.checkTransactionStatus(getCallArgument(call, "id"), getCallArgument(call, "transactionId"));
-                case "AccountKey#fromBip39Entropy":
-                    return api.getAccountKeyFromBip39Entropy(getCallArgument(call,"bip39Entropy"),
-                            call.argument("fogReportUri"), getCallArgument(call,"reportId"),
-                            call.argument("fogAuthoritySpki"));
-                case "AccountKey#getPublicAddress":
-                    return api.getAccountKeyPublicAddress(getCallArgument(call,"id"));
-                case "PrintableWrapper#fromB58String":
-                    return api.printableWrapperFromB58String(getCallArgument(call,"b58String"));
-                case "PrintableWrapper#toB58String":
-                    return api.printableWrapperToB58String(getCallArgument(call,"id"));
-                case "PrintableWrapper#hasPublicAddress":
-                    return api.printableWrapperHasPublicAddress(getCallArgument(call,"id"));
-                case "PrintableWrapper#getPublicAddress":
-                    return api.printableWrapperGetPublicAddress(getCallArgument(call,"id"));
-                case "PrintableWrapper#fromPublicAddress":
-                    return api.printableWrapperFromPublicAddress(getCallArgument(call,"id"));
-                case "PrintableWrapper#fromPaymentRequest":
-                    return api.printableWrapperFromPaymentRequest(getCallArgument(call,"id"));
-                case "PrintableWrapper#hasTransferPayload":
-                    return api.printableWrapperHasTransferPayload(getCallArgument(call,"id"));
-                case "PrintableWrapper#getTransferPayload":
-                    return api.printableWrapperGetTransferPayload(getCallArgument(call,"id"));
-                case "PrintableWrapper#hasPaymentRequest":
-                    return api.printableWrapperHasPaymentRequest(getCallArgument(call,"id"));
-                case "PrintableWrapper#getPaymentRequest":
-                    return api.printableWrapperGetPaymentRequest(getCallArgument(call,"id"));
-                case "PrintableWrapper#fromTransferPayload":
-                    return api.printableWrapperFromTransferPayload(getCallArgument(call,"id"));
-                case "PublicAddress#fromBytes":
-                    return api.publicAddressFromBytes(getCallArgument(call,"serializedBytes"));
-                case "PublicAddress#toByteArray":
-                    return api.publicAddressToByteArray(getCallArgument(call,"id"));
-                case "TransferPayload#getBip39Entropy":
-                    return api.transferPayloadGetBip39Entropy(getCallArgument(call,"id"));
-                case "TransferPayload#getMemo":
-                    return api.transferPayloadGetMemo(getCallArgument(call,"id"));
-                case "TransferPayload#getPublicKey":
-                    return api.transferPayloadGetPublicKey(getCallArgument(call,"id"));
-                case "PaymentRequest#create":
-                    return api.paymentRequestCreate(getCallArgument(call,"publicAddressId"),
-                            getCallArgument(call, "amount"), getCallArgument(call, "memo"));
-                case "PaymentRequest#getMemo":
-                    return api.paymentRequestGetMemo(getCallArgument(call,"id"));
-                case "PaymentRequest#getPublicAddress":
-                    return api.paymentRequestGetPublicAddress(getCallArgument(call,"id"));
-                case "PaymentRequest#getValue":
-                    return api.paymentRequestGetValue(getCallArgument(call,"id"));
-                case "Mnemonic#fromBip39Entropy":
-                    return api.mnemonicFromBip39Entropy(getCallArgument(call,"bip39Entropy"));
-                case "Mnemonic#toBip39Entropy":
-                    return api.mnemonicToBip39Entropy(getCallArgument(call,"mnemonicPhrase"));
-                case "Mnemonic#allWords":
-                    return api.mnemonicAllWords();
-                default:
-                    throw new UnsupportedOperationException();
+            case "MobileCoinClient#getBalance":
+                BigInteger balance = api.getBalance(getCallArgument(call, "id"));
+                return balance.toString();
+            case "MobileCoinClient#setAuthorization":
+                return api.setAuthorization(getCallArgument(call, "id"), getCallArgument(call, "username"),
+                        getCallArgument(call, "password"));
+            case "MobileCoinClient#sendFunds":
+                return api.sendFunds(getCallArgument(call, "id"), getCallArgument(call, "recipient"),
+                        PicoMob.parsePico(getCallArgument(call, "fee")),
+                        PicoMob.parsePico(getCallArgument(call, "amount")));
+            case "MobileCoinClient#checkTransactionStatus":
+                return api.checkTransactionStatus(getCallArgument(call, "id"), getCallArgument(call, "transactionId"));
+            case "AccountKey#fromBip39Entropy":
+                return api.getAccountKeyFromBip39Entropy(getCallArgument(call, "bip39Entropy"),
+                        call.argument("fogReportUri"), getCallArgument(call, "reportId"),
+                        call.argument("fogAuthoritySpki"));
+            case "AccountKey#getPublicAddress":
+                return api.getAccountKeyPublicAddress(getCallArgument(call, "id"));
+            case "PrintableWrapper#fromB58String":
+                return api.printableWrapperFromB58String(getCallArgument(call, "b58String"));
+            case "PrintableWrapper#toB58String":
+                return api.printableWrapperToB58String(getCallArgument(call, "id"));
+            case "PrintableWrapper#hasPublicAddress":
+                return api.printableWrapperHasPublicAddress(getCallArgument(call, "id"));
+            case "PrintableWrapper#getPublicAddress":
+                return api.printableWrapperGetPublicAddress(getCallArgument(call, "id"));
+            case "PrintableWrapper#fromPublicAddress":
+                return api.printableWrapperFromPublicAddress(getCallArgument(call, "id"));
+            case "PrintableWrapper#fromPaymentRequest":
+                return api.printableWrapperFromPaymentRequest(getCallArgument(call, "id"));
+            case "PrintableWrapper#hasTransferPayload":
+                return api.printableWrapperHasTransferPayload(getCallArgument(call, "id"));
+            case "PrintableWrapper#getTransferPayload":
+                return api.printableWrapperGetTransferPayload(getCallArgument(call, "id"));
+            case "PrintableWrapper#hasPaymentRequest":
+                return api.printableWrapperHasPaymentRequest(getCallArgument(call, "id"));
+            case "PrintableWrapper#getPaymentRequest":
+                return api.printableWrapperGetPaymentRequest(getCallArgument(call, "id"));
+            case "PrintableWrapper#fromTransferPayload":
+                return api.printableWrapperFromTransferPayload(getCallArgument(call, "id"));
+            case "PublicAddress#fromBytes":
+                return api.publicAddressFromBytes(getCallArgument(call, "serializedBytes"));
+            case "PublicAddress#toByteArray":
+                return api.publicAddressToByteArray(getCallArgument(call, "id"));
+            case "TransferPayload#getBip39Entropy":
+                return api.transferPayloadGetBip39Entropy(getCallArgument(call, "id"));
+            case "TransferPayload#getMemo":
+                return api.transferPayloadGetMemo(getCallArgument(call, "id"));
+            case "TransferPayload#getPublicKey":
+                return api.transferPayloadGetPublicKey(getCallArgument(call, "id"));
+            case "PaymentRequest#create":
+                return api.paymentRequestCreate(getCallArgument(call, "publicAddressId"),
+                        getCallArgument(call, "amount"), getCallArgument(call, "memo"));
+            case "PaymentRequest#getMemo":
+                return api.paymentRequestGetMemo(getCallArgument(call, "id"));
+            case "PaymentRequest#getPublicAddress":
+                return api.paymentRequestGetPublicAddress(getCallArgument(call, "id"));
+            case "PaymentRequest#getValue":
+                return api.paymentRequestGetValue(getCallArgument(call, "id"));
+            case "Mnemonic#fromBip39Entropy":
+                return api.mnemonicFromBip39Entropy(getCallArgument(call, "bip39Entropy"));
+            case "Mnemonic#toBip39Entropy":
+                return api.mnemonicToBip39Entropy(getCallArgument(call, "mnemonicPhrase"));
+            case "Mnemonic#allWords":
+                return api.mnemonicAllWords();
+            default:
+                throw new UnsupportedOperationException();
             }
         }
     }
@@ -352,8 +350,7 @@ public class MobileCoinFlutterPlugin implements FlutterPlugin, MethodCallHandler
          * Creates a new <code>PaymentRequest</code> in local object storage, then
          * returns its id.
          */
-        int paymentRequestCreate(int publicAddressId, @Nullable String amount,
-                                 @Nullable String memo);
+        int paymentRequestCreate(int publicAddressId, @Nullable String amount, @Nullable String memo);
 
         /**
          * Looks up the given <code>PaymentRequest</code> in local object storage, then
@@ -426,7 +423,6 @@ public class MobileCoinFlutterPlugin implements FlutterPlugin, MethodCallHandler
                 TransactionBuilderException, FogReportException {
             return FfiMobileCoinClient.sendFunds(mobileClientId, recipientId, fee, amount);
         }
-
 
         @Override
         public Integer checkTransactionStatus(int mobileClientId, int transactionId)
@@ -526,10 +522,8 @@ public class MobileCoinFlutterPlugin implements FlutterPlugin, MethodCallHandler
         }
 
         @Override
-        public int paymentRequestCreate(int publicAddressId, @Nullable String amount,
-                                        @Nullable String memo) {
-            UnsignedLong unsignedAmount =
-                    amount == null ? null : UnsignedLong.fromBigInteger(new BigInteger(amount));
+        public int paymentRequestCreate(int publicAddressId, @Nullable String amount, @Nullable String memo) {
+            UnsignedLong unsignedAmount = amount == null ? null : UnsignedLong.fromBigInteger(new BigInteger(amount));
             return FfiPaymentRequest.create(publicAddressId, unsignedAmount, memo);
         }
 
