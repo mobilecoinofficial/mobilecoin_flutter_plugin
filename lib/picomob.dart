@@ -34,7 +34,7 @@ class PicoMob {
     return PicoMob.fromPicoBigInt(_picoMobs - other._picoMobs);
   }
 
-  /// Multiplies `this` `PicoMob` by the `other` `PicoMob` and returns the result.
+  /// Multiplies `this.PicoMob` by `other.PicoMob` and returns the result.
   PicoMob operator *(PicoMob other) {
     return PicoMob.fromPicoBigInt(_picoMobs * other._picoMobs);
   }
