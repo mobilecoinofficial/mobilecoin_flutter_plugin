@@ -424,6 +424,13 @@ public class MobileCoinFlutterPlugin implements FlutterPlugin, MethodCallHandler
             return FfiMobileCoinClient.sendFunds(mobileClientId, recipientId, fee, amount);
         }
 
+
+        @Override
+        public Integer checkTransactionStatus(int mobileClientId, int transactionId)
+                throws AttestationException, InvalidFogResponse, NetworkException {
+            return FfiMobileCoinClient.checkTransactionStatus(mobileClientId, transactionId);
+        }
+
         @Override
         public Integer checkTransactionStatus(int mobileClientId, int transactionId)
                 throws AttestationException, InvalidFogResponse, NetworkException {
