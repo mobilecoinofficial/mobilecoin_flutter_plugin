@@ -432,12 +432,6 @@ public class MobileCoinFlutterPlugin implements FlutterPlugin, MethodCallHandler
         }
 
         @Override
-        public Integer checkTransactionStatus(int mobileClientId, int transactionId)
-                throws AttestationException, InvalidFogResponse, NetworkException {
-            return FfiMobileCoinClient.checkTransactionStatus(mobileClientId, transactionId);
-        }
-
-        @Override
         public int getAccountKeyFromBip39Entropy(byte[] entropy, String fogReportUri, String reportId,
                 byte[] fogAuthoritySpki) throws InvalidUriException, BadEntropyException {
             return FfiAccountKey.fromBip39Entropy(entropy, fogReportUri, reportId, fogAuthoritySpki);
