@@ -13,8 +13,7 @@ public class FfiTransferPayload {
 
     public static byte[] getBip39Entropy(int payloadId) {
         TransferPayload transferPayload = (TransferPayload) ObjectStorage.objectForKey(payloadId);
-        // todo
-        return transferPayload.getRootEntropy();
+        return transferPayload.getBip39Entropy();
     }
 
     public static String getMemo(int payloadId) {

@@ -15,7 +15,7 @@ A new flutter plugin project.
   s.source           = { :path => '.' }
   s.source_files = 'Classes/**/*'
   s.dependency 'Flutter'
-  s.dependency 'MobileCoin', '~> 1.2.0-pre2'
+  s.dependency 'MobileCoin', '~> 1.2.0-pre5'
   s.platform = :ios, '10.0'
 
   # Flutter.framework does not contain a i386 slice.

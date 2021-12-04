@@ -16,8 +16,7 @@ struct FfiTransferPayload {
                   let transferPayload = ObjectStorage.objectForKey(payloadId) as? TransferPayload else {
                       throw PluginError.invalidArguments
                   }
-            // TODO: iOS SDK needs to add support for the bip39 entropy
-            result(transferPayload.rootEntropy)
+            result(transferPayload.bip39)
         }
     }
     
