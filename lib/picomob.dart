@@ -52,6 +52,9 @@ class PicoMob {
   String mobFractionAsString() => (_picoMobs.toDouble() / 1e12).toString();
 
   @override
+  String toString() => _picoMobs.toString();
+
+  @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       other is PicoMob &&
