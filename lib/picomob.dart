@@ -58,6 +58,9 @@ class PicoMob {
   PicoMob get negated => this * PicoMob.fromPicoBigInt(BigInt.from(-1));
 
   @override
+  String toString() => _picoMobs.toString();
+
+  @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       other is PicoMob &&
