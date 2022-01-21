@@ -42,6 +42,16 @@ class PicoMob {
     return PicoMob.fromPicoBigInt(_picoMobs * other._picoMobs);
   }
 
+  /// Compares [_picoMobs] by [other] and returns true if [_picoMobs] is greater
+  bool operator >(PicoMob other) {
+    return _picoMobs > other._picoMobs;
+  }
+
+  /// Compares [_picoMobs] by [other] and returns true if [other] is greater
+  bool operator <(PicoMob other) {
+    return _picoMobs < other._picoMobs;
+  }
+
   /// Returns the number of pico MOBs as a [BigInt].
   BigInt picoCountAsBigInt() => _picoMobs;
 
