@@ -1,0 +1,151 @@
+name: build
+
+on:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+env:
+  FLUTTER_VERSION: 2.10.2
+
+jobs:
+  android:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: 'Checkout Repo'
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0 # to get all branches and tags
+
+      - name: 'Set Java version'
+        uses: actions/setup-java@v2
+        with:
+          distribution: 'zulu'
+          java-version: '12'
+          cache: 'gradle'
+
+      - name: 'Cache Flutter'
+        id: flutter-cache
+        uses: actions/cache@v2
+        with:
+          key: ${{ runner.OS }}-flutter-install-cache-${{ env.FLUTTER_VERSION }}
+          path: /opt/hostedtoolcache/flutter
+
+      - name: 'Cache Flutter dependencies'
+        id: pub-cache
+        uses: actions/cache@v2
+        with:
+          key: ${{ runner.os }}-pub-${{ hashFiles('**/pubspec.lock') }}
+          path: |
+            ${{ env.FLUTTER_HOME }}/.pub-cache
+            **/.packages
+            **/.flutter-plugins
+            **/.flutter-plugin-dependencies
+            **/.dart_tool/package_config.json
+
+      - name: 'Set Flutter version'
+        if: steps.flutter-cache.cache.outputs.cache-hit != 'true'
+        uses: subosito/flutter-action@v1
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+
+      - name: 'Install Dart dependencies'
+        if: steps.pub-cache.cache.outputs.cache-hit != 'true'
+        run: flutter pub get;
+
+      - name: 'Format'
+        run: flutter format --set-exit-if-changed lib test example/lib example/test
+
+      - uses: invertase/github-action-dart-analyzer@v1
+        with:
+          fatal-infos: true
+          fatal-warnings: true
+          annotate: true
+          working-directory: ./lib
+
+      - name: 'Run unit tests'
+        run: flutter test --no-pub --coverage --test-randomize-ordering-seed random
+
+      - name: 'Build example'
+        run: |
+          cd ${{ github.workspace }}/example;
+          flutter build apk;
+
+  ios:
+    runs-on: macos-11
+    timeout-minutes: 20
+    steps:
+      - name: 'Checkout Repo'
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0 # to get all branches and tags
+
+      - name: 'Cache Flutter'
+        id: flutter-cache
+        uses: actions/cache@v2
+        with:
+          key: ${{ runner.OS }}-flutter-install-cache-${{ env.FLUTTER_VERSION }}
+          path: /Users/runner/hostedtoolcache/flutter
+
+      - name: 'Cache Flutter dependencies'
+        id: pub-cache
+        uses: actions/cache@v2
+        with:
+          key: ${{ runner.os }}-pub-${{ hashFiles('**/pubspec.lock') }}
+          path: |
+            ${{ env.FLUTTER_HOME }}/.pub-cache
+            **/.packages
+            **/.flutter-plugins
+            **/.flutter-plugin-dependencies
+            **/.dart_tool/package_config.json
+
+      - name: 'Cache Ruby dependencies'
+        id: ruby-cache
+        uses: actions/cache@v2
+        with:
+          key: ${{ runner.os }}-gems-${{ hashFiles('**/Gemfile') }}
+          path: ${{ github.workspace }}/vendor/bundle
+
+      - name: 'Cache Pods'
+        id: pod-cache
+        uses: actions/cache@v2
+        with:
+          key: ${{ runner.os }}-pods-${{ hashFiles('**/Podfile.lock') }}
+          path: ${{ github.workspace }}/ios/Pods
+
+      - name: 'Set Flutter version'
+        if: steps.flutter-cache.cache.outputs.cache-hit != 'true'
+        uses: subosito/flutter-action@v1
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+
+      - name: 'Set Ruby version'
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '2.7.2'
+
+      - name: 'Set Xcode version'
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: '13.1'
+
+      - name: 'Install Dart dependencies'
+        if: steps.pub-cache.cache.outputs.cache-hit != 'true'
+        run: flutter pub get
+
+      - name: 'Install Ruby dependencies'
+        if: steps.ruby-cache.cache.outputs.cache-hit != 'true'
+        run: |
+          bundle config path ${{ github.workspace }}/vendor/bundle;
+          cd ${{ github.workspace }}/example/ios;
+          bundle install;
+
+      - name: 'Build example'
+        run: |
+          cd ${{ github.workspace }}/example;
+          flutter build ios --simulator;
