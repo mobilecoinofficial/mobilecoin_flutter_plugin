@@ -86,7 +86,8 @@ struct FfiMobileCoinClient {
                                                                                                                 fogViewAttestation: fogViewAttestation,
                                                                                                                 fogKeyImageAttestation: fogKeyImageAttestation,
                                                                                                                 fogMerkleProofAttestation: fogKeyImageAttestation,
-                                                                                                                fogReportAttestation: fogIngestAttestation).get()).get()
+                                                                                                                fogReportAttestation: fogIngestAttestation,
+                                                                                                                transportProtocol: .grpc).get()).get()
             let hash: Int = ObjectIdentifier(client).hashValue
             ObjectStorage.addObject(client, forKey: hash)
             result(hash)
