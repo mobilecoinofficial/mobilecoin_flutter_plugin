@@ -78,7 +78,7 @@ jobs:
 
   ios:
     runs-on: macos-11
-    timeout-minutes: 20
+    timeout-minutes: 25
     steps:
       - name: 'Checkout Repo'
         uses: actions/checkout@v2
@@ -116,7 +116,7 @@ jobs:
         uses: actions/cache@v2
         with:
           key: ${{ runner.os }}-pods-${{ hashFiles('**/Podfile.lock') }}
-          path: ${{ github.workspace }}/ios/Pods
+          path: ${{ github.workspace }}/example/ios/Pods
 
       - name: 'Set Flutter version'
         if: steps.flutter-cache.cache.outputs.cache-hit != 'true'
