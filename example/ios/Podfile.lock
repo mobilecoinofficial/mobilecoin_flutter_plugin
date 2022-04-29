@@ -32,6 +32,7 @@ PODS:
     - SwiftProtobuf
   - mobilecoin_flutter (0.2.0):
     - Flutter
+    - LibMobileCoin/Core (~> 1.2.0-pre10)
     - MobileCoin/Core (~> 1.2.0-pre10)
   - SwiftNIO (2.27.0):
     - CNIODarwin (= 2.27.0)
@@ -123,7 +124,7 @@ SPEC CHECKSUMS:
   LibMobileCoin: 40d2d7d685321a6128871b6c6b4bb7cba25e848f
   Logging: beeb016c9c80cf77042d62e83495816847ef108b
   MobileCoin: 23a64a20511b34c528192e607d864cca0e2979ff
-  mobilecoin_flutter: 6d909466302c4e4e8bbc7f8ea79ceaa06d3a5178
+  mobilecoin_flutter: 95443dae930febb7ccc91ef63a253f152747ca67
   SwiftNIO: 81d33ce8c500b7e41b6cdde5f2f12330b9750219
   SwiftNIOConcurrencyHelpers: 23fc68bac541a465162d7225d2c743edd2f1012c
   SwiftNIOExtras: aa561b71020cd6844f722cf4513fb176c577414d
@@ -138,4 +139,4 @@ SPEC CHECKSUMS:
 
 PODFILE CHECKSUM: aafe91acc616949ddb318b77800a7f51bffa2a4c
 
-COCOAPODS: 1.11.2
+COCOAPODS: 1.11.3
