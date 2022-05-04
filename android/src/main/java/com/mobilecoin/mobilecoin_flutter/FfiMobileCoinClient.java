@@ -75,6 +75,7 @@ public class FfiMobileCoinClient {
             jsonTxOut.put("value", txOut.getValue().toString());
             jsonTxOut.put("receivedDate", formatDate(txOut.getReceivedBlockTimestamp()));
             jsonTxOut.put("receivedBlock", txOut.getReceivedBlockIndex().toString());
+            jsonTxOut.put("publicKey", Base64.encodeToString(txOut.getPublicKey().getKeyBytes(), Base64.NO_WRAP));
             jsonTxOut.put("keyImage", Base64.encodeToString(txOut.getKeyImage().getData(), Base64.NO_WRAP));
             if (txOut.getSpentBlockIndex() != null && txOut.getSpentBlockTimestamp() != null) {
                 jsonTxOut.put("spentDate", formatDate(txOut.getSpentBlockTimestamp()));
