@@ -149,6 +149,7 @@ struct FfiMobileCoinClient {
                             var jsonTxOut: [String: Any] = [:]
                             jsonTxOut["value"] = String(txOut.value)
                             jsonTxOut["receivedDate"] = formatDate(date: txOut.receivedBlock.timestamp)
+                            jsonTxOut["publicKey"] = txOut.publicKey.base64EncodedString()
                             jsonTxOut["receivedBlock"] = String(txOut.receivedBlock.index)
                             jsonTxOut["keyImage"] = txOut.keyImage.base64EncodedString()
                             if txOut.spentBlock != nil {
