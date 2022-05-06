@@ -22,7 +22,10 @@ import com.mobilecoin.lib.exceptions.BadMnemonicException;
 import java.math.BigInteger;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+
+import org.json.JSONArray;
 import org.json.JSONException;
+import org.json.JSONObject;
 
 import io.flutter.embedding.engine.plugins.FlutterPlugin;
 import io.flutter.plugin.common.MethodCall;
@@ -223,10 +226,10 @@ public class MobileCoinFlutterPlugin implements FlutterPlugin, MethodCallHandler
          * Sends from the given <code>FftMobileCoinClient</code> to the given
          * <code>recipient</code> and then returns the receipt ID.
          */
-        Integer sendFunds(int mobileClientId, int recipientId, @NonNull PicoMob fee, @NonNull PicoMob amount)
+        JSONObject sendFunds(int mobileClientId, int recipientId, @NonNull PicoMob fee, @NonNull PicoMob amount)
                 throws InvalidFogResponse, InterruptedException, InvalidTransactionException, AttestationException,
                 FeeRejectedException, InsufficientFundsException, FragmentedAccountException, NetworkException,
-                TransactionBuilderException, FogReportException;
+                TransactionBuilderException, FogReportException, JSONException;
 
         /**
          * Checks to see if a transaction has gone through, given a transactionId
@@ -417,10 +420,10 @@ public class MobileCoinFlutterPlugin implements FlutterPlugin, MethodCallHandler
         }
 
         @Override
-        public Integer sendFunds(int mobileClientId, int recipientId, @NonNull PicoMob fee, @NonNull PicoMob amount)
+        public JSONObject sendFunds(int mobileClientId, int recipientId, @NonNull PicoMob fee, @NonNull PicoMob amount)
                 throws InvalidFogResponse, InterruptedException, InvalidTransactionException, AttestationException,
                 FeeRejectedException, InsufficientFundsException, FragmentedAccountException, NetworkException,
-                TransactionBuilderException, FogReportException {
+                TransactionBuilderException, FogReportException, JSONException {
             return FfiMobileCoinClient.sendFunds(mobileClientId, recipientId, fee, amount);
         }
 

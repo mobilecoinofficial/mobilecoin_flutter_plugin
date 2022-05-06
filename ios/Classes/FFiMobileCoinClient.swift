@@ -239,9 +239,27 @@ struct FfiMobileCoinClient {
                     mobileCoinClient.submitTransaction(transaction) { (txResult: Result<(), TransactionSubmissionError>) in
                         switch txResult {
                         case .success():
-                            let hashCode = transaction.hashValue
-                            ObjectStorage.addObject(transaction, forKey: hashCode)
-                            result(hashCode)
+                            do {
+                                var jsonObject: [String: Any] = [:]
+
+                                let hashCode = transaction.hashValue
+                                ObjectStorage.addObject(transaction, forKey: hashCode)
+                                result(hashCode)
+                                jsonObject["receiptId"] = hashCode
+
+                                let payloadTxOutPublicAddress = transaction.outputPublicKeys.first,
+                                    changeTxOutPublicAddress = transaction.outputPublicKeys.reversed().first;
+
+                                jsonObject["payloadTxOutPublicAddress"] = payloadTxOutPublicAddress?.base64EncodedString()
+                                jsonObject["changeTxOutPublicAddress"] = changeTxOutPublicAddress?.base64EncodedString()
+
+                                let jsonData = try JSONSerialization.data(withJSONObject: jsonObject, options: []),
+                                    jsonString = String(data: jsonData, encoding: String.Encoding.ascii)!
+
+                                result(jsonString)
+                            } catch let error {
+                                result(FlutterError(code: "NATIVE", message: error.localizedDescription, details: nil))
+                            }
                         case .failure(let error):
                             result(FlutterError(code: "NATIVE", message: error.localizedDescription, details: nil))
                         }

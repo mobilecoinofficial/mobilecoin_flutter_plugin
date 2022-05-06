@@ -10,6 +10,7 @@ import com.mobilecoin.lib.AccountKey;
 import com.mobilecoin.lib.MobileCoinClient;
 import com.mobilecoin.lib.PendingTransaction;
 import com.mobilecoin.lib.PublicAddress;
+import com.mobilecoin.lib.RistrettoPublic;
 import com.mobilecoin.lib.Transaction;
 import com.mobilecoin.lib.AccountActivity;
 import com.mobilecoin.lib.OwnedTxOut;
@@ -112,10 +113,10 @@ public class FfiMobileCoinClient {
         }
     }
 
-    public static int sendFunds(int mobileClientId, int recipientId, @NonNull PicoMob fee, @NonNull PicoMob amount)
+    public static JSONObject sendFunds(int mobileClientId, int recipientId, @NonNull PicoMob fee, @NonNull PicoMob amount)
             throws InvalidTransactionException, InsufficientFundsException, AttestationException, InvalidFogResponse,
             FragmentedAccountException, FeeRejectedException, InterruptedException, NetworkException,
-            TransactionBuilderException, FogReportException {
+            TransactionBuilderException, FogReportException, JSONException {
         PublicAddress recipient = (PublicAddress) ObjectStorage.objectForKey(recipientId);
         MobileCoinClient mobileCoinClient = (MobileCoinClient) ObjectStorage.objectForKey(mobileClientId);
 
@@ -124,9 +125,19 @@ public class FfiMobileCoinClient {
         mobileCoinClient.submitTransaction(pending.getTransaction());
 
         Transaction transaction = pending.getTransaction();
+
+        JSONObject receiptObject = new JSONObject();
+
         final int transactionHashCode = transaction.hashCode();
         ObjectStorage.addObject(transactionHashCode, transaction);
+        receiptObject.put("receiptId", transactionHashCode);
 
-        return transactionHashCode;
+        final RistrettoPublic payloadTxOutPublicAddress = transaction.getOutputPublicKeys().iterator().next();
+        final RistrettoPublic changeTxOutPublicAddress = transaction.getOutputPublicKeys().iterator().next();
+
+        receiptObject.put("payloadTxOutPublicAddress", Base64.encodeToString(payloadTxOutPublicAddress.getKeyBytes(), Base64.NO_WRAP));
+        receiptObject.put("changeTxOutPublicAddress", Base64.encodeToString(changeTxOutPublicAddress.getKeyBytes(), Base64.NO_WRAP));
+
+        return receiptObject;
     }
 }
