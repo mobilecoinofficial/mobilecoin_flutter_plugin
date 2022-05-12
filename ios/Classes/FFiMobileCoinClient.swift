@@ -244,7 +244,6 @@ struct FfiMobileCoinClient {
 
                                 let hashCode = transaction.hashValue
                                 ObjectStorage.addObject(transaction, forKey: hashCode)
-                                result(hashCode)
                                 jsonObject["receiptId"] = hashCode
 
                                 let payloadTxOutPublicAddress = transaction.outputPublicKeys.first,
@@ -253,8 +252,8 @@ struct FfiMobileCoinClient {
                                 jsonObject["payloadTxOutPublicAddress"] = payloadTxOutPublicAddress?.base64EncodedString()
                                 jsonObject["changeTxOutPublicAddress"] = changeTxOutPublicAddress?.base64EncodedString()
 
-                                let jsonData = try JSONSerialization.data(withJSONObject: jsonObject, options: []),
-                                    jsonString = String(data: jsonData, encoding: String.Encoding.ascii)!
+                                let jsonData = try JSONSerialization.data(withJSONObject: jsonObject, options: [])
+                                let jsonString = String(data: jsonData, encoding: String.Encoding.ascii)!
 
                                 result(jsonString)
                             } catch let error {
