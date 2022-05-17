@@ -6,6 +6,8 @@ import android.util.Base64;
 import androidx.annotation.Keep;
 import androidx.annotation.NonNull;
 
+import com.google.protobuf.ByteString;
+import com.mobilecoin.api.MobileCoinAPI;
 import com.mobilecoin.lib.AccountKey;
 import com.mobilecoin.lib.MobileCoinClient;
 import com.mobilecoin.lib.PendingTransaction;
@@ -15,8 +17,10 @@ import com.mobilecoin.lib.Transaction;
 import com.mobilecoin.lib.AccountActivity;
 import com.mobilecoin.lib.OwnedTxOut;
 import com.mobilecoin.lib.AccountSnapshot;
+import com.mobilecoin.lib.TxOutMemoBuilder;
 import com.mobilecoin.lib.exceptions.AttestationException;
 import com.mobilecoin.lib.exceptions.FeeRejectedException;
+import com.mobilecoin.lib.exceptions.FogSyncException;
 import com.mobilecoin.lib.exceptions.FragmentedAccountException;
 import com.mobilecoin.lib.exceptions.InsufficientFundsException;
 import com.mobilecoin.lib.exceptions.InvalidFogResponse;
@@ -25,6 +29,8 @@ import com.mobilecoin.lib.exceptions.NetworkException;
 import com.mobilecoin.lib.exceptions.FogReportException;
 import com.mobilecoin.lib.exceptions.TransactionBuilderException;
 import com.mobilecoin.lib.exceptions.InvalidUriException;
+import com.mobilecoin.lib.network.TransportProtocol;
+
 import java.text.SimpleDateFormat;
 
 import org.json.JSONException;
@@ -47,7 +53,7 @@ public class FfiMobileCoinClient {
         AccountKey accountKey = (AccountKey) ObjectStorage.objectForKey(accountKeyId);
 
         MobileCoinClient mobileCoinClient = new MobileCoinClient(accountKey, Uri.parse(fogUrl),
-                Uri.parse(consensusUrl));
+                Uri.parse(consensusUrl), TransportProtocol.forGRPC());
 
         final int hashCode = mobileCoinClient.hashCode();
         ObjectStorage.addObject(hashCode, mobileCoinClient);
@@ -115,13 +121,14 @@ public class FfiMobileCoinClient {
 
     public static JSONObject sendFunds(int mobileClientId, int recipientId, @NonNull PicoMob fee, @NonNull PicoMob amount)
             throws InvalidTransactionException, InsufficientFundsException, AttestationException, InvalidFogResponse,
-            FragmentedAccountException, FeeRejectedException, InterruptedException, NetworkException,
-            TransactionBuilderException, FogReportException, JSONException {
+            FragmentedAccountException, FeeRejectedException, NetworkException,
+            TransactionBuilderException, FogReportException, JSONException, FogSyncException {
         PublicAddress recipient = (PublicAddress) ObjectStorage.objectForKey(recipientId);
         MobileCoinClient mobileCoinClient = (MobileCoinClient) ObjectStorage.objectForKey(mobileClientId);
+        TxOutMemoBuilder txOutMemoBuilder = TxOutMemoBuilder.createDefaultRTHMemoBuilder();
 
         final PendingTransaction pending = mobileCoinClient.prepareTransaction(recipient, amount.getPicoCountAsBigInt(),
-                fee.getPicoCountAsBigInt());
+                fee.getPicoCountAsBigInt(), txOutMemoBuilder);
         mobileCoinClient.submitTransaction(pending.getTransaction());
 
         Transaction transaction = pending.getTransaction();
@@ -132,11 +139,14 @@ public class FfiMobileCoinClient {
         ObjectStorage.addObject(transactionHashCode, transaction);
         receiptObject.put("receiptId", transactionHashCode);
 
-        final RistrettoPublic payloadTxOutPublicAddress = transaction.getOutputPublicKeys().iterator().next();
-        final RistrettoPublic changeTxOutPublicAddress = transaction.getOutputPublicKeys().iterator().next();
 
-        receiptObject.put("payloadTxOutPublicAddress", Base64.encodeToString(payloadTxOutPublicAddress.getKeyBytes(), Base64.NO_WRAP));
-        receiptObject.put("changeTxOutPublicAddress", Base64.encodeToString(changeTxOutPublicAddress.getKeyBytes(), Base64.NO_WRAP));
+        final ByteString payloadTxOutPublicAddress = pending.getPayloadTxOutContext().getConfirmationNumber().getHash();
+        final ByteString changeTxOutPublicAddress = pending.getChangeTxOutContext().getConfirmationNumber().getHash();
+        final RistrettoPublic sharedSecret = pending.getPayloadTxOutContext().getSharedSecret();
+
+        receiptObject.put("payloadTxOutPublicAddress", Base64.encodeToString(payloadTxOutPublicAddress.toByteArray(), Base64.NO_WRAP));
+        receiptObject.put("changeTxOutPublicAddress", Base64.encodeToString(changeTxOutPublicAddress.toByteArray(), Base64.NO_WRAP));
+        receiptObject.put("sharedSecret", Base64.encodeToString(sharedSecret.getKeyBytes(), Base64.NO_WRAP));
 
         return receiptObject;
     }

@@ -8,6 +8,7 @@ import com.mobilecoin.lib.UnsignedLong;
 import com.mobilecoin.lib.exceptions.AttestationException;
 import com.mobilecoin.lib.exceptions.BadEntropyException;
 import com.mobilecoin.lib.exceptions.FeeRejectedException;
+import com.mobilecoin.lib.exceptions.FogSyncException;
 import com.mobilecoin.lib.exceptions.FragmentedAccountException;
 import com.mobilecoin.lib.exceptions.InsufficientFundsException;
 import com.mobilecoin.lib.exceptions.InvalidFogResponse;
@@ -229,7 +230,7 @@ public class MobileCoinFlutterPlugin implements FlutterPlugin, MethodCallHandler
         JSONObject sendFunds(int mobileClientId, int recipientId, @NonNull PicoMob fee, @NonNull PicoMob amount)
                 throws InvalidFogResponse, InterruptedException, InvalidTransactionException, AttestationException,
                 FeeRejectedException, InsufficientFundsException, FragmentedAccountException, NetworkException,
-                TransactionBuilderException, FogReportException, JSONException;
+                TransactionBuilderException, FogReportException, JSONException, FogSyncException;
 
         /**
          * Checks to see if a transaction has gone through, given a transactionId
@@ -421,9 +422,9 @@ public class MobileCoinFlutterPlugin implements FlutterPlugin, MethodCallHandler
 
         @Override
         public JSONObject sendFunds(int mobileClientId, int recipientId, @NonNull PicoMob fee, @NonNull PicoMob amount)
-                throws InvalidFogResponse, InterruptedException, InvalidTransactionException, AttestationException,
+                throws InvalidFogResponse, InvalidTransactionException, AttestationException,
                 FeeRejectedException, InsufficientFundsException, FragmentedAccountException, NetworkException,
-                TransactionBuilderException, FogReportException, JSONException {
+                TransactionBuilderException, FogReportException, JSONException, FogSyncException {
             return FfiMobileCoinClient.sendFunds(mobileClientId, recipientId, fee, amount);
         }
 
