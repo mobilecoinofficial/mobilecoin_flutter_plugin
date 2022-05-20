@@ -226,7 +226,7 @@ public class MobileCoinFlutterPlugin implements FlutterPlugin, MethodCallHandler
          * Sends from the given <code>FftMobileCoinClient</code> to the given
          * <code>recipient</code> and then returns the receipt ID.
          */
-        JSONObject sendFunds(int mobileClientId, int recipientId, @NonNull PicoMob fee, @NonNull PicoMob amount)
+        String sendFunds(int mobileClientId, int recipientId, @NonNull PicoMob fee, @NonNull PicoMob amount)
                 throws InvalidFogResponse, InterruptedException, InvalidTransactionException, AttestationException,
                 FeeRejectedException, InsufficientFundsException, FragmentedAccountException, NetworkException,
                 TransactionBuilderException, FogReportException, JSONException;
@@ -420,8 +420,8 @@ public class MobileCoinFlutterPlugin implements FlutterPlugin, MethodCallHandler
         }
 
         @Override
-        public JSONObject sendFunds(int mobileClientId, int recipientId, @NonNull PicoMob fee, @NonNull PicoMob amount)
-                throws InvalidFogResponse, InterruptedException, InvalidTransactionException, AttestationException,
+        public String sendFunds(int mobileClientId, int recipientId, @NonNull PicoMob fee, @NonNull PicoMob amount)
+                throws InvalidFogResponse, InvalidTransactionException, AttestationException,
                 FeeRejectedException, InsufficientFundsException, FragmentedAccountException, NetworkException,
                 TransactionBuilderException, FogReportException, JSONException {
             return FfiMobileCoinClient.sendFunds(mobileClientId, recipientId, fee, amount);

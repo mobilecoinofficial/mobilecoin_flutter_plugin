@@ -113,7 +113,7 @@ public class FfiMobileCoinClient {
         }
     }
 
-    public static JSONObject sendFunds(int mobileClientId, int recipientId, @NonNull PicoMob fee, @NonNull PicoMob amount)
+    public static String sendFunds(int mobileClientId, int recipientId, @NonNull PicoMob fee, @NonNull PicoMob amount)
             throws InvalidTransactionException, InsufficientFundsException, AttestationException, InvalidFogResponse,
             FragmentedAccountException, FeeRejectedException, InterruptedException, NetworkException,
             TransactionBuilderException, FogReportException, JSONException {
@@ -138,6 +138,6 @@ public class FfiMobileCoinClient {
         receiptObject.put("payloadTxOutPublicAddress", Base64.encodeToString(payloadTxOutPublicAddress.getKeyBytes(), Base64.NO_WRAP));
         receiptObject.put("changeTxOutPublicAddress", Base64.encodeToString(changeTxOutPublicAddress.getKeyBytes(), Base64.NO_WRAP));
 
-        return receiptObject;
+        return receiptObject.toString();
     }
 }
