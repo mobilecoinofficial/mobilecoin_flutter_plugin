@@ -24,9 +24,7 @@ import java.math.BigInteger;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import org.json.JSONArray;
 import org.json.JSONException;
-import org.json.JSONObject;
 
 import io.flutter.embedding.engine.plugins.FlutterPlugin;
 import io.flutter.plugin.common.MethodCall;
@@ -39,7 +37,6 @@ import io.flutter.plugin.common.MethodChannel.Result;
  */
 public class MobileCoinFlutterPlugin implements FlutterPlugin, MethodCallHandler {
     private static final int EXECUTOR_THREAD_POOL_SIZE = 4;
-    private static final String FFI_PREFIX = "Ffi";
     /// The MethodChannel that will the communication between Flutter and native
     /// Android
     ///
@@ -227,7 +224,7 @@ public class MobileCoinFlutterPlugin implements FlutterPlugin, MethodCallHandler
          * Sends from the given <code>FftMobileCoinClient</code> to the given
          * <code>recipient</code> and then returns the receipt ID.
          */
-        JSONObject sendFunds(int mobileClientId, int recipientId, @NonNull PicoMob fee, @NonNull PicoMob amount)
+        String sendFunds(int mobileClientId, int recipientId, @NonNull PicoMob fee, @NonNull PicoMob amount)
                 throws InvalidFogResponse, InterruptedException, InvalidTransactionException, AttestationException,
                 FeeRejectedException, InsufficientFundsException, FragmentedAccountException, NetworkException,
                 TransactionBuilderException, FogReportException, JSONException, FogSyncException;
@@ -421,7 +418,7 @@ public class MobileCoinFlutterPlugin implements FlutterPlugin, MethodCallHandler
         }
 
         @Override
-        public JSONObject sendFunds(int mobileClientId, int recipientId, @NonNull PicoMob fee, @NonNull PicoMob amount)
+        public String sendFunds(int mobileClientId, int recipientId, @NonNull PicoMob fee, @NonNull PicoMob amount)
                 throws InvalidFogResponse, InvalidTransactionException, AttestationException,
                 FeeRejectedException, InsufficientFundsException, FragmentedAccountException, NetworkException,
                 TransactionBuilderException, FogReportException, JSONException, FogSyncException {
