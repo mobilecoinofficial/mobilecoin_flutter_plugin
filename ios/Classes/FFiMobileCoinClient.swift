@@ -234,7 +234,7 @@ struct FfiMobileCoinClient {
                   let mobileCoinClient: MobileCoinClient = ObjectStorage.objectForKey(mobileClientId) as? MobileCoinClient else {
                       throw PluginError.invalidArguments
                   }
-            mobileCoinClient.prepareTransaction(to: recipient, amount: amount, fee: fee) { (pendingTx: Result<PendingSinglePayloadTransaction, TransactionPreparationError>) in
+            mobileCoinClient.prepareTransaction(to: recipient, memoType: .recoverable, amount: amount, fee: fee) { (pendingTx: Result<PendingSinglePayloadTransaction, TransactionPreparationError>) in
                 switch pendingTx {
                 case .success(let (pending)):
                     mobileCoinClient.submitTransaction(pending.transaction) { (txResult: Result<(), TransactionSubmissionError>) in
