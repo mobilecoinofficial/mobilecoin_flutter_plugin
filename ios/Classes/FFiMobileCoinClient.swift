@@ -114,7 +114,7 @@ struct FfiMobileCoinClient {
                   let client = ObjectStorage.objectForKey(clientId) as? MobileCoinClient else {
                       throw PluginError.invalidArguments
                   }
-            client.updateBalance { (balanceResult: Result<Balance, ConnectionError>) in
+            client.updateBalance { (balanceResult: Result<Balance, BalanceUpdateError>) in
                 switch balanceResult {
                 case .success(let balance):
                     DispatchQueue.main.async {
@@ -133,7 +133,7 @@ struct FfiMobileCoinClient {
                   let client = ObjectStorage.objectForKey(clientId) as? MobileCoinClient else {
                       throw PluginError.invalidArguments
                   }
-            client.updateBalance { (balanceResult: Result<Balance, ConnectionError>) in
+            client.updateBalance { (balanceResult: Result<Balance, BalanceUpdateError>) in
                 do {
                     let activity = client.accountActivity
                     let txOuts = activity.txOuts
@@ -226,31 +226,34 @@ struct FfiMobileCoinClient {
                   let feeString: String = args["fee"] as? String,
                   let fee = UInt64(feeString),
                   let amountString: String = args["amount"] as? String,
-                  let amount = UInt64(amountString) else {
+                  let parsedAmount = UInt64(amountString) else {
                       throw PluginError.invalidArguments
                   }
+            let amount = Amount(parsedAmount, .MOB)
             guard let recipient: PublicAddress = ObjectStorage.objectForKey(recipientId) as? PublicAddress,
                   let mobileCoinClient: MobileCoinClient = ObjectStorage.objectForKey(mobileClientId) as? MobileCoinClient else {
                       throw PluginError.invalidArguments
                   }
-            mobileCoinClient.prepareTransaction(to: recipient, amount: amount, fee: fee) { (pendingTx: Result<(transaction: Transaction, receipt: Receipt), TransactionPreparationError>) in
+            mobileCoinClient.prepareTransaction(to: recipient, amount: amount, fee: fee) { (pendingTx: Result<PendingSinglePayloadTransaction, TransactionPreparationError>) in
                 switch pendingTx {
-                case .success(let (transaction, _)):
-                    mobileCoinClient.submitTransaction(transaction) { (txResult: Result<(), TransactionSubmissionError>) in
+                case .success(let (pending)):
+                    mobileCoinClient.submitTransaction(pending.transaction) { (txResult: Result<(), TransactionSubmissionError>) in
                         switch txResult {
                         case .success():
                             do {
                                 var jsonObject: [String: Any] = [:]
 
-                                let hashCode = transaction.hashValue
-                                ObjectStorage.addObject(transaction, forKey: hashCode)
+                                let hashCode = pending.transaction.hashValue
+                                ObjectStorage.addObject(pending.transaction, forKey: hashCode)
                                 jsonObject["receiptId"] = hashCode
 
-                                let payloadTxOutPublicAddress = transaction.outputPublicKeys.first,
-                                    changeTxOutPublicAddress = transaction.outputPublicKeys.reversed().first;
+                                let payloadTxOutPublicAddress = pending.payloadTxOutContext.txOutPublicKey
+                                let changeTxOutPublicAddress = pending.changeTxOutContext.txOutPublicKey
+                                let sharedSecret = pending.changeTxOutContext.sharedSecretBytes
 
-                                jsonObject["payloadTxOutPublicAddress"] = payloadTxOutPublicAddress?.base64EncodedString()
-                                jsonObject["changeTxOutPublicAddress"] = changeTxOutPublicAddress?.base64EncodedString()
+                                jsonObject["payloadTxOutPublicAddress"] = payloadTxOutPublicAddress.base64EncodedString()
+                                jsonObject["changeTxOutPublicAddress"] = changeTxOutPublicAddress.base64EncodedString()
+                                jsonObject["sharedSecret"] = sharedSecret.base64EncodedString()
 
                                 let jsonData = try JSONSerialization.data(withJSONObject: jsonObject, options: [])
                                 let jsonString = String(data: jsonData, encoding: String.Encoding.ascii)!

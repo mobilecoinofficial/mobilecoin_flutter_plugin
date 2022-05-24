@@ -19,13 +19,13 @@ PODS:
     - SwiftNIOSSL (< 3.0.0, >= 2.8.0)
     - SwiftNIOTransportServices (< 2.0.0, >= 1.6.0)
     - SwiftProtobuf (< 2.0.0, >= 1.9.0)
-  - LibMobileCoin/Core (1.2.0-pre10):
+  - LibMobileCoin/Core (1.2.0-pre13):
     - gRPC-Swift
     - SwiftProtobuf (~> 1.5)
   - Logging (1.4.0)
-  - MobileCoin/Core (1.2.0-pre12):
+  - MobileCoin/Core (1.2.0-pre14):
     - gRPC-Swift (= 1.0.0)
-    - LibMobileCoin/Core (= 1.2.0-pre10)
+    - LibMobileCoin/Core (= 1.2.0-pre13)
     - Logging (~> 1.4)
     - SwiftNIO (~> 2.32.0)
     - SwiftNIOHPACK (~> 1.16.3)
@@ -33,7 +33,7 @@ PODS:
     - SwiftProtobuf
   - mobilecoin_flutter (0.2.0):
     - Flutter
-    - MobileCoin/Core (= 1.2.0-pre12)
+    - MobileCoin/Core (= 1.2.0-pre14)
   - SwiftNIO (2.32.3):
     - SwiftNIOCore (= 2.32.3)
     - SwiftNIOEmbedded (= 2.32.3)
@@ -166,10 +166,10 @@ SPEC CHECKSUMS:
   CNIOWindows: f5aa9dfb401b440a7b4c9cd911e53e981a787193
   Flutter: 50d75fe2f02b26cc09d224853bb45737f8b3214a
   gRPC-Swift: 77154009a019e97f8c4bd8f2bb75fe9726801157
-  LibMobileCoin: 40d2d7d685321a6128871b6c6b4bb7cba25e848f
+  LibMobileCoin: 4d29f5c048653f3ccf7c6d8eb3da2b12b12e76a7
   Logging: beeb016c9c80cf77042d62e83495816847ef108b
-  MobileCoin: efcf0ec72e21f91ed03cecfa7e45ec01f0d712a7
-  mobilecoin_flutter: f2471078d60252a482e92ebe14c6718bacb70cee
+  MobileCoin: c39bdc075b4408f6d9d1b1c26bc889d5ee28a76f
+  mobilecoin_flutter: 4b8baca0ba0603e8bc36679d5c68ed9ad2634a40
   SwiftNIO: bb336ceef32850e9671d3fa0e0cc2b9add3b5948
   SwiftNIOConcurrencyHelpers: ca2594e10749655f42baf5468212be83d2f94fe3
   SwiftNIOCore: 9deed6620f80c7c82e8e2c2ffb9864495416d892
