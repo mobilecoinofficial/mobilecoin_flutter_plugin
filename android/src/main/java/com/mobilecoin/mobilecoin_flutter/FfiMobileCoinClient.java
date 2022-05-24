@@ -125,7 +125,7 @@ public class FfiMobileCoinClient {
             TransactionBuilderException, FogReportException, JSONException, FogSyncException {
         PublicAddress recipient = (PublicAddress) ObjectStorage.objectForKey(recipientId);
         MobileCoinClient mobileCoinClient = (MobileCoinClient) ObjectStorage.objectForKey(mobileClientId);
-        TxOutMemoBuilder txOutMemoBuilder = TxOutMemoBuilder.createDefaultRTHMemoBuilder();
+        TxOutMemoBuilder txOutMemoBuilder = TxOutMemoBuilder.createSenderAndDestinationRTHMemoBuilder(mobileCoinClient.getAccountKey());
 
         final PendingTransaction pending = mobileCoinClient.prepareTransaction(recipient, amount.getPicoCountAsBigInt(),
                 fee.getPicoCountAsBigInt(), txOutMemoBuilder);
