@@ -140,12 +140,12 @@ public class FfiMobileCoinClient {
         receiptObject.put("receiptId", transactionHashCode);
 
 
-        final RistrettoPublic payloadTxOutPublicAddress = pending.getPayloadTxOutContext().getTxOutPublicKey();
-        final RistrettoPublic changeTxOutPublicAddress = pending.getChangeTxOutContext().getTxOutPublicKey();
+        final RistrettoPublic payloadTxOutPublicKey = pending.getPayloadTxOutContext().getTxOutPublicKey();
+        final RistrettoPublic changeTxOutPublicKey = pending.getChangeTxOutContext().getTxOutPublicKey();
         final RistrettoPublic sharedSecret = pending.getPayloadTxOutContext().getSharedSecret();
 
-        receiptObject.put("payloadTxOutPublicAddress", Base64.encodeToString(payloadTxOutPublicAddress.getKeyBytes(), Base64.NO_WRAP));
-        receiptObject.put("changeTxOutPublicAddress", Base64.encodeToString(changeTxOutPublicAddress.getKeyBytes(), Base64.NO_WRAP));
+        receiptObject.put("payloadTxOutPublicKey", Base64.encodeToString(payloadTxOutPublicKey.getKeyBytes(), Base64.NO_WRAP));
+        receiptObject.put("changeTxOutPublicKey", Base64.encodeToString(changeTxOutPublicKey.getKeyBytes(), Base64.NO_WRAP));
         receiptObject.put("sharedSecret", Base64.encodeToString(sharedSecret.getKeyBytes(), Base64.NO_WRAP));
 
         return receiptObject.toString();
