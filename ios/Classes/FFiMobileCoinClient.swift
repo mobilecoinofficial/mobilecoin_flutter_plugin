@@ -247,12 +247,12 @@ struct FfiMobileCoinClient {
                                 ObjectStorage.addObject(pending.transaction, forKey: hashCode)
                                 jsonObject["receiptId"] = hashCode
 
-                                let payloadTxOutPublicAddress = pending.payloadTxOutContext.txOutPublicKey
-                                let changeTxOutPublicAddress = pending.changeTxOutContext.txOutPublicKey
+                                let payloadTxOutPublicKey = pending.payloadTxOutContext.txOutPublicKey
+                                let changeTxOutPublicKey = pending.changeTxOutContext.txOutPublicKey
                                 let sharedSecret = pending.changeTxOutContext.sharedSecretBytes
 
-                                jsonObject["payloadTxOutPublicAddress"] = payloadTxOutPublicAddress.base64EncodedString()
-                                jsonObject["changeTxOutPublicAddress"] = changeTxOutPublicAddress.base64EncodedString()
+                                jsonObject["payloadTxOutPublicKey"] = payloadTxOutPublicKey.base64EncodedString()
+                                jsonObject["changeTxOutPublicKey"] = changeTxOutPublicKey.base64EncodedString()
                                 jsonObject["sharedSecret"] = sharedSecret.base64EncodedString()
 
                                 let jsonData = try JSONSerialization.data(withJSONObject: jsonObject, options: [])
