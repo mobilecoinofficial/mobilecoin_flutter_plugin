@@ -8,6 +8,7 @@ import com.mobilecoin.lib.UnsignedLong;
 import com.mobilecoin.lib.exceptions.AttestationException;
 import com.mobilecoin.lib.exceptions.BadEntropyException;
 import com.mobilecoin.lib.exceptions.FeeRejectedException;
+import com.mobilecoin.lib.exceptions.FogSyncException;
 import com.mobilecoin.lib.exceptions.FragmentedAccountException;
 import com.mobilecoin.lib.exceptions.InsufficientFundsException;
 import com.mobilecoin.lib.exceptions.InvalidFogResponse;
@@ -22,6 +23,7 @@ import com.mobilecoin.lib.exceptions.BadMnemonicException;
 import java.math.BigInteger;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+
 import org.json.JSONException;
 
 import io.flutter.embedding.engine.plugins.FlutterPlugin;
@@ -35,7 +37,6 @@ import io.flutter.plugin.common.MethodChannel.Result;
  */
 public class MobileCoinFlutterPlugin implements FlutterPlugin, MethodCallHandler {
     private static final int EXECUTOR_THREAD_POOL_SIZE = 4;
-    private static final String FFI_PREFIX = "Ffi";
     /// The MethodChannel that will the communication between Flutter and native
     /// Android
     ///
@@ -223,10 +224,10 @@ public class MobileCoinFlutterPlugin implements FlutterPlugin, MethodCallHandler
          * Sends from the given <code>FftMobileCoinClient</code> to the given
          * <code>recipient</code> and then returns the receipt ID.
          */
-        Integer sendFunds(int mobileClientId, int recipientId, @NonNull PicoMob fee, @NonNull PicoMob amount)
+        String sendFunds(int mobileClientId, int recipientId, @NonNull PicoMob fee, @NonNull PicoMob amount)
                 throws InvalidFogResponse, InterruptedException, InvalidTransactionException, AttestationException,
                 FeeRejectedException, InsufficientFundsException, FragmentedAccountException, NetworkException,
-                TransactionBuilderException, FogReportException;
+                TransactionBuilderException, FogReportException, JSONException, FogSyncException;
 
         /**
          * Checks to see if a transaction has gone through, given a transactionId
@@ -417,10 +418,10 @@ public class MobileCoinFlutterPlugin implements FlutterPlugin, MethodCallHandler
         }
 
         @Override
-        public Integer sendFunds(int mobileClientId, int recipientId, @NonNull PicoMob fee, @NonNull PicoMob amount)
-                throws InvalidFogResponse, InterruptedException, InvalidTransactionException, AttestationException,
+        public String sendFunds(int mobileClientId, int recipientId, @NonNull PicoMob fee, @NonNull PicoMob amount)
+                throws InvalidFogResponse, InvalidTransactionException, AttestationException,
                 FeeRejectedException, InsufficientFundsException, FragmentedAccountException, NetworkException,
-                TransactionBuilderException, FogReportException {
+                TransactionBuilderException, FogReportException, JSONException, FogSyncException {
             return FfiMobileCoinClient.sendFunds(mobileClientId, recipientId, fee, amount);
         }
 
