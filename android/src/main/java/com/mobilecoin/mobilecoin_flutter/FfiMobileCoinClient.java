@@ -6,13 +6,13 @@ import android.util.Base64;
 import androidx.annotation.Keep;
 import androidx.annotation.NonNull;
 
-import com.google.protobuf.ByteString;
-import com.mobilecoin.api.MobileCoinAPI;
 import com.mobilecoin.lib.AccountKey;
+import com.mobilecoin.lib.Amount;
 import com.mobilecoin.lib.MobileCoinClient;
 import com.mobilecoin.lib.PendingTransaction;
 import com.mobilecoin.lib.PublicAddress;
 import com.mobilecoin.lib.RistrettoPublic;
+import com.mobilecoin.lib.TokenId;
 import com.mobilecoin.lib.Transaction;
 import com.mobilecoin.lib.AccountActivity;
 import com.mobilecoin.lib.OwnedTxOut;
@@ -61,18 +61,19 @@ public class FfiMobileCoinClient {
     }
 
     public static BigInteger getBalance(int mobileClientId)
-            throws InvalidFogResponse, NetworkException, AttestationException {
+            throws InvalidFogResponse, NetworkException, AttestationException, FogSyncException {
         MobileCoinClient mobileCoinClient = (MobileCoinClient) ObjectStorage.objectForKey(mobileClientId);
-        return mobileCoinClient.getBalance().getAmountPicoMob();
+        return mobileCoinClient.getBalance(TokenId.MOB).getValue();
     }
 
     public static String getAccountActivity(int mobileClientId)
-            throws NetworkException, InvalidFogResponse, AttestationException, JSONException {
+            throws NetworkException, InvalidFogResponse, AttestationException, JSONException, FogSyncException, TransactionBuilderException {
         MobileCoinClient mobileCoinClient = (MobileCoinClient) ObjectStorage.objectForKey(mobileClientId);
         AccountSnapshot snapshot = mobileCoinClient.getAccountSnapshot();
         JSONObject result = new JSONObject();
-        String balance = snapshot.getBalance().getAmountPicoMob().toString();
+        String balance = snapshot.getBalance(TokenId.MOB).getValue().toString();
         AccountActivity activity = snapshot.getAccountActivity();
+        AccountKey accountKey = mobileCoinClient.getAccountKey();
         result.put("balance", balance);
         result.put("blockCount", activity.getBlockCount());
         Set<OwnedTxOut> ownedTxOuts = activity.getAllTxOuts();
@@ -84,7 +85,7 @@ public class FfiMobileCoinClient {
             jsonTxOut.put("receivedBlock", txOut.getReceivedBlockIndex().toString());
             jsonTxOut.put("publicKey", Base64.encodeToString(txOut.getPublicKey().getKeyBytes(), Base64.NO_WRAP));
             jsonTxOut.put("keyImage", Base64.encodeToString(txOut.getKeyImage().getData(), Base64.NO_WRAP));
-            jsonTxOut.put("sharedSecret", Base64.encodeToString(txOut.getSharedSecret().getKeyBytes(), Base64.NO_WRAP));
+            jsonTxOut.put("sharedSecret", Base64.encodeToString(txOut.getSharedSecret(accountKey).getKeyBytes(), Base64.NO_WRAP));
             if (txOut.getSpentBlockIndex() != null && txOut.getSpentBlockTimestamp() != null) {
                 jsonTxOut.put("spentDate", formatDate(txOut.getSpentBlockTimestamp()));
                 jsonTxOut.put("spentBlock", txOut.getSpentBlockIndex().toString());
@@ -104,7 +105,7 @@ public class FfiMobileCoinClient {
         mobileCoinClient.setFogBasicAuthorization(username, password);
     }
 
-    public static int checkTransactionStatus(int mobileClientId, int transactionId) throws AttestationException, InvalidFogResponse, NetworkException {
+    public static int checkTransactionStatus(int mobileClientId, int transactionId) throws AttestationException, InvalidFogResponse, NetworkException, FogSyncException {
         MobileCoinClient mobileCoinClient = (MobileCoinClient) ObjectStorage.objectForKey(mobileClientId);
         Transaction transaction = (Transaction) ObjectStorage.objectForKey(transactionId);
 
@@ -128,8 +129,8 @@ public class FfiMobileCoinClient {
         MobileCoinClient mobileCoinClient = (MobileCoinClient) ObjectStorage.objectForKey(mobileClientId);
         TxOutMemoBuilder txOutMemoBuilder = TxOutMemoBuilder.createSenderAndDestinationRTHMemoBuilder(mobileCoinClient.getAccountKey());
 
-        final PendingTransaction pending = mobileCoinClient.prepareTransaction(recipient, amount.getPicoCountAsBigInt(),
-                fee.getPicoCountAsBigInt(), txOutMemoBuilder);
+        final PendingTransaction pending = mobileCoinClient.prepareTransaction(recipient, new Amount(amount.getPicoCountAsBigInt(), TokenId.MOB),
+                new Amount(fee.getPicoCountAsBigInt(), TokenId.MOB), txOutMemoBuilder);
         mobileCoinClient.submitTransaction(pending.getTransaction());
 
         Transaction transaction = pending.getTransaction();
