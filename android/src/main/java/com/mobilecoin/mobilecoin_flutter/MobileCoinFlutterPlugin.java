@@ -210,10 +210,10 @@ public class MobileCoinFlutterPlugin implements FlutterPlugin, MethodCallHandler
          * <code>FftMobileCoinClient</code>.
          */
         BigInteger getBalance(Integer mobileCoinClientId)
-                throws InvalidFogResponse, NetworkException, AttestationException;
+                throws InvalidFogResponse, NetworkException, AttestationException, FogSyncException;
 
         String getAccountActivity(Integer mobileCoinClientId)
-                throws InvalidFogResponse, NetworkException, AttestationException, JSONException;
+                throws InvalidFogResponse, NetworkException, AttestationException, JSONException, FogSyncException, TransactionBuilderException;
 
         /**
          * Set the basic HTTP authorization username and password for future requests
@@ -234,7 +234,7 @@ public class MobileCoinFlutterPlugin implements FlutterPlugin, MethodCallHandler
          * returns an integer representing the results.
          */
         Integer checkTransactionStatus(int mobileClientId, int transactionId)
-                throws AttestationException, InvalidFogResponse, NetworkException;
+                throws AttestationException, InvalidFogResponse, NetworkException, FogSyncException;
 
         /**
          */
@@ -401,13 +401,13 @@ public class MobileCoinFlutterPlugin implements FlutterPlugin, MethodCallHandler
 
         @Override
         public BigInteger getBalance(Integer mobileCoinClientId)
-                throws InvalidFogResponse, NetworkException, AttestationException {
+                throws InvalidFogResponse, NetworkException, AttestationException, FogSyncException {
             return FfiMobileCoinClient.getBalance(mobileCoinClientId);
         }
 
         @Override
         public String getAccountActivity(Integer mobileCoinClientId)
-                throws InvalidFogResponse, NetworkException, AttestationException, JSONException {
+                throws InvalidFogResponse, NetworkException, AttestationException, JSONException, FogSyncException, TransactionBuilderException {
             return FfiMobileCoinClient.getAccountActivity(mobileCoinClientId);
         }
 
@@ -428,7 +428,7 @@ public class MobileCoinFlutterPlugin implements FlutterPlugin, MethodCallHandler
 
         @Override
         public Integer checkTransactionStatus(int mobileClientId, int transactionId)
-                throws AttestationException, InvalidFogResponse, NetworkException {
+                throws AttestationException, InvalidFogResponse, NetworkException, FogSyncException {
             return FfiMobileCoinClient.checkTransactionStatus(mobileClientId, transactionId);
         }
 

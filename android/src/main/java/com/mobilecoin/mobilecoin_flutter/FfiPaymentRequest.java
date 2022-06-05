@@ -1,6 +1,5 @@
 package com.mobilecoin.mobilecoin_flutter;
 
-import com.mobilecoin.lib.AccountKey;
 import com.mobilecoin.lib.PaymentRequest;
 import com.mobilecoin.lib.PublicAddress;
 import com.mobilecoin.lib.UnsignedLong;
