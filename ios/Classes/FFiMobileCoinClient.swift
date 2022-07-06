@@ -117,11 +117,11 @@ struct FfiMobileCoinClient {
                       result(FlutterError(code: "NATIVE", message: "GetBalance", details: "parsing arguments"))
                       throw PluginError.invalidArguments
                   }
-            client.updateBalance { (balanceResult: Result<Balance, BalanceUpdateError>) in
+            client.updateBalance { (balanceResult: Result<Balance, ConnectionError>) in
                 switch balanceResult {
                 case .success(let balance):
                     DispatchQueue.main.async {
-                        result(String(balance.amountPicoMob() ?? 0))
+                        result(String(balance.amount() ?? 0))
                     }
                 case .failure(let error):
                     result(FlutterError(code: "NATIVE", message: error.localizedDescription, details: "GetBalance.updateBalance"))
@@ -137,14 +137,14 @@ struct FfiMobileCoinClient {
                       result(FlutterError(code: "NATIVE", message: "GetAccountActivity", details: "parsing arguments"))
                       throw PluginError.invalidArguments
                   }
-            client.updateBalance { (balanceResult: Result<Balance, BalanceUpdateError>) in
+            client.updateBalance { (balanceResult: Result<Balance, ConnectionError>) in
                 do {
-                    let activity = client.accountActivity
+                    let activity = client.accountActivity(for: .MOB)
                     let txOuts = activity.txOuts
                     var jsonObject: [String: Any] = [:]
                     switch balanceResult {
                     case .success(let balance):
-                        let balance: UInt64 = balance.amountPicoMob()!
+                        let balance: UInt64 = balance.amount()!
                         jsonObject["balance"] = String(balance)
                         jsonObject["blockCount"] = String(activity.blockCount)
                         
@@ -205,7 +205,7 @@ struct FfiMobileCoinClient {
                 throw PluginError.invalidArguments
             }
 
-            mobileCoinClient.updateBalance {_ in}
+            mobileCoinClient.updateBalances {_ in}
             mobileCoinClient.status(of: transaction) { (statusResult: Result<TransactionStatus, ConnectionError>) in
                 switch statusResult {
                 case .success(let status):
@@ -235,7 +235,7 @@ struct FfiMobileCoinClient {
                       result(FlutterError(code: "NATIVE", message: "CreatePendingTransaction", details: "parsing arguments"))
                       throw PluginError.invalidArguments
                   }
-            let amount = Amount(parsedAmount, .MOB)
+            let amount = Amount(parsedAmount, in: .MOB)
             guard let recipient: PublicAddress = ObjectStorage.objectForKey(recipientId) as? PublicAddress,
                   let mobileCoinClient: MobileCoinClient = ObjectStorage.objectForKey(mobileClientId) as? MobileCoinClient else {
                       result(FlutterError(code: "NATIVE", message: "CreatePendingTransaction", details: "retrieve client"))
