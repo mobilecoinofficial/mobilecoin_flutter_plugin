@@ -7,24 +7,24 @@ import androidx.annotation.VisibleForTesting;
 import com.mobilecoin.lib.UnsignedLong;
 import com.mobilecoin.lib.exceptions.AttestationException;
 import com.mobilecoin.lib.exceptions.BadEntropyException;
+import com.mobilecoin.lib.exceptions.BadMnemonicException;
 import com.mobilecoin.lib.exceptions.FeeRejectedException;
+import com.mobilecoin.lib.exceptions.FogReportException;
 import com.mobilecoin.lib.exceptions.FogSyncException;
 import com.mobilecoin.lib.exceptions.FragmentedAccountException;
 import com.mobilecoin.lib.exceptions.InsufficientFundsException;
 import com.mobilecoin.lib.exceptions.InvalidFogResponse;
 import com.mobilecoin.lib.exceptions.InvalidTransactionException;
+import com.mobilecoin.lib.exceptions.InvalidUriException;
 import com.mobilecoin.lib.exceptions.NetworkException;
 import com.mobilecoin.lib.exceptions.SerializationException;
 import com.mobilecoin.lib.exceptions.TransactionBuilderException;
-import com.mobilecoin.lib.exceptions.FogReportException;
-import com.mobilecoin.lib.exceptions.InvalidUriException;
-import com.mobilecoin.lib.exceptions.BadMnemonicException;
+
+import org.json.JSONException;
 
 import java.math.BigInteger;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-
-import org.json.JSONException;
 
 import io.flutter.embedding.engine.plugins.FlutterPlugin;
 import io.flutter.plugin.common.MethodCall;
@@ -132,10 +132,12 @@ public class MobileCoinFlutterPlugin implements FlutterPlugin, MethodCallHandler
             case "MobileCoinClient#setAuthorization":
                 return api.setAuthorization(getCallArgument(call, "id"), getCallArgument(call, "username"),
                         getCallArgument(call, "password"));
-            case "MobileCoinClient#sendFunds":
-                return api.sendFunds(getCallArgument(call, "id"), getCallArgument(call, "recipient"),
+            case "MobileCoinClient#createPendingTransaction":
+                return api.createPendingTransaction(getCallArgument(call, "id"), getCallArgument(call, "recipient"),
                         PicoMob.parsePico(getCallArgument(call, "fee")),
                         PicoMob.parsePico(getCallArgument(call, "amount")));
+            case "MobileCoinClient#sendFunds":
+                return api.sendFunds(getCallArgument(call, "id"), getCallArgument(call, "pendingTransactionId"));
             case "MobileCoinClient#checkTransactionStatus":
                 return api.checkTransactionStatus(getCallArgument(call, "id"), getCallArgument(call, "transactionId"));
             case "AccountKey#fromBip39Entropy":
@@ -221,10 +223,20 @@ public class MobileCoinFlutterPlugin implements FlutterPlugin, MethodCallHandler
         Void setAuthorization(int mobileClientId, @NonNull String username, @NonNull String password);
 
         /**
-         * Sends from the given <code>FftMobileCoinClient</code> to the given
-         * <code>recipient</code> and then returns the receipt ID.
+         * Creates a PendingTransaction object from the given <code>FftMobileCoinClient</code> to
+         * the given <code>recipient</code> and then returns pending transaction ID, along with
+         * the payloadPublicKey, changePublicKey, payloadSharedSecret, and changeSharedSecret
          */
-        String sendFunds(int mobileClientId, int recipientId, @NonNull PicoMob fee, @NonNull PicoMob amount)
+        String createPendingTransaction(int mobileClientId, int recipientId, @NonNull PicoMob fee, @NonNull PicoMob amount)
+                throws InvalidFogResponse, InterruptedException, InvalidTransactionException, AttestationException,
+                FeeRejectedException, InsufficientFundsException, FragmentedAccountException, NetworkException,
+                TransactionBuilderException, FogReportException, JSONException, FogSyncException;
+
+        /**
+         * Sends from the given <code>FftMobileCoinClient</code> based on the
+         * <code>pendingTransactionId</code> and then returns the receipt ID.
+         */
+        String sendFunds(int mobileClientId, int pendingTransactionId)
                 throws InvalidFogResponse, InterruptedException, InvalidTransactionException, AttestationException,
                 FeeRejectedException, InsufficientFundsException, FragmentedAccountException, NetworkException,
                 TransactionBuilderException, FogReportException, JSONException, FogSyncException;
@@ -237,9 +249,10 @@ public class MobileCoinFlutterPlugin implements FlutterPlugin, MethodCallHandler
                 throws AttestationException, InvalidFogResponse, NetworkException, FogSyncException;
 
         /**
+         *
          */
         int getAccountKeyFromBip39Entropy(byte[] bip39Entropy, String fogReportUri, String reportId,
-                byte[] fogAuthoritySpki) throws InvalidUriException, BadEntropyException;
+                                          byte[] fogAuthoritySpki) throws InvalidUriException, BadEntropyException;
 
         /**
          * Retrieves the public address for the given <code>AccountKey</code>, stores
@@ -395,7 +408,7 @@ public class MobileCoinFlutterPlugin implements FlutterPlugin, MethodCallHandler
 
         @Override
         public Integer createMobileCoinClient(Integer accountKey, String fogUrl, String consensusUrl,
-                boolean useTestNet) throws InvalidUriException {
+                                              boolean useTestNet) throws InvalidUriException {
             return FfiMobileCoinClient.create(accountKey, fogUrl, consensusUrl, useTestNet);
         }
 
@@ -418,13 +431,18 @@ public class MobileCoinFlutterPlugin implements FlutterPlugin, MethodCallHandler
         }
 
         @Override
-        public String sendFunds(int mobileClientId, int recipientId, @NonNull PicoMob fee, @NonNull PicoMob amount)
-                throws InvalidFogResponse, InvalidTransactionException, AttestationException,
-                FeeRejectedException, InsufficientFundsException, FragmentedAccountException, NetworkException,
-                TransactionBuilderException, FogReportException, JSONException, FogSyncException {
-            return FfiMobileCoinClient.sendFunds(mobileClientId, recipientId, fee, amount);
+        public String createPendingTransaction(int mobileClientId, int recipientId, @NonNull PicoMob fee, @NonNull PicoMob amount)
+                throws InvalidFogResponse, AttestationException, FeeRejectedException, InsufficientFundsException,
+                FragmentedAccountException, NetworkException, TransactionBuilderException, FogReportException,
+                JSONException, FogSyncException {
+            return FfiMobileCoinClient.createPendingTransaction(mobileClientId, recipientId, fee, amount);
         }
 
+        @Override
+        public String sendFunds(int mobileClientId, int pendingTransactionId)
+                throws JSONException, FlutterError {
+            return FfiMobileCoinClient.sendFunds(mobileClientId, pendingTransactionId);
+        }
 
         @Override
         public Integer checkTransactionStatus(int mobileClientId, int transactionId)
@@ -434,7 +452,7 @@ public class MobileCoinFlutterPlugin implements FlutterPlugin, MethodCallHandler
 
         @Override
         public int getAccountKeyFromBip39Entropy(byte[] entropy, String fogReportUri, String reportId,
-                byte[] fogAuthoritySpki) throws InvalidUriException, BadEntropyException {
+                                                 byte[] fogAuthoritySpki) throws InvalidUriException, BadEntropyException {
             return FfiAccountKey.fromBip39Entropy(entropy, fogReportUri, reportId, fogAuthoritySpki);
         }
 

@@ -1,46 +1,46 @@
 package com.mobilecoin.mobilecoin_flutter;
 
 import android.net.Uri;
-
 import android.util.Base64;
+
 import androidx.annotation.Keep;
 import androidx.annotation.NonNull;
 
+import com.mobilecoin.lib.AccountActivity;
 import com.mobilecoin.lib.AccountKey;
+import com.mobilecoin.lib.AccountSnapshot;
 import com.mobilecoin.lib.Amount;
 import com.mobilecoin.lib.MobileCoinClient;
+import com.mobilecoin.lib.OwnedTxOut;
 import com.mobilecoin.lib.PendingTransaction;
 import com.mobilecoin.lib.PublicAddress;
 import com.mobilecoin.lib.RistrettoPublic;
 import com.mobilecoin.lib.TokenId;
 import com.mobilecoin.lib.Transaction;
-import com.mobilecoin.lib.AccountActivity;
-import com.mobilecoin.lib.OwnedTxOut;
-import com.mobilecoin.lib.AccountSnapshot;
 import com.mobilecoin.lib.TxOutMemoBuilder;
 import com.mobilecoin.lib.exceptions.AttestationException;
 import com.mobilecoin.lib.exceptions.FeeRejectedException;
+import com.mobilecoin.lib.exceptions.FogReportException;
 import com.mobilecoin.lib.exceptions.FogSyncException;
 import com.mobilecoin.lib.exceptions.FragmentedAccountException;
 import com.mobilecoin.lib.exceptions.InsufficientFundsException;
 import com.mobilecoin.lib.exceptions.InvalidFogResponse;
 import com.mobilecoin.lib.exceptions.InvalidTransactionException;
-import com.mobilecoin.lib.exceptions.NetworkException;
-import com.mobilecoin.lib.exceptions.FogReportException;
-import com.mobilecoin.lib.exceptions.TransactionBuilderException;
 import com.mobilecoin.lib.exceptions.InvalidUriException;
+import com.mobilecoin.lib.exceptions.NetworkException;
+import com.mobilecoin.lib.exceptions.TransactionBuilderException;
 import com.mobilecoin.lib.network.TransportProtocol;
 
-import java.text.SimpleDateFormat;
-
-import org.json.JSONException;
-import java.math.BigInteger;
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.util.Locale;
-import java.util.Set;
+import java.math.BigInteger;
+import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Locale;
+import java.util.Objects;
+import java.util.Set;
 
 @Keep
 public class FfiMobileCoinClient {
@@ -121,36 +121,68 @@ public class FfiMobileCoinClient {
         }
     }
 
-    public static String sendFunds(int mobileClientId, int recipientId, @NonNull PicoMob fee, @NonNull PicoMob amount)
-            throws InvalidTransactionException, InsufficientFundsException, AttestationException, InvalidFogResponse,
-            FragmentedAccountException, FeeRejectedException, NetworkException,
-            TransactionBuilderException, FogReportException, JSONException, FogSyncException {
+    public static String createPendingTransaction(int mobileClientId, int recipientId, @NonNull PicoMob fee, @NonNull PicoMob amount)
+            throws InvalidFogResponse, AttestationException, FeeRejectedException, InsufficientFundsException,
+            FragmentedAccountException, NetworkException, TransactionBuilderException, FogReportException,
+            JSONException, FogSyncException {
         PublicAddress recipient = (PublicAddress) ObjectStorage.objectForKey(recipientId);
         MobileCoinClient mobileCoinClient = (MobileCoinClient) ObjectStorage.objectForKey(mobileClientId);
         TxOutMemoBuilder txOutMemoBuilder = TxOutMemoBuilder.createSenderAndDestinationRTHMemoBuilder(mobileCoinClient.getAccountKey());
 
-        final PendingTransaction pending = mobileCoinClient.prepareTransaction(recipient, new Amount(amount.getPicoCountAsBigInt(), TokenId.MOB),
+        final PendingTransaction pendingTransaction = mobileCoinClient.prepareTransaction(recipient, new Amount(amount.getPicoCountAsBigInt(), TokenId.MOB),
                 new Amount(fee.getPicoCountAsBigInt(), TokenId.MOB), txOutMemoBuilder);
-        mobileCoinClient.submitTransaction(pending.getTransaction());
 
-        Transaction transaction = pending.getTransaction();
+        final int hashCode = pendingTransaction.getPayloadTxOutContext().hashCode();
+        ObjectStorage.addObject(hashCode, pendingTransaction);
 
-        JSONObject receiptObject = new JSONObject();
+        JSONObject transactionObject = new JSONObject();
+        transactionObject.put("pendingTransactionId", hashCode);
+
+        final RistrettoPublic payloadTxOutPublicKey = pendingTransaction.getPayloadTxOutContext().getTxOutPublicKey();
+        final RistrettoPublic payloadTxOutSharedSecret = pendingTransaction.getPayloadTxOutContext().getSharedSecret();
+        final RistrettoPublic changeTxOutPublicKey = pendingTransaction.getChangeTxOutContext().getTxOutPublicKey();
+        final RistrettoPublic changeTxOutSharedSecret = pendingTransaction.getChangeTxOutContext().getSharedSecret();
+
+        transactionObject.put("payloadTxOutPublicKey", Base64.encodeToString(payloadTxOutPublicKey.getKeyBytes(), Base64.NO_WRAP));
+        transactionObject.put("payloadTxOutSharedSecret", Base64.encodeToString(payloadTxOutSharedSecret.getKeyBytes(), Base64.NO_WRAP));
+        transactionObject.put("changeTxOutPublicKey", Base64.encodeToString(changeTxOutPublicKey.getKeyBytes(), Base64.NO_WRAP));
+        transactionObject.put("changeTxOutSharedSecret", Base64.encodeToString(changeTxOutSharedSecret.getKeyBytes(), Base64.NO_WRAP));
+
+        return transactionObject.toString();
+    }
+
+    public static String sendFunds(int mobileClientId, int pendingTransactionId)
+            throws JSONException, FlutterError {
+        MobileCoinClient mobileCoinClient = (MobileCoinClient) ObjectStorage.objectForKey(mobileClientId);
+        PendingTransaction pendingTransaction = (PendingTransaction) ObjectStorage.objectForKey(pendingTransactionId);
+        Transaction transaction = pendingTransaction.getTransaction();
+
+        try {
+            mobileCoinClient.submitTransaction(transaction);
+        } catch (InvalidTransactionException e) {
+            switch (Objects.requireNonNull(e.getMessage())) {
+            case "ContainsSpentKeyImage":
+                throw new FlutterError("NATIVE", "INPUT_ALREADY_SPENT", e.getMessage());
+            case "TxFeeError":
+                throw new FlutterError("NATIVE", "FEE_ERROR", e.getMessage());
+            case "MissingMemo":
+                throw new FlutterError("NATIVE", "MISSING_MEMO", e.getMessage());
+            case "TombstoneBlockTooFar":
+                throw new FlutterError("NATIVE", "TOMBSTONE_BLOCK_TOO_FAR", e.getMessage());
+            default:
+                throw new FlutterError("NATIVE", "INVALID_TRANSACTION", e.getMessage());
+            }
+        } catch (NetworkException e) {
+            throw new FlutterError("NATIVE", "NETWORK_ERROR", e.getMessage());
+        } catch (AttestationException e) {
+            throw new FlutterError("NATIVE", "ATTESTATION_EXCEPTION", e.getMessage());
+        }
 
         final int transactionHashCode = transaction.hashCode();
         ObjectStorage.addObject(transactionHashCode, transaction);
+
+        JSONObject receiptObject = new JSONObject();
         receiptObject.put("receiptId", transactionHashCode);
-
-
-        final RistrettoPublic payloadTxOutPublicKey = pending.getPayloadTxOutContext().getTxOutPublicKey();
-        final RistrettoPublic payloadTxOutSharedSecret = pending.getPayloadTxOutContext().getSharedSecret();
-        final RistrettoPublic changeTxOutPublicKey = pending.getChangeTxOutContext().getTxOutPublicKey();
-        final RistrettoPublic changeTxOutSharedSecret = pending.getChangeTxOutContext().getSharedSecret();
-
-        receiptObject.put("payloadTxOutPublicKey", Base64.encodeToString(payloadTxOutPublicKey.getKeyBytes(), Base64.NO_WRAP));
-        receiptObject.put("payloadTxOutSharedSecret", Base64.encodeToString(payloadTxOutSharedSecret.getKeyBytes(), Base64.NO_WRAP));
-        receiptObject.put("changeTxOutPublicKey", Base64.encodeToString(changeTxOutPublicKey.getKeyBytes(), Base64.NO_WRAP));
-        receiptObject.put("changeTxOutSharedSecret", Base64.encodeToString(changeTxOutSharedSecret.getKeyBytes(), Base64.NO_WRAP));
 
         return receiptObject.toString();
     }

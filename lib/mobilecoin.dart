@@ -56,7 +56,7 @@ class MobileCoinFlutterPluginChannelApi {
     return json;
   }
 
-  Future<String> sendFunds({
+  Future<String> createPendingTransaction({
     required int mobileClientId,
     required int recipientId,
     required PicoMob fee,
@@ -67,6 +67,21 @@ class MobileCoinFlutterPluginChannelApi {
       'recipient': recipientId,
       'fee': fee.picoCountAsString(),
       'amount': amount.picoCountAsString(),
+    };
+    final json = await _channel.invokeMethod(
+      "MobileCoinClient#createPendingTransaction",
+      params,
+    );
+    return json;
+  }
+
+  Future<String> sendFunds({
+    required int mobileClientId,
+    required int pendingTransactionId,
+  }) async {
+    final Map<String, dynamic> params = <String, dynamic>{
+      'id': mobileClientId,
+      'pendingTransactionId': pendingTransactionId,
     };
     final json =
         await _channel.invokeMethod("MobileCoinClient#sendFunds", params);

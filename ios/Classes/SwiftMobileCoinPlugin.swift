@@ -28,6 +28,8 @@ class CommandFactory {
             return FfiMobileCoinClient.GetAccountActivity()
         case "MobileCoinClient#setAuthorization":
             return FfiMobileCoinClient.SetAuthorization()
+        case "MobileCoinClient#createPendingTransaction":
+            return FfiMobileCoinClient.CreatePendingTransaction()
         case "MobileCoinClient#sendFunds":
             return FfiMobileCoinClient.SendFunds()
         case "MobileCoinClient#checkTransactionStatus":

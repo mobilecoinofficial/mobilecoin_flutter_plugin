@@ -28,16 +28,24 @@ class MobileCoinClient extends PlatformObject {
     return MobileCoinClient(accountKey, objectId);
   }
 
-  Future<String> sendFunds(
+  Future<String> createPendingTransaction(
     PublicAddress recipient,
     PicoMob amount,
     PicoMob fee,
   ) async {
-    return await MobileCoinFlutterPluginChannelApi.instance.sendFunds(
+    return await MobileCoinFlutterPluginChannelApi.instance
+        .createPendingTransaction(
       mobileClientId: id,
       recipientId: recipient.id,
       fee: fee,
       amount: amount,
+    );
+  }
+
+  Future<String> sendFunds(int pendingTransactionId) async {
+    return await MobileCoinFlutterPluginChannelApi.instance.sendFunds(
+      mobileClientId: id,
+      pendingTransactionId: pendingTransactionId,
     );
   }
 

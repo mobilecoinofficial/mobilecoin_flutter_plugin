@@ -42,6 +42,7 @@ struct FfiMobileCoinClient {
                   let consensusUrl = args["consensusUrl"] as? String,
                   let useTestNet = args["useTestNet"] as? Bool,
                   let accountKey = ObjectStorage.objectForKey(accountKeyId) as? AccountKey else {
+                      result(FlutterError(code: "NATIVE", message: "Create", details: "parsing arguments"))
                       throw PluginError.invalidArguments
                   }
             let consensusMrSigner = Attestation.MrSigner.make(
@@ -100,6 +101,7 @@ struct FfiMobileCoinClient {
                   let username = args["username"] as? String,
                   let password = args["password"] as? String,
                   let client = ObjectStorage.objectForKey(clientId) as? MobileCoinClient else {
+                      result(FlutterError(code: "NATIVE", message: "SetAuthorization", details: "parsing arguments"))
                       throw PluginError.invalidArguments
                   }
             client.setFogBasicAuthorization(username: username, password: password)
@@ -112,6 +114,7 @@ struct FfiMobileCoinClient {
         func execute(args: [String : Any], result: @escaping FlutterResult) throws {
             guard let clientId: Int = args["id"] as? Int,
                   let client = ObjectStorage.objectForKey(clientId) as? MobileCoinClient else {
+                      result(FlutterError(code: "NATIVE", message: "GetBalance", details: "parsing arguments"))
                       throw PluginError.invalidArguments
                   }
             client.updateBalance { (balanceResult: Result<Balance, BalanceUpdateError>) in
@@ -121,7 +124,7 @@ struct FfiMobileCoinClient {
                         result(String(balance.amountPicoMob() ?? 0))
                     }
                 case .failure(let error):
-                    result(FlutterError(code: "NATIVE", message: error.localizedDescription, details: nil))
+                    result(FlutterError(code: "NATIVE", message: error.localizedDescription, details: "GetBalance.updateBalance"))
                 }
             }
         }
@@ -131,6 +134,7 @@ struct FfiMobileCoinClient {
         func execute(args: [String : Any], result: @escaping FlutterResult) throws {
             guard let clientId: Int = args["id"] as? Int,
                   let client = ObjectStorage.objectForKey(clientId) as? MobileCoinClient else {
+                      result(FlutterError(code: "NATIVE", message: "GetAccountActivity", details: "parsing arguments"))
                       throw PluginError.invalidArguments
                   }
             client.updateBalance { (balanceResult: Result<Balance, BalanceUpdateError>) in
@@ -166,10 +170,10 @@ struct FfiMobileCoinClient {
                             result(jsonString)
                         }
                     case .failure(let error):
-                        result(FlutterError(code: "NATIVE", message: error.localizedDescription, details: nil))
+                        result(FlutterError(code: "NATIVE", message: error.localizedDescription, details: "GetAccountActivity.serialize"))
                     }
                 } catch let error {
-                    result(FlutterError(code: "NATIVE", message: error.localizedDescription, details: nil))
+                    result(FlutterError(code: "NATIVE", message: error.localizedDescription, details: "GetAccountActivity.updateBalance"))
                 }
             }
             func formatDate(date: Date?) -> String? {
@@ -214,13 +218,13 @@ struct FfiMobileCoinClient {
                         result(2)
                     }
                 case .failure(let error):
-                    result(FlutterError(code: "NATIVE", message: error.localizedDescription, details: nil))
+                    result(FlutterError(code: "NATIVE", message: error.localizedDescription, details: "CheckTransactionStatus.updateBalance"))
                 }
             }
         }
     }
     
-    struct SendFunds: Command {
+    struct CreatePendingTransaction: Command {
         func execute(args: [String : Any], result: @escaping FlutterResult) throws {
             guard let mobileClientId: Int = args["id"] as? Int,
                   let recipientId: Int = args["recipient"] as? Int,
@@ -228,50 +232,99 @@ struct FfiMobileCoinClient {
                   let fee = UInt64(feeString),
                   let amountString: String = args["amount"] as? String,
                   let parsedAmount = UInt64(amountString) else {
+                      result(FlutterError(code: "NATIVE", message: "CreatePendingTransaction", details: "parsing arguments"))
                       throw PluginError.invalidArguments
                   }
             let amount = Amount(parsedAmount, .MOB)
             guard let recipient: PublicAddress = ObjectStorage.objectForKey(recipientId) as? PublicAddress,
                   let mobileCoinClient: MobileCoinClient = ObjectStorage.objectForKey(mobileClientId) as? MobileCoinClient else {
+                      result(FlutterError(code: "NATIVE", message: "CreatePendingTransaction", details: "retrieve client"))
                       throw PluginError.invalidArguments
                   }
             mobileCoinClient.prepareTransaction(to: recipient, memoType: .recoverable, amount: amount, fee: fee) { (pendingTx: Result<PendingSinglePayloadTransaction, TransactionPreparationError>) in
                 switch pendingTx {
                 case .success(let (pending)):
-                    mobileCoinClient.submitTransaction(pending.transaction) { (txResult: Result<(), TransactionSubmissionError>) in
-                        switch txResult {
-                        case .success():
-                            do {
-                                var jsonObject: [String: Any] = [:]
+                    do {
+                        var jsonObject: [String: Any] = [:]
 
-                                let hashCode = pending.transaction.hashValue
-                                ObjectStorage.addObject(pending.transaction, forKey: hashCode)
-                                jsonObject["receiptId"] = hashCode
+                        let hashValue = pending.payloadTxOutContext.hashValue
+                        ObjectStorage.addObject(pending, forKey: hashValue)
+                        jsonObject["pendingTransactionId"] = hashValue
 
-                                let payloadTxOutPublicKey = pending.payloadTxOutContext.txOutPublicKey
-                                let payloadTxOutSharedSecret = pending.payloadTxOutContext.sharedSecretBytes
-                                let changeTxOutPublicKey = pending.changeTxOutContext.txOutPublicKey
-                                let changeTxOutSharedSecret = pending.changeTxOutContext.sharedSecretBytes
+                        let payloadTxOutPublicKey = pending.payloadTxOutContext.txOutPublicKey
+                        let payloadTxOutSharedSecret = pending.payloadTxOutContext.sharedSecretBytes
+                        let changeTxOutPublicKey = pending.changeTxOutContext.txOutPublicKey
+                        let changeTxOutSharedSecret = pending.changeTxOutContext.sharedSecretBytes
 
-                                jsonObject["payloadTxOutPublicKey"] = payloadTxOutPublicKey.base64EncodedString()
-                                jsonObject["payloadTxOutSharedSecret"] = payloadTxOutSharedSecret.base64EncodedString()
-                                jsonObject["changeTxOutPublicKey"] = changeTxOutPublicKey.base64EncodedString()
-                                jsonObject["changeTxOutSharedSecret"] = changeTxOutSharedSecret.base64EncodedString()
+                        jsonObject["payloadTxOutPublicKey"] = payloadTxOutPublicKey.base64EncodedString()
+                        jsonObject["payloadTxOutSharedSecret"] = payloadTxOutSharedSecret.base64EncodedString()
+                        jsonObject["changeTxOutPublicKey"] = changeTxOutPublicKey.base64EncodedString()
+                        jsonObject["changeTxOutSharedSecret"] = changeTxOutSharedSecret.base64EncodedString()
 
-                                let jsonData = try JSONSerialization.data(withJSONObject: jsonObject, options: [])
-                                let jsonString = String(data: jsonData, encoding: String.Encoding.ascii)!
+                        let jsonData = try JSONSerialization.data(withJSONObject: jsonObject, options: [])
+                        let jsonString = String(data: jsonData, encoding: String.Encoding.ascii)!
 
-                                result(jsonString)
-                            } catch let error {
-                                result(FlutterError(code: "NATIVE", message: error.localizedDescription, details: nil))
-                            }
-                        case .failure(let error):
-                            result(FlutterError(code: "NATIVE", message: error.localizedDescription, details: nil))
-                        }
-                        
+                        result(jsonString)
+                    } catch let error {
+                        result(FlutterError(code: "NATIVE", message: error.localizedDescription, details: "CreatePendingTransaction.hash"))
                     }
                 case .failure(let e):
-                    result(FlutterError(code: "NATIVE", message: e.localizedDescription, details: nil))
+                    result(FlutterError(code: "NATIVE", message: e.localizedDescription, details: "CreatePendingTransaction.prepareTransaction"))
+                }
+            }
+        }
+    }
+
+    struct SendFunds: Command {
+        func execute(args: [String : Any], result: @escaping FlutterResult) throws {
+            guard let mobileClientId: Int = args["id"] as? Int,
+                  let pendingTransactionId: Int = args["pendingTransactionId"] as? Int else {
+                      result(FlutterError(code: "NATIVE", message: "SendFunds", details: "parsing arguments"))
+                      throw PluginError.invalidArguments
+                  }
+            guard let mobileCoinClient: MobileCoinClient = ObjectStorage.objectForKey(mobileClientId) as? MobileCoinClient else {
+                    result(FlutterError(code: "NATIVE", message: "SendFunds", details: "retrieve client"))
+                    throw PluginError.invalidArguments
+                }
+            guard let pending: PendingSinglePayloadTransaction = ObjectStorage.objectForKey(pendingTransactionId) as? PendingSinglePayloadTransaction else {
+                    result(FlutterError(code: "NATIVE", message: "SendFunds", details: "retrieve pending transaction"))
+                    throw PluginError.invalidArguments
+                }
+
+            mobileCoinClient.submitTransaction(pending.transaction) { (txResult: Result<(), TransactionSubmissionError>) in
+                switch txResult {
+                case .success():
+                    do {
+                        var jsonObject: [String: Any] = [:]
+
+                        let hashCode = pending.transaction.hashValue
+                        ObjectStorage.addObject(pending.transaction, forKey: hashCode)
+                        jsonObject["receiptId"] = hashCode
+
+                        let jsonData = try JSONSerialization.data(withJSONObject: jsonObject, options: [])
+                        let jsonString = String(data: jsonData, encoding: String.Encoding.ascii)!
+
+                        result(jsonString)
+                    } catch let error {
+                        result(FlutterError(code: "NATIVE", message: error.localizedDescription, details: "SendFunds.serialize"))
+                    }
+                case .failure(let error):
+                    switch error {
+                    case .connectionError(let connectionError):
+                        result(FlutterError(code: "NATIVE", message: "CONNECTION_ERROR", details: connectionError))
+                    case .missingMemo(let reason):
+                        result(FlutterError(code: "NATIVE", message: "MISSING_MEMO", details: reason))
+                    case .feeError(let reason):
+                        result(FlutterError(code: "NATIVE", message: "FEE_ERROR", details: reason))
+                    case .invalidTransaction(let reason):
+                        result(FlutterError(code: "NATIVE", message: "INVALID_TRANSACTION", details: reason))
+                    case .tombstoneBlockTooFar(let reason):
+                        result(FlutterError(code: "NATIVE", message: "TOMBSTONE_BLOCK_TOO_FAR", details: reason))
+                    case .inputsAlreadySpent(let reason):
+                        result(FlutterError(code: "NATIVE", message: "INPUT_ALREADY_SPENT", details: reason))
+                    }
+
+                    result(FlutterError(code: "NATIVE", message: error.localizedDescription, details: "SendFunds.submitTransaction"))
                 }
             }
         }
