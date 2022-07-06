@@ -309,6 +309,21 @@ struct FfiMobileCoinClient {
                         result(FlutterError(code: "NATIVE", message: error.localizedDescription, details: "SendFunds.serialize"))
                     }
                 case .failure(let error):
+                    switch error {
+                    case .connectionError(let connectionError):
+                        result(FlutterError(code: "NATIVE", message: "CONNECTION_ERROR", details: connectionError))
+                    case .missingMemo(let reason):
+                        result(FlutterError(code: "NATIVE", message: "MISSING_MEMO", details: reason))
+                    case .feeError(let reason):
+                        result(FlutterError(code: "NATIVE", message: "FEE_ERROR", details: reason))
+                    case .invalidTransaction(let reason):
+                        result(FlutterError(code: "NATIVE", message: "INVALID_TRANSACTION", details: reason))
+                    case .tombstoneBlockTooFar(let reason):
+                        result(FlutterError(code: "NATIVE", message: "TOMBSTONE_BLOCK_TOO_FAR", details: reason))
+                    case .inputsAlreadySpent(let reason):
+                        result(FlutterError(code: "NATIVE", message: "INPUT_ALREADY_SPENT", details: reason))
+                    }
+
                     result(FlutterError(code: "NATIVE", message: error.localizedDescription, details: "SendFunds.submitTransaction"))
                 }
             }

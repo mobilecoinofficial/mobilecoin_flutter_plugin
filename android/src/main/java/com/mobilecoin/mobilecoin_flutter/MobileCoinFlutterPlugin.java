@@ -440,7 +440,7 @@ public class MobileCoinFlutterPlugin implements FlutterPlugin, MethodCallHandler
 
         @Override
         public String sendFunds(int mobileClientId, int pendingTransactionId)
-                throws InvalidTransactionException, AttestationException, NetworkException, JSONException {
+                throws JSONException, FlutterError {
             return FfiMobileCoinClient.sendFunds(mobileClientId, pendingTransactionId);
         }
 
