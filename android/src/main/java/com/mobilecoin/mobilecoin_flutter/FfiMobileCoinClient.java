@@ -39,6 +39,7 @@ import java.math.BigInteger;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.Set;
 
 @Keep
@@ -151,12 +152,31 @@ public class FfiMobileCoinClient {
     }
 
     public static String sendFunds(int mobileClientId, int pendingTransactionId)
-            throws InvalidTransactionException, AttestationException, NetworkException, JSONException {
+            throws JSONException, FlutterError {
         MobileCoinClient mobileCoinClient = (MobileCoinClient) ObjectStorage.objectForKey(mobileClientId);
         PendingTransaction pendingTransaction = (PendingTransaction) ObjectStorage.objectForKey(pendingTransactionId);
         Transaction transaction = pendingTransaction.getTransaction();
 
-        mobileCoinClient.submitTransaction(transaction);
+        try {
+            mobileCoinClient.submitTransaction(transaction);
+        } catch (InvalidTransactionException e) {
+            switch (Objects.requireNonNull(e.getMessage())) {
+            case "ContainsSpentKeyImage":
+                throw new FlutterError("NATIVE", "INPUT_ALREADY_SPENT", e.getMessage());
+            case "TxFeeError":
+                throw new FlutterError("NATIVE", "FEE_ERROR", e.getMessage());
+            case "MissingMemo":
+                throw new FlutterError("NATIVE", "MISSING_MEMO", e.getMessage());
+            case "TombstoneBlockTooFar":
+                throw new FlutterError("NATIVE", "TOMBSTONE_BLOCK_TOO_FAR", e.getMessage());
+            default:
+                throw new FlutterError("NATIVE", "INVALID_TRANSACTION", e.getMessage());
+            }
+        } catch (NetworkException e) {
+            throw new FlutterError("NATIVE", "NETWORK_ERROR", e.getMessage());
+        } catch (AttestationException e) {
+            throw new FlutterError("NATIVE", "ATTESTATION_EXCEPTION", e.getMessage());
+        }
 
         final int transactionHashCode = transaction.hashCode();
         ObjectStorage.addObject(transactionHashCode, transaction);
