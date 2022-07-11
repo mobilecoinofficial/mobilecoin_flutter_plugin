@@ -28,6 +28,7 @@ import com.mobilecoin.lib.exceptions.InvalidFogResponse;
 import com.mobilecoin.lib.exceptions.InvalidTransactionException;
 import com.mobilecoin.lib.exceptions.InvalidUriException;
 import com.mobilecoin.lib.exceptions.NetworkException;
+import com.mobilecoin.lib.exceptions.SerializationException;
 import com.mobilecoin.lib.exceptions.TransactionBuilderException;
 import com.mobilecoin.lib.network.TransportProtocol;
 
@@ -36,6 +37,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.math.BigInteger;
+import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
@@ -105,9 +107,10 @@ public class FfiMobileCoinClient {
         mobileCoinClient.setFogBasicAuthorization(username, password);
     }
 
-    public static int checkTransactionStatus(int mobileClientId, int transactionId) throws AttestationException, InvalidFogResponse, NetworkException, FogSyncException {
+    public static int checkTransactionStatus(int mobileClientId, String serializedTransaction)
+            throws AttestationException, InvalidFogResponse, NetworkException, FogSyncException, SerializationException {
         MobileCoinClient mobileCoinClient = (MobileCoinClient) ObjectStorage.objectForKey(mobileClientId);
-        Transaction transaction = (Transaction) ObjectStorage.objectForKey(transactionId);
+        Transaction transaction = Transaction.fromBytes(serializedTransaction.getBytes(StandardCharsets.UTF_8));
 
         Transaction.Status status = mobileCoinClient.getTransactionStatus(transaction);
         switch (status) {
@@ -124,7 +127,7 @@ public class FfiMobileCoinClient {
     public static String createPendingTransaction(int mobileClientId, int recipientId, @NonNull PicoMob fee, @NonNull PicoMob amount)
             throws InvalidFogResponse, AttestationException, FeeRejectedException, InsufficientFundsException,
             FragmentedAccountException, NetworkException, TransactionBuilderException, FogReportException,
-            JSONException, FogSyncException {
+            JSONException, FogSyncException, SerializationException {
         PublicAddress recipient = (PublicAddress) ObjectStorage.objectForKey(recipientId);
         MobileCoinClient mobileCoinClient = (MobileCoinClient) ObjectStorage.objectForKey(mobileClientId);
         TxOutMemoBuilder txOutMemoBuilder = TxOutMemoBuilder.createSenderAndDestinationRTHMemoBuilder(mobileCoinClient.getAccountKey());
@@ -132,11 +135,8 @@ public class FfiMobileCoinClient {
         final PendingTransaction pendingTransaction = mobileCoinClient.prepareTransaction(recipient, new Amount(amount.getPicoCountAsBigInt(), TokenId.MOB),
                 new Amount(fee.getPicoCountAsBigInt(), TokenId.MOB), txOutMemoBuilder);
 
-        final int hashCode = pendingTransaction.getPayloadTxOutContext().hashCode();
-        ObjectStorage.addObject(hashCode, pendingTransaction);
-
         JSONObject transactionObject = new JSONObject();
-        transactionObject.put("pendingTransactionId", hashCode);
+        transactionObject.put("transaction", Base64.encodeToString(pendingTransaction.getTransaction().toByteArray(), Base64.NO_WRAP));
 
         final RistrettoPublic payloadTxOutPublicKey = pendingTransaction.getPayloadTxOutContext().getTxOutPublicKey();
         final RistrettoPublic payloadTxOutSharedSecret = pendingTransaction.getPayloadTxOutContext().getSharedSecret();
@@ -151,39 +151,31 @@ public class FfiMobileCoinClient {
         return transactionObject.toString();
     }
 
-    public static String sendFunds(int mobileClientId, int pendingTransactionId)
-            throws JSONException, FlutterError {
+    public static String sendFunds(int mobileClientId, String serializedTransaction)
+            throws SerializationException {
         MobileCoinClient mobileCoinClient = (MobileCoinClient) ObjectStorage.objectForKey(mobileClientId);
-        PendingTransaction pendingTransaction = (PendingTransaction) ObjectStorage.objectForKey(pendingTransactionId);
-        Transaction transaction = pendingTransaction.getTransaction();
+        Transaction transaction = Transaction.fromBytes(serializedTransaction.getBytes(StandardCharsets.UTF_8));
 
         try {
             mobileCoinClient.submitTransaction(transaction);
+            return "OK";
         } catch (InvalidTransactionException e) {
             switch (Objects.requireNonNull(e.getMessage())) {
             case "ContainsSpentKeyImage":
-                throw new FlutterError("NATIVE", "INPUT_ALREADY_SPENT", e.getMessage());
+                return "INPUT_ALREADY_SPENT";
             case "TxFeeError":
-                throw new FlutterError("NATIVE", "FEE_ERROR", e.getMessage());
+                return "FEE_ERROR";
             case "MissingMemo":
-                throw new FlutterError("NATIVE", "MISSING_MEMO", e.getMessage());
+                return "MISSING_MEMO";
             case "TombstoneBlockTooFar":
-                throw new FlutterError("NATIVE", "TOMBSTONE_BLOCK_TOO_FAR", e.getMessage());
+                return "TOMBSTONE_BLOCK_TOO_FAR";
             default:
-                throw new FlutterError("NATIVE", "INVALID_TRANSACTION", e.getMessage());
+                return "INVALID_TRANSACTION";
             }
         } catch (NetworkException e) {
-            throw new FlutterError("NATIVE", "NETWORK_ERROR", e.getMessage());
+            return "NETWORK_ERROR";
         } catch (AttestationException e) {
-            throw new FlutterError("NATIVE", "ATTESTATION_EXCEPTION", e.getMessage());
+            return "ATTESTATION_EXCEPTION";
         }
-
-        final int transactionHashCode = transaction.hashCode();
-        ObjectStorage.addObject(transactionHashCode, transaction);
-
-        JSONObject receiptObject = new JSONObject();
-        receiptObject.put("receiptId", transactionHashCode);
-
-        return receiptObject.toString();
     }
 }

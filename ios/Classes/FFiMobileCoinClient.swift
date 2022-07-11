@@ -190,18 +190,18 @@ struct FfiMobileCoinClient {
     struct CheckTransactionStatus: Command {
         func execute(args: [String : Any], result: @escaping FlutterResult) throws {
             guard let mobileClientId: Int = args["id"] as? Int,
-                  let transactionId: Int = args["transactionId"] as? Int else {
-                result(-1)
+                  let serializedTransaction: String = args["transaction"] as? String else {
+                result(FlutterError(code: "NATIVE", message: "CheckTransactionStatus", details: "parsing arguments"))
                 throw PluginError.invalidArguments
             }
 
             guard let mobileCoinClient: MobileCoinClient = ObjectStorage.objectForKey(mobileClientId) as? MobileCoinClient else {
-                result(-2)
+                result(FlutterError(code: "NATIVE", message: "CheckTransactionStatus", details: "retrieve client"))
                 throw PluginError.invalidArguments
             }
 
-            guard let transaction: Transaction = ObjectStorage.objectForKey(transactionId) as? Transaction else {
-                result(-3)
+            guard let transaction: Transaction = Transaction.init(serializedData: Data(serializedTransaction.utf8)) else {
+                result(FlutterError(code: "NATIVE", message: "CheckTransactionStatus", details: "deserializing transaction"))
                 throw PluginError.invalidArguments
             }
 
@@ -249,7 +249,7 @@ struct FfiMobileCoinClient {
 
                         let hashValue = pending.payloadTxOutContext.hashValue
                         ObjectStorage.addObject(pending, forKey: hashValue)
-                        jsonObject["pendingTransactionId"] = hashValue
+                        jsonObject["transaction"] = pending.transaction.serializedData.base64EncodedString()
 
                         let payloadTxOutPublicKey = pending.payloadTxOutContext.txOutPublicKey
                         let payloadTxOutSharedSecret = pending.payloadTxOutContext.sharedSecretBytes
@@ -278,7 +278,7 @@ struct FfiMobileCoinClient {
     struct SendFunds: Command {
         func execute(args: [String : Any], result: @escaping FlutterResult) throws {
             guard let mobileClientId: Int = args["id"] as? Int,
-                  let pendingTransactionId: Int = args["pendingTransactionId"] as? Int else {
+                  let serializedTransaction: String = args["transaction"] as? String else {
                       result(FlutterError(code: "NATIVE", message: "SendFunds", details: "parsing arguments"))
                       throw PluginError.invalidArguments
                   }
@@ -286,42 +286,29 @@ struct FfiMobileCoinClient {
                     result(FlutterError(code: "NATIVE", message: "SendFunds", details: "retrieve client"))
                     throw PluginError.invalidArguments
                 }
-            guard let pending: PendingSinglePayloadTransaction = ObjectStorage.objectForKey(pendingTransactionId) as? PendingSinglePayloadTransaction else {
-                    result(FlutterError(code: "NATIVE", message: "SendFunds", details: "retrieve pending transaction"))
+            guard let transaction: Transaction = Transaction.init(serializedData: Data(serializedTransaction.utf8)) else {
+                    result(FlutterError(code: "NATIVE", message: "SendFunds", details: "deserializing transaction"))
                     throw PluginError.invalidArguments
                 }
 
-            mobileCoinClient.submitTransaction(pending.transaction) { (txResult: Result<(), TransactionSubmissionError>) in
+            mobileCoinClient.submitTransaction(transaction) { (txResult: Result<(), TransactionSubmissionError>) in
                 switch txResult {
                 case .success():
-                    do {
-                        var jsonObject: [String: Any] = [:]
-
-                        let hashCode = pending.transaction.hashValue
-                        ObjectStorage.addObject(pending.transaction, forKey: hashCode)
-                        jsonObject["receiptId"] = hashCode
-
-                        let jsonData = try JSONSerialization.data(withJSONObject: jsonObject, options: [])
-                        let jsonString = String(data: jsonData, encoding: String.Encoding.ascii)!
-
-                        result(jsonString)
-                    } catch let error {
-                        result(FlutterError(code: "NATIVE", message: error.localizedDescription, details: "SendFunds.serialize"))
-                    }
+                    result("OK")
                 case .failure(let error):
                     switch error {
-                    case .connectionError(let connectionError):
-                        result(FlutterError(code: "NATIVE", message: "CONNECTION_ERROR", details: connectionError))
-                    case .missingMemo(let reason):
-                        result(FlutterError(code: "NATIVE", message: "MISSING_MEMO", details: reason))
-                    case .feeError(let reason):
-                        result(FlutterError(code: "NATIVE", message: "FEE_ERROR", details: reason))
-                    case .invalidTransaction(let reason):
-                        result(FlutterError(code: "NATIVE", message: "INVALID_TRANSACTION", details: reason))
-                    case .tombstoneBlockTooFar(let reason):
-                        result(FlutterError(code: "NATIVE", message: "TOMBSTONE_BLOCK_TOO_FAR", details: reason))
-                    case .inputsAlreadySpent(let reason):
-                        result(FlutterError(code: "NATIVE", message: "INPUT_ALREADY_SPENT", details: reason))
+                    case .connectionError(_):
+                        result("CONNECTION_ERROR")
+                    case .missingMemo(_):
+                        result("MISSING_MEMO")
+                    case .feeError(_):
+                        result("FEE_ERROR")
+                    case .invalidTransaction(_):
+                        result("INVALID_TRANSACTION")
+                    case .tombstoneBlockTooFar(_):
+                        result("TOMBSTONE_BLOCK_TOO_FAR")
+                    case .inputsAlreadySpent(_):
+                        result("INPUT_ALREADY_SPENT")
                     }
 
                     result(FlutterError(code: "NATIVE", message: error.localizedDescription, details: "SendFunds.submitTransaction"))

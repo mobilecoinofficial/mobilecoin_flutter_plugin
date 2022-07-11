@@ -137,9 +137,9 @@ public class MobileCoinFlutterPlugin implements FlutterPlugin, MethodCallHandler
                         PicoMob.parsePico(getCallArgument(call, "fee")),
                         PicoMob.parsePico(getCallArgument(call, "amount")));
             case "MobileCoinClient#sendFunds":
-                return api.sendFunds(getCallArgument(call, "id"), getCallArgument(call, "pendingTransactionId"));
+                return api.sendFunds(getCallArgument(call, "id"), getCallArgument(call, "transaction"));
             case "MobileCoinClient#checkTransactionStatus":
-                return api.checkTransactionStatus(getCallArgument(call, "id"), getCallArgument(call, "transactionId"));
+                return api.checkTransactionStatus(getCallArgument(call, "id"), getCallArgument(call, "transaction"));
             case "AccountKey#fromBip39Entropy":
                 return api.getAccountKeyFromBip39Entropy(getCallArgument(call, "bip39Entropy"),
                         call.argument("fogReportUri"), getCallArgument(call, "reportId"),
@@ -230,23 +230,21 @@ public class MobileCoinFlutterPlugin implements FlutterPlugin, MethodCallHandler
         String createPendingTransaction(int mobileClientId, int recipientId, @NonNull PicoMob fee, @NonNull PicoMob amount)
                 throws InvalidFogResponse, InterruptedException, InvalidTransactionException, AttestationException,
                 FeeRejectedException, InsufficientFundsException, FragmentedAccountException, NetworkException,
-                TransactionBuilderException, FogReportException, JSONException, FogSyncException;
+                TransactionBuilderException, FogReportException, JSONException, FogSyncException, SerializationException;
 
         /**
          * Sends from the given <code>FftMobileCoinClient</code> based on the
          * <code>pendingTransactionId</code> and then returns the receipt ID.
          */
-        String sendFunds(int mobileClientId, int pendingTransactionId)
-                throws InvalidFogResponse, InterruptedException, InvalidTransactionException, AttestationException,
-                FeeRejectedException, InsufficientFundsException, FragmentedAccountException, NetworkException,
-                TransactionBuilderException, FogReportException, JSONException, FogSyncException;
+        String sendFunds(int mobileClientId, String serializedTransaction)
+                throws SerializationException;
 
         /**
          * Checks to see if a transaction has gone through, given a transactionId
          * returns an integer representing the results.
          */
-        Integer checkTransactionStatus(int mobileClientId, int transactionId)
-                throws AttestationException, InvalidFogResponse, NetworkException, FogSyncException;
+        Integer checkTransactionStatus(int mobileClientId, String serializedTransaction)
+                throws AttestationException, InvalidFogResponse, NetworkException, FogSyncException, SerializationException;
 
         /**
          *
@@ -434,20 +432,20 @@ public class MobileCoinFlutterPlugin implements FlutterPlugin, MethodCallHandler
         public String createPendingTransaction(int mobileClientId, int recipientId, @NonNull PicoMob fee, @NonNull PicoMob amount)
                 throws InvalidFogResponse, AttestationException, FeeRejectedException, InsufficientFundsException,
                 FragmentedAccountException, NetworkException, TransactionBuilderException, FogReportException,
-                JSONException, FogSyncException {
+                JSONException, FogSyncException, SerializationException {
             return FfiMobileCoinClient.createPendingTransaction(mobileClientId, recipientId, fee, amount);
         }
 
         @Override
-        public String sendFunds(int mobileClientId, int pendingTransactionId)
-                throws JSONException, FlutterError {
-            return FfiMobileCoinClient.sendFunds(mobileClientId, pendingTransactionId);
+        public String sendFunds(int mobileClientId, String serializedTransaction)
+                throws SerializationException {
+            return FfiMobileCoinClient.sendFunds(mobileClientId, serializedTransaction);
         }
 
         @Override
-        public Integer checkTransactionStatus(int mobileClientId, int transactionId)
-                throws AttestationException, InvalidFogResponse, NetworkException, FogSyncException {
-            return FfiMobileCoinClient.checkTransactionStatus(mobileClientId, transactionId);
+        public Integer checkTransactionStatus(int mobileClientId, String serializedTransaction)
+                throws AttestationException, InvalidFogResponse, NetworkException, FogSyncException, SerializationException {
+            return FfiMobileCoinClient.checkTransactionStatus(mobileClientId, serializedTransaction);
         }
 
         @Override

@@ -42,19 +42,19 @@ class MobileCoinClient extends PlatformObject {
     );
   }
 
-  Future<String> sendFunds(int pendingTransactionId) async {
+  Future<String> sendFunds(String serializedTransaction) async {
     return await MobileCoinFlutterPluginChannelApi.instance.sendFunds(
       mobileClientId: id,
-      pendingTransactionId: pendingTransactionId,
+      serializedTransaction: serializedTransaction,
     );
   }
 
   Future<int> checkTransactionStatus(
-    int transactionId,
+    String serializedTransaction,
   ) async {
     final result = await MobileCoinFlutterPluginChannelApi.instance
         .checkTransactionStatus(
-            mobileClientId: id, transactionId: transactionId);
+            mobileClientId: id, serializedTransaction: serializedTransaction);
     return result;
   }
 

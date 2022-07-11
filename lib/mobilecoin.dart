@@ -77,11 +77,11 @@ class MobileCoinFlutterPluginChannelApi {
 
   Future<String> sendFunds({
     required int mobileClientId,
-    required int pendingTransactionId,
+    required String serializedTransaction,
   }) async {
     final Map<String, dynamic> params = <String, dynamic>{
       'id': mobileClientId,
-      'pendingTransactionId': pendingTransactionId,
+      'transaction': serializedTransaction,
     };
     final json =
         await _channel.invokeMethod("MobileCoinClient#sendFunds", params);
@@ -90,11 +90,11 @@ class MobileCoinFlutterPluginChannelApi {
 
   Future<int> checkTransactionStatus({
     required int mobileClientId,
-    required int transactionId,
+    required String serializedTransaction,
   }) async {
     final Map<String, dynamic> params = <String, dynamic>{
       'id': mobileClientId,
-      'transactionId': transactionId,
+      'transaction': serializedTransaction,
     };
 
     return await _channel.invokeMethod(
