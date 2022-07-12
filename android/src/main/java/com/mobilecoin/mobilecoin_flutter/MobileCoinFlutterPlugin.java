@@ -237,7 +237,7 @@ public class MobileCoinFlutterPlugin implements FlutterPlugin, MethodCallHandler
          * <code>pendingTransactionId</code> and then returns the receipt ID.
          */
         String sendFunds(int mobileClientId, String serializedTransaction)
-                throws SerializationException;
+                throws SerializationException, JSONException;
 
         /**
          * Checks to see if a transaction has gone through, given a transactionId
@@ -438,7 +438,7 @@ public class MobileCoinFlutterPlugin implements FlutterPlugin, MethodCallHandler
 
         @Override
         public String sendFunds(int mobileClientId, String serializedTransaction)
-                throws SerializationException {
+                throws SerializationException, JSONException {
             return FfiMobileCoinClient.sendFunds(mobileClientId, serializedTransaction);
         }
 

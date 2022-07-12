@@ -152,30 +152,34 @@ public class FfiMobileCoinClient {
     }
 
     public static String sendFunds(int mobileClientId, String serializedTransaction)
-            throws SerializationException {
+            throws SerializationException, JSONException {
         MobileCoinClient mobileCoinClient = (MobileCoinClient) ObjectStorage.objectForKey(mobileClientId);
-        Transaction transaction = Transaction.fromBytes(serializedTransaction.getBytes(StandardCharsets.UTF_8));
+        Transaction transaction = Transaction.fromBytes(serializedTransaction.getBytes());
+        JSONObject resultObject = new JSONObject();
 
         try {
             mobileCoinClient.submitTransaction(transaction);
-            return "OK";
+
+            resultObject.put("status", "OK");
         } catch (InvalidTransactionException e) {
             switch (Objects.requireNonNull(e.getMessage())) {
             case "ContainsSpentKeyImage":
-                return "INPUT_ALREADY_SPENT";
+                resultObject.put("status", "INPUT_ALREADY_SPENT");
             case "TxFeeError":
-                return "FEE_ERROR";
+                resultObject.put("status", "FEE_ERROR");
             case "MissingMemo":
-                return "MISSING_MEMO";
+                resultObject.put("status", "MISSING_MEMO");
             case "TombstoneBlockTooFar":
-                return "TOMBSTONE_BLOCK_TOO_FAR";
+                resultObject.put("status", "TOMBSTONE_BLOCK_TOO_FAR");
             default:
-                return "INVALID_TRANSACTION";
+                resultObject.put("status", "INVALID_TRANSACTION");
             }
         } catch (NetworkException e) {
-            return "NETWORK_ERROR";
+            resultObject.put("status", "NETWORK_ERROR");
         } catch (AttestationException e) {
-            return "ATTESTATION_EXCEPTION";
+            resultObject.put("status", "ATTESTATION_EXCEPTION");
         }
+
+        return resultObject.toString();
     }
 }

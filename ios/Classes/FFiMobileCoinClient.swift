@@ -247,8 +247,6 @@ struct FfiMobileCoinClient {
                     do {
                         var jsonObject: [String: Any] = [:]
 
-                        let hashValue = pending.payloadTxOutContext.hashValue
-                        ObjectStorage.addObject(pending, forKey: hashValue)
                         jsonObject["transaction"] = pending.transaction.serializedData.base64EncodedString()
 
                         let payloadTxOutPublicKey = pending.payloadTxOutContext.txOutPublicKey
@@ -291,27 +289,30 @@ struct FfiMobileCoinClient {
                     throw PluginError.invalidArguments
                 }
 
+            var jsonObject: [String: Any] = [:]
             mobileCoinClient.submitTransaction(transaction) { (txResult: Result<(), TransactionSubmissionError>) in
                 switch txResult {
                 case .success():
-                    result("OK")
+                    jsonObject["status"] = "OK"
                 case .failure(let error):
                     switch error {
                     case .connectionError(_):
-                        result("CONNECTION_ERROR")
+                        jsonObject["status"] = "CONNECTION_ERROR"
                     case .missingMemo(_):
-                        result("MISSING_MEMO")
+                        jsonObject["status"] = "MISSING_MEMO"
                     case .feeError(_):
-                        result("FEE_ERROR")
+                        jsonObject["status"] = "FEE_ERROR"
                     case .invalidTransaction(_):
-                        result("INVALID_TRANSACTION")
+                        jsonObject["status"] = "INVALID_TRANSACTION"
                     case .tombstoneBlockTooFar(_):
-                        result("TOMBSTONE_BLOCK_TOO_FAR")
+                        jsonObject["status"] = "TOMBSTONE_BLOCK_TOO_FAR"
                     case .inputsAlreadySpent(_):
-                        result("INPUT_ALREADY_SPENT")
+                        jsonObject["status"] = "INPUT_ALREADY_SPENT"
                     }
 
-                    result(FlutterError(code: "NATIVE", message: error.localizedDescription, details: "SendFunds.submitTransaction"))
+                    let jsonData = try JSONSerialization.data(withJSONObject: jsonObject, options: [])
+                    let jsonString = String(data: jsonData, encoding: String.Encoding.ascii)!
+                    result(jsonString)
                 }
             }
         }
