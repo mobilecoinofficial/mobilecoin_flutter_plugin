@@ -194,13 +194,15 @@ struct FfiMobileCoinClient {
                 result(FlutterError(code: "NATIVE", message: "CheckTransactionStatus", details: "parsing arguments"))
                 throw PluginError.invalidArguments
             }
-
             guard let mobileCoinClient: MobileCoinClient = ObjectStorage.objectForKey(mobileClientId) as? MobileCoinClient else {
                 result(FlutterError(code: "NATIVE", message: "CheckTransactionStatus", details: "retrieve client"))
                 throw PluginError.invalidArguments
             }
-
-            guard let transaction: Transaction = Transaction.init(serializedData: Data(serializedTransaction.utf8)) else {
+            guard let serializedData: Data = Data(base64Encoded: serializedTransaction) else {
+                result(FlutterError(code: "NATIVE", message: "CheckTransactionStatus", details: "decoding transaction"))
+                throw PluginError.invalidArguments
+            }
+            guard let transaction: Transaction = Transaction.init(serializedData: serializedData) else {
                 result(FlutterError(code: "NATIVE", message: "CheckTransactionStatus", details: "deserializing transaction"))
                 throw PluginError.invalidArguments
             }
@@ -276,15 +278,19 @@ struct FfiMobileCoinClient {
     struct SendFunds: Command {
         func execute(args: [String : Any], result: @escaping FlutterResult) throws {
             guard let mobileClientId: Int = args["id"] as? Int,
-                  let serializedTransaction: String = args["transaction"] as? String else {
-                      result(FlutterError(code: "NATIVE", message: "SendFunds", details: "parsing arguments"))
-                      throw PluginError.invalidArguments
-                  }
+                let serializedTransaction: String = args["transaction"] as? String else {
+                    result(FlutterError(code: "NATIVE", message: "SendFunds", details: "parsing arguments"))
+                    throw PluginError.invalidArguments
+                }
             guard let mobileCoinClient: MobileCoinClient = ObjectStorage.objectForKey(mobileClientId) as? MobileCoinClient else {
                     result(FlutterError(code: "NATIVE", message: "SendFunds", details: "retrieve client"))
                     throw PluginError.invalidArguments
                 }
-            guard let transaction: Transaction = Transaction.init(serializedData: Data(serializedTransaction.utf8)) else {
+            guard let serializedData: Data = Data(base64Encoded: serializedTransaction) else {
+                    result(FlutterError(code: "NATIVE", message: "SendFunds", details: "decoding transaction"))
+                    throw PluginError.invalidArguments
+                }
+            guard let transaction: Transaction = Transaction.init(serializedData: serializedData) else {
                     result(FlutterError(code: "NATIVE", message: "SendFunds", details: "deserializing transaction"))
                     throw PluginError.invalidArguments
                 }

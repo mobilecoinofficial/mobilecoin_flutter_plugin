@@ -110,7 +110,7 @@ public class FfiMobileCoinClient {
     public static int checkTransactionStatus(int mobileClientId, String serializedTransaction)
             throws AttestationException, InvalidFogResponse, NetworkException, FogSyncException, SerializationException {
         MobileCoinClient mobileCoinClient = (MobileCoinClient) ObjectStorage.objectForKey(mobileClientId);
-        Transaction transaction = Transaction.fromBytes(serializedTransaction.getBytes(StandardCharsets.UTF_8));
+        Transaction transaction = Transaction.fromBytes(Base64.decode(serializedTransaction.getBytes(), Base64.NO_WRAP));
 
         Transaction.Status status = mobileCoinClient.getTransactionStatus(transaction);
         switch (status) {
@@ -154,7 +154,7 @@ public class FfiMobileCoinClient {
     public static String sendFunds(int mobileClientId, String serializedTransaction)
             throws SerializationException, JSONException {
         MobileCoinClient mobileCoinClient = (MobileCoinClient) ObjectStorage.objectForKey(mobileClientId);
-        Transaction transaction = Transaction.fromBytes(serializedTransaction.getBytes());
+        Transaction transaction = Transaction.fromBytes(Base64.decode(serializedTransaction.getBytes(), Base64.NO_WRAP));
         JSONObject resultObject = new JSONObject();
 
         try {
