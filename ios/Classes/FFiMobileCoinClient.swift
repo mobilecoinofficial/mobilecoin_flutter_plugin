@@ -295,24 +295,28 @@ struct FfiMobileCoinClient {
                 case .success():
                     jsonObject["status"] = "OK"
                 case .failure(let error):
-                    switch error {
-                    case .connectionError(_):
-                        jsonObject["status"] = "CONNECTION_ERROR"
-                    case .missingMemo(_):
-                        jsonObject["status"] = "MISSING_MEMO"
-                    case .feeError(_):
-                        jsonObject["status"] = "FEE_ERROR"
-                    case .invalidTransaction(_):
-                        jsonObject["status"] = "INVALID_TRANSACTION"
-                    case .tombstoneBlockTooFar(_):
-                        jsonObject["status"] = "TOMBSTONE_BLOCK_TOO_FAR"
-                    case .inputsAlreadySpent(_):
-                        jsonObject["status"] = "INPUT_ALREADY_SPENT"
-                    }
+                    do {
+                        switch error {
+                        case .connectionError(_):
+                            jsonObject["status"] = "CONNECTION_ERROR"
+                        case .missingMemo(_):
+                            jsonObject["status"] = "MISSING_MEMO"
+                        case .feeError(_):
+                            jsonObject["status"] = "FEE_ERROR"
+                        case .invalidTransaction(_):
+                            jsonObject["status"] = "INVALID_TRANSACTION"
+                        case .tombstoneBlockTooFar(_):
+                            jsonObject["status"] = "TOMBSTONE_BLOCK_TOO_FAR"
+                        case .inputsAlreadySpent(_):
+                            jsonObject["status"] = "INPUT_ALREADY_SPENT"
+                        }
 
-                    let jsonData = try JSONSerialization.data(withJSONObject: jsonObject, options: [])
-                    let jsonString = String(data: jsonData, encoding: String.Encoding.ascii)!
-                    result(jsonString)
+                        let jsonData = try JSONSerialization.data(withJSONObject: jsonObject, options: [])
+                        let jsonString = String(data: jsonData, encoding: String.Encoding.ascii)!
+                        result(jsonString)
+                    } catch let error {
+                        result(FlutterError(code: "NATIVE", message: error.localizedDescription, details: "SendFunds.json"))
+                    }
                 }
             }
         }
