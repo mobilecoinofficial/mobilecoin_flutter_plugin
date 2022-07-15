@@ -37,12 +37,12 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.math.BigInteger;
-import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
-import java.util.Objects;
 import java.util.Set;
+
+import consensus_common.ConsensusCommon;
 
 @Keep
 public class FfiMobileCoinClient {
@@ -158,18 +158,26 @@ public class FfiMobileCoinClient {
         JSONObject resultObject = new JSONObject();
 
         try {
-            mobileCoinClient.submitTransaction(transaction);
+            final long blockIndex = mobileCoinClient.submitTransaction(transaction);
 
             resultObject.put("status", "OK");
+            resultObject.put("blockIndex", blockIndex);
         } catch (InvalidTransactionException e) {
-            switch (Objects.requireNonNull(e.getMessage())) {
-            case "ContainsSpentKeyImage":
+            final ConsensusCommon.ProposeTxResult result = e.getResult() == null ?
+                    ConsensusCommon.ProposeTxResult.UNRECOGNIZED :
+                    e.getResult();
+
+            resultObject.put("blockIndex", e.getBlockIndex());
+
+            switch (result) {
+            case ContainsSpentKeyImage:
+            case ContainsExistingOutputPublicKey:
                 resultObject.put("status", "INPUT_ALREADY_SPENT");
-            case "TxFeeError":
+            case TxFeeError:
                 resultObject.put("status", "FEE_ERROR");
-            case "MissingMemo":
+            case MissingMemo:
                 resultObject.put("status", "MISSING_MEMO");
-            case "TombstoneBlockTooFar":
+            case TombstoneBlockTooFar:
                 resultObject.put("status", "TOMBSTONE_BLOCK_TOO_FAR");
             default:
                 resultObject.put("status", "INVALID_TRANSACTION");

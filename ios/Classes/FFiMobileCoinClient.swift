@@ -296,26 +296,29 @@ struct FfiMobileCoinClient {
                 }
 
             var jsonObject: [String: Any] = [:]
-            mobileCoinClient.submitTransaction(transaction) { (txResult: Result<(), TransactionSubmissionError>) in
+            mobileCoinClient.submitTransaction(transaction: transaction) { (txResult: Result<(UInt64), SubmitTransactionError>) in
                 switch txResult {
-                case .success():
+                case .success(let blockIndex):
                     jsonObject["status"] = "OK"
+                    jsonObject["blockIndex"] = blockIndex
                 case .failure(let error):
                     do {
-                        switch error {
-                        case .connectionError(_):
+                        switch error.submissionError {
+                        case .connectionError:
                             jsonObject["status"] = "CONNECTION_ERROR"
-                        case .missingMemo(_):
+                        case .missingMemo:
                             jsonObject["status"] = "MISSING_MEMO"
-                        case .feeError(_):
+                        case .feeError:
                             jsonObject["status"] = "FEE_ERROR"
-                        case .invalidTransaction(_):
+                        case .invalidTransaction:
                             jsonObject["status"] = "INVALID_TRANSACTION"
-                        case .tombstoneBlockTooFar(_):
+                        case .tombstoneBlockTooFar:
                             jsonObject["status"] = "TOMBSTONE_BLOCK_TOO_FAR"
-                        case .inputsAlreadySpent(_):
+                        case .inputsAlreadySpent:
                             jsonObject["status"] = "INPUT_ALREADY_SPENT"
                         }
+
+                        jsonObject["blockIndex"] = error.consensusBlockCount
 
                         let jsonData = try JSONSerialization.data(withJSONObject: jsonObject, options: [])
                         let jsonString = String(data: jsonData, encoding: String.Encoding.ascii)!
