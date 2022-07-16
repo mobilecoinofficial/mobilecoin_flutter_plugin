@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:flutter/foundation.dart';
@@ -56,7 +57,7 @@ class MobileCoinFlutterPluginChannelApi {
     return json;
   }
 
-  Future<String> createPendingTransaction({
+  Future<Map<String, Object?>> createPendingTransaction({
     required int mobileClientId,
     required int recipientId,
     required PicoMob fee,
@@ -68,16 +69,16 @@ class MobileCoinFlutterPluginChannelApi {
       'fee': fee.picoCountAsString(),
       'amount': amount.picoCountAsString(),
     };
-    final json = await _channel.invokeMethod(
+    final result = await _channel.invokeMethod(
       "MobileCoinClient#createPendingTransaction",
       params,
     );
-    return json;
+    return Map<String, Object?>.from(result as Map);
   }
 
   Future<String> sendFunds({
     required int mobileClientId,
-    required String serializedTransaction,
+    required Uint8List serializedTransaction,
   }) async {
     final Map<String, dynamic> params = <String, dynamic>{
       'id': mobileClientId,
@@ -90,11 +91,11 @@ class MobileCoinFlutterPluginChannelApi {
 
   Future<int> checkTransactionStatus({
     required int mobileClientId,
-    required String serializedTransaction,
+    required int receiptId,
   }) async {
     final Map<String, dynamic> params = <String, dynamic>{
       'id': mobileClientId,
-      'transaction': serializedTransaction,
+      'receiptId': receiptId,
     };
 
     return await _channel.invokeMethod(

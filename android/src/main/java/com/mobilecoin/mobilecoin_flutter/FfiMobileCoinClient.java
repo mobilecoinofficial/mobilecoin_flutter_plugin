@@ -39,6 +39,7 @@ import org.json.JSONObject;
 import java.math.BigInteger;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Locale;
 import java.util.Set;
 
@@ -107,10 +108,10 @@ public class FfiMobileCoinClient {
         mobileCoinClient.setFogBasicAuthorization(username, password);
     }
 
-    public static int checkTransactionStatus(int mobileClientId, String serializedTransaction)
-            throws AttestationException, InvalidFogResponse, NetworkException, FogSyncException, SerializationException {
+    public static int checkTransactionStatus(int mobileClientId, int receiptId)
+            throws AttestationException, InvalidFogResponse, NetworkException, FogSyncException {
         MobileCoinClient mobileCoinClient = (MobileCoinClient) ObjectStorage.objectForKey(mobileClientId);
-        Transaction transaction = Transaction.fromBytes(Base64.decode(serializedTransaction.getBytes(), Base64.NO_WRAP));
+        Transaction transaction =(Transaction) ObjectStorage.objectForKey(receiptId);
 
         Transaction.Status status = mobileCoinClient.getTransactionStatus(transaction);
         switch (status) {
@@ -124,10 +125,10 @@ public class FfiMobileCoinClient {
         }
     }
 
-    public static String createPendingTransaction(int mobileClientId, int recipientId, @NonNull PicoMob fee, @NonNull PicoMob amount)
+    public static HashMap createPendingTransaction(int mobileClientId, int recipientId, @NonNull PicoMob fee, @NonNull PicoMob amount)
             throws InvalidFogResponse, AttestationException, FeeRejectedException, InsufficientFundsException,
             FragmentedAccountException, NetworkException, TransactionBuilderException, FogReportException,
-            JSONException, FogSyncException, SerializationException {
+            FogSyncException, SerializationException {
         PublicAddress recipient = (PublicAddress) ObjectStorage.objectForKey(recipientId);
         MobileCoinClient mobileCoinClient = (MobileCoinClient) ObjectStorage.objectForKey(mobileClientId);
         TxOutMemoBuilder txOutMemoBuilder = TxOutMemoBuilder.createSenderAndDestinationRTHMemoBuilder(mobileCoinClient.getAccountKey());
@@ -135,26 +136,30 @@ public class FfiMobileCoinClient {
         final PendingTransaction pendingTransaction = mobileCoinClient.prepareTransaction(recipient, new Amount(amount.getPicoCountAsBigInt(), TokenId.MOB),
                 new Amount(fee.getPicoCountAsBigInt(), TokenId.MOB), txOutMemoBuilder);
 
-        JSONObject transactionObject = new JSONObject();
-        transactionObject.put("transaction", Base64.encodeToString(pendingTransaction.getTransaction().toByteArray(), Base64.NO_WRAP));
+        HashMap returnPayload = new HashMap();
+        returnPayload.put("transaction", pendingTransaction.getTransaction().toByteArray());
 
         final RistrettoPublic payloadTxOutPublicKey = pendingTransaction.getPayloadTxOutContext().getTxOutPublicKey();
         final RistrettoPublic payloadTxOutSharedSecret = pendingTransaction.getPayloadTxOutContext().getSharedSecret();
         final RistrettoPublic changeTxOutPublicKey = pendingTransaction.getChangeTxOutContext().getTxOutPublicKey();
         final RistrettoPublic changeTxOutSharedSecret = pendingTransaction.getChangeTxOutContext().getSharedSecret();
 
-        transactionObject.put("payloadTxOutPublicKey", Base64.encodeToString(payloadTxOutPublicKey.getKeyBytes(), Base64.NO_WRAP));
-        transactionObject.put("payloadTxOutSharedSecret", Base64.encodeToString(payloadTxOutSharedSecret.getKeyBytes(), Base64.NO_WRAP));
-        transactionObject.put("changeTxOutPublicKey", Base64.encodeToString(changeTxOutPublicKey.getKeyBytes(), Base64.NO_WRAP));
-        transactionObject.put("changeTxOutSharedSecret", Base64.encodeToString(changeTxOutSharedSecret.getKeyBytes(), Base64.NO_WRAP));
+        returnPayload.put("payloadTxOutPublicKey", Base64.encodeToString(payloadTxOutPublicKey.getKeyBytes(), Base64.NO_WRAP));
+        returnPayload.put("payloadTxOutSharedSecret", Base64.encodeToString(payloadTxOutSharedSecret.getKeyBytes(), Base64.NO_WRAP));
+        returnPayload.put("changeTxOutPublicKey", Base64.encodeToString(changeTxOutPublicKey.getKeyBytes(), Base64.NO_WRAP));
+        returnPayload.put("changeTxOutSharedSecret", Base64.encodeToString(changeTxOutSharedSecret.getKeyBytes(), Base64.NO_WRAP));
 
-        return transactionObject.toString();
+        return returnPayload;
     }
 
-    public static String sendFunds(int mobileClientId, String serializedTransaction)
+    public static String sendFunds(int mobileClientId, byte[] serializedTransaction)
             throws SerializationException, JSONException {
         MobileCoinClient mobileCoinClient = (MobileCoinClient) ObjectStorage.objectForKey(mobileClientId);
-        Transaction transaction = Transaction.fromBytes(Base64.decode(serializedTransaction.getBytes(), Base64.NO_WRAP));
+        Transaction transaction = Transaction.fromBytes(serializedTransaction);
+        int receiptId = transaction.hashCode();
+
+        ObjectStorage.addObject(receiptId, transaction);
+
         JSONObject resultObject = new JSONObject();
 
         try {
@@ -162,6 +167,7 @@ public class FfiMobileCoinClient {
 
             resultObject.put("status", "OK");
             resultObject.put("blockIndex", blockIndex);
+            resultObject.put("receiptId", receiptId);
         } catch (InvalidTransactionException e) {
             final ConsensusCommon.ProposeTxResult result = e.getResult() == null ?
                     ConsensusCommon.ProposeTxResult.UNRECOGNIZED :

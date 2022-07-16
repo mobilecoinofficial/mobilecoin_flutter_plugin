@@ -190,7 +190,7 @@ struct FfiMobileCoinClient {
     struct CheckTransactionStatus: Command {
         func execute(args: [String : Any], result: @escaping FlutterResult) throws {
             guard let mobileClientId: Int = args["id"] as? Int,
-                  let serializedTransaction: String = args["transaction"] as? String else {
+                  let receiptId: Int = args["receiptId"] as? Int else {
                 result(FlutterError(code: "NATIVE", message: "CheckTransactionStatus", details: "parsing arguments"))
                 throw PluginError.invalidArguments
             }
@@ -198,11 +198,8 @@ struct FfiMobileCoinClient {
                 result(FlutterError(code: "NATIVE", message: "CheckTransactionStatus", details: "retrieve client"))
                 throw PluginError.invalidArguments
             }
-            guard let serializedData: Data = Data(base64Encoded: serializedTransaction) else {
-                result(FlutterError(code: "NATIVE", message: "CheckTransactionStatus", details: "decoding transaction"))
-                throw PluginError.invalidArguments
-            }
-            guard let transaction: Transaction = Transaction.init(serializedData: serializedData) else {
+
+            guard let transaction: Transaction = ObjectStorage.objectForKey(receiptId) as? Transaction else {
                 result(FlutterError(code: "NATIVE", message: "CheckTransactionStatus", details: "deserializing transaction"))
                 throw PluginError.invalidArguments
             }
@@ -247,24 +244,21 @@ struct FfiMobileCoinClient {
                 switch pendingTx {
                 case .success(let (pending)):
                     do {
-                        var jsonObject: [String: Any] = [:]
+                        var returnPayload: [String: Any] = [:]
 
-                        jsonObject["transaction"] = pending.transaction.serializedData.base64EncodedString()
+                        returnPayload["transaction"] = FlutterStandardTypedData(bytes: pending.transaction.serializedData)
 
                         let payloadTxOutPublicKey = pending.payloadTxOutContext.txOutPublicKey
                         let payloadTxOutSharedSecret = pending.payloadTxOutContext.sharedSecretBytes
                         let changeTxOutPublicKey = pending.changeTxOutContext.txOutPublicKey
                         let changeTxOutSharedSecret = pending.changeTxOutContext.sharedSecretBytes
 
-                        jsonObject["payloadTxOutPublicKey"] = payloadTxOutPublicKey.base64EncodedString()
-                        jsonObject["payloadTxOutSharedSecret"] = payloadTxOutSharedSecret.base64EncodedString()
-                        jsonObject["changeTxOutPublicKey"] = changeTxOutPublicKey.base64EncodedString()
-                        jsonObject["changeTxOutSharedSecret"] = changeTxOutSharedSecret.base64EncodedString()
+                        returnPayload["payloadTxOutPublicKey"] = payloadTxOutPublicKey.base64EncodedString()
+                        returnPayload["payloadTxOutSharedSecret"] = payloadTxOutSharedSecret.base64EncodedString()
+                        returnPayload["changeTxOutPublicKey"] = changeTxOutPublicKey.base64EncodedString()
+                        returnPayload["changeTxOutSharedSecret"] = changeTxOutSharedSecret.base64EncodedString()
 
-                        let jsonData = try JSONSerialization.data(withJSONObject: jsonObject, options: [])
-                        let jsonString = String(data: jsonData, encoding: String.Encoding.ascii)!
-
-                        result(jsonString)
+                        result(returnPayload)
                     } catch let error {
                         result(FlutterError(code: "NATIVE", message: error.localizedDescription, details: "CreatePendingTransaction.hash"))
                     }
@@ -278,22 +272,24 @@ struct FfiMobileCoinClient {
     struct SendFunds: Command {
         func execute(args: [String : Any], result: @escaping FlutterResult) throws {
             guard let mobileClientId: Int = args["id"] as? Int,
-                let serializedTransaction: String = args["transaction"] as? String else {
-                    result(FlutterError(code: "NATIVE", message: "SendFunds", details: "parsing arguments"))
-                    throw PluginError.invalidArguments
-                }
+                  let serializedTransaction: FlutterStandardTypedData = args["transaction"] as? FlutterStandardTypedData else {
+                      result(FlutterError(code: "NATIVE", message: "SendFunds", details: "parsing arguments"))
+                      throw PluginError.invalidArguments
+                  }
+
             guard let mobileCoinClient: MobileCoinClient = ObjectStorage.objectForKey(mobileClientId) as? MobileCoinClient else {
                     result(FlutterError(code: "NATIVE", message: "SendFunds", details: "retrieve client"))
                     throw PluginError.invalidArguments
                 }
-            guard let serializedData: Data = Data(base64Encoded: serializedTransaction) else {
-                    result(FlutterError(code: "NATIVE", message: "SendFunds", details: "decoding transaction"))
-                    throw PluginError.invalidArguments
-                }
-            guard let transaction: Transaction = Transaction.init(serializedData: serializedData) else {
+
+            guard let transaction: Transaction = Transaction.init(serializedData: Data(serializedTransaction.data)) else {
                     result(FlutterError(code: "NATIVE", message: "SendFunds", details: "deserializing transaction"))
                     throw PluginError.invalidArguments
                 }
+
+            let receiptId = transaction.hashValue
+
+            ObjectStorage.addObject(transaction, forKey: receiptId);
 
             var jsonObject: [String: Any] = [:]
             mobileCoinClient.submitTransaction(transaction: transaction) { (txResult: Result<(UInt64), SubmitTransactionError>) in
@@ -301,6 +297,7 @@ struct FfiMobileCoinClient {
                 case .success(let blockIndex):
                     jsonObject["status"] = "OK"
                     jsonObject["blockIndex"] = blockIndex
+                    jsonObject["receiptid"] = receiptId
                 case .failure(let error):
                     do {
                         switch error.submissionError {

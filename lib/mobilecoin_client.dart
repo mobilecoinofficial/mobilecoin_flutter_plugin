@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:typed_data';
 
 import 'package:mobilecoin_flutter/mobilecoin.dart';
 
@@ -28,7 +29,7 @@ class MobileCoinClient extends PlatformObject {
     return MobileCoinClient(accountKey, objectId);
   }
 
-  Future<String> createPendingTransaction(
+  Future<Map<String, Object?>> createPendingTransaction(
     PublicAddress recipient,
     PicoMob amount,
     PicoMob fee,
@@ -42,19 +43,19 @@ class MobileCoinClient extends PlatformObject {
     );
   }
 
-  Future<String> sendFunds(String serializedTransaction) async {
+  Future<String> sendFunds(Uint8List serializedTransaction) async {
     return await MobileCoinFlutterPluginChannelApi.instance.sendFunds(
       mobileClientId: id,
       serializedTransaction: serializedTransaction,
     );
   }
 
-  Future<int> checkTransactionStatus(
-    String serializedTransaction,
-  ) async {
-    final result = await MobileCoinFlutterPluginChannelApi.instance
-        .checkTransactionStatus(
-            mobileClientId: id, serializedTransaction: serializedTransaction);
+  Future<int> checkTransactionStatus(int receiptId) async {
+    final result =
+        await MobileCoinFlutterPluginChannelApi.instance.checkTransactionStatus(
+      mobileClientId: id,
+      receiptId: receiptId,
+    );
     return result;
   }
 
