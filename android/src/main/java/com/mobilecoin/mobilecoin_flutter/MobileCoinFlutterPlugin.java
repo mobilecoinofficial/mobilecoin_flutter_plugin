@@ -136,7 +136,8 @@ public class MobileCoinFlutterPlugin implements FlutterPlugin, MethodCallHandler
             case "MobileCoinClient#createPendingTransaction":
                 return api.createPendingTransaction(getCallArgument(call, "id"), getCallArgument(call, "recipient"),
                         PicoMob.parsePico(getCallArgument(call, "fee")),
-                        PicoMob.parsePico(getCallArgument(call, "amount")));
+                        PicoMob.parsePico(getCallArgument(call, "amount")),
+                        getCallArgument(call, "rngSeed"));
             case "MobileCoinClient#sendFunds":
                 return api.sendFunds(getCallArgument(call, "id"), getCallArgument(call, "transaction"));
             case "MobileCoinClient#checkTransactionStatus":
@@ -228,7 +229,7 @@ public class MobileCoinFlutterPlugin implements FlutterPlugin, MethodCallHandler
          * the given <code>recipient</code> and then returns pending transaction ID, along with
          * the payloadPublicKey, changePublicKey, payloadSharedSecret, and changeSharedSecret
          */
-        HashMap createPendingTransaction(int mobileClientId, int recipientId, @NonNull PicoMob fee, @NonNull PicoMob amount)
+        HashMap<String, Object> createPendingTransaction(int mobileClientId, int recipientId, @NonNull PicoMob fee, @NonNull PicoMob amount, String rngSeed)
                 throws InvalidFogResponse, InterruptedException, InvalidTransactionException, AttestationException,
                 FeeRejectedException, InsufficientFundsException, FragmentedAccountException, NetworkException,
                 TransactionBuilderException, FogReportException, FogSyncException, SerializationException;
@@ -430,11 +431,11 @@ public class MobileCoinFlutterPlugin implements FlutterPlugin, MethodCallHandler
         }
 
         @Override
-        public HashMap createPendingTransaction(int mobileClientId, int recipientId, @NonNull PicoMob fee, @NonNull PicoMob amount)
+        public HashMap<String, Object> createPendingTransaction(int mobileClientId, int recipientId, @NonNull PicoMob fee, @NonNull PicoMob amount, String rngSeed)
                 throws InvalidFogResponse, AttestationException, FeeRejectedException, InsufficientFundsException,
                 FragmentedAccountException, NetworkException, TransactionBuilderException, FogReportException,
                 FogSyncException, SerializationException {
-            return FfiMobileCoinClient.createPendingTransaction(mobileClientId, recipientId, fee, amount);
+            return FfiMobileCoinClient.createPendingTransaction(mobileClientId, recipientId, fee, amount, rngSeed);
         }
 
         @Override

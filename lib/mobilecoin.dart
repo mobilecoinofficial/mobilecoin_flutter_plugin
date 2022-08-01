@@ -61,12 +61,14 @@ class MobileCoinFlutterPluginChannelApi {
     required int recipientId,
     required PicoMob fee,
     required PicoMob amount,
+    String? rngSeed,
   }) async {
     final Map<String, dynamic> params = <String, dynamic>{
       'id': mobileClientId,
       'recipient': recipientId,
       'fee': fee.picoCountAsString(),
       'amount': amount.picoCountAsString(),
+      'rngSeed': rngSeed,
     };
     final result = await _channel.invokeMethod(
       "MobileCoinClient#createPendingTransaction",
