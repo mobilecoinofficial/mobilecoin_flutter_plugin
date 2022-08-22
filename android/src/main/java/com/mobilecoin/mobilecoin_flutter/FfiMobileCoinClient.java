@@ -86,9 +86,13 @@ public class FfiMobileCoinClient {
             jsonTxOut.put("publicKey", Base64.encodeToString(txOut.getPublicKey().getKeyBytes(), Base64.NO_WRAP));
             jsonTxOut.put("keyImage", Base64.encodeToString(txOut.getKeyImage().getData(), Base64.NO_WRAP));
             jsonTxOut.put("sharedSecret", Base64.encodeToString(txOut.getSharedSecret(accountKey).getKeyBytes(), Base64.NO_WRAP));
-            if (txOut.getSpentBlockIndex() != null && txOut.getSpentBlockTimestamp() != null) {
-                jsonTxOut.put("spentDate", formatDate(txOut.getSpentBlockTimestamp()));
+            if (txOut.getSpentBlockIndex() != null) {
                 jsonTxOut.put("spentBlock", txOut.getSpentBlockIndex().toString());
+
+                // spentBlockTimestamp is null when checking a spent TxOut before Fog Ledger knows it is spent
+                if (txOut.getSpentBlockTimestamp() != null) {
+                    jsonTxOut.put("spentDate", formatDate(txOut.getSpentBlockTimestamp()));
+                }
             }
             txOuts.put(jsonTxOut);
         }
