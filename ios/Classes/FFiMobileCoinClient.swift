@@ -161,7 +161,7 @@ struct FfiMobileCoinClient {
                                 jsonTxOut["spentBlock"] = String(txOut.spentBlock!.index)
 
                                 // spentBlockTimestamp is null when checking a spent TxOut before Fog Ledger knows it is spent
-                                if (txOut.spentBlock!.timestamp != null) {
+                                if (txOut.spentBlock!.timestamp != nil) {
                                     jsonTxOut["spentDate"] = formatDate(date: txOut.spentBlock!.timestamp)
                                 }
                             }
