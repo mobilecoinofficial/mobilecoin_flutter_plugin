@@ -61,7 +61,7 @@ class MobileCoinFlutterPluginChannelApi {
     required int recipientId,
     required PicoMob fee,
     required PicoMob amount,
-    Uint8List? rngSeed,
+    required Uint8List rngSeed,
   }) async {
     final Map<String, dynamic> params = <String, dynamic>{
       'id': mobileClientId,

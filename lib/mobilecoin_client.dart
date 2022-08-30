@@ -33,9 +33,9 @@ class MobileCoinClient extends PlatformObject {
     PublicAddress recipient,
     PicoMob amount,
     PicoMob fee,
-    String? rngSeed,
+    String rngSeed,
   ) async {
-    if (rngSeed != null && rngSeed.codeUnits.length != 32) {
+    if (rngSeed.codeUnits.length != 32) {
       throw Exception(
         '''Invalid rngSeed $rngSeed. Byte length must be 32, but received ${rngSeed.codeUnits.length}''',
       );
@@ -47,7 +47,7 @@ class MobileCoinClient extends PlatformObject {
       recipientId: recipient.id,
       fee: fee,
       amount: amount,
-      rngSeed: rngSeed == null ? null : Uint8List.fromList(rngSeed.codeUnits),
+      rngSeed: Uint8List.fromList(rngSeed.codeUnits),
     );
   }
 

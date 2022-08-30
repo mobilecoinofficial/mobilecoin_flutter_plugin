@@ -138,12 +138,8 @@ public class FfiMobileCoinClient {
         MobileCoinClient mobileCoinClient = (MobileCoinClient) ObjectStorage.objectForKey(mobileClientId);
         TxOutMemoBuilder txOutMemoBuilder = TxOutMemoBuilder.createSenderAndDestinationRTHMemoBuilder(mobileCoinClient.getAccountKey());
 
-        ChaCha20Rng rng = ChaCha20Rng.withRandomSeed();
-
         // Reusing an rngSeed makes it so the public key is always the same, ensuring idempotence
-        if (rngSeed != null) {
-            rng = ChaCha20Rng.fromSeed(rngSeed);
-        }
+        ChaCha20Rng rng = ChaCha20Rng.fromSeed(rngSeed);
 
         final PendingTransaction pendingTransaction = mobileCoinClient.prepareTransaction(recipient, new Amount(amount.getPicoCountAsBigInt(), TokenId.MOB),
                 new Amount(fee.getPicoCountAsBigInt(), TokenId.MOB), txOutMemoBuilder, rng);

@@ -229,7 +229,7 @@ public class MobileCoinFlutterPlugin implements FlutterPlugin, MethodCallHandler
          * the given <code>recipient</code> and then returns pending transaction ID, along with
          * the payloadPublicKey, changePublicKey, payloadSharedSecret, and changeSharedSecret
          */
-        HashMap<String, Object> createPendingTransaction(int mobileClientId, int recipientId, @NonNull PicoMob fee, @NonNull PicoMob amount, byte[] rngSeed)
+        HashMap<String, Object> createPendingTransaction(int mobileClientId, int recipientId, @NonNull PicoMob fee, @NonNull PicoMob amount, @NonNull byte[] rngSeed)
                 throws InvalidFogResponse, InterruptedException, InvalidTransactionException, AttestationException,
                 FeeRejectedException, InsufficientFundsException, FragmentedAccountException, NetworkException,
                 TransactionBuilderException, FogReportException, FogSyncException, SerializationException;
@@ -431,7 +431,7 @@ public class MobileCoinFlutterPlugin implements FlutterPlugin, MethodCallHandler
         }
 
         @Override
-        public HashMap<String, Object> createPendingTransaction(int mobileClientId, int recipientId, @NonNull PicoMob fee, @NonNull PicoMob amount, byte[] rngSeed)
+        public HashMap<String, Object> createPendingTransaction(int mobileClientId, int recipientId, @NonNull PicoMob fee, @NonNull PicoMob amount, @NonNull byte[] rngSeed)
                 throws InvalidFogResponse, AttestationException, FeeRejectedException, InsufficientFundsException,
                 FragmentedAccountException, NetworkException, TransactionBuilderException, FogReportException,
                 FogSyncException, SerializationException {

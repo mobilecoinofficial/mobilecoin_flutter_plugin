@@ -232,7 +232,7 @@ struct FfiMobileCoinClient {
             guard let mobileClientId: Int = args["id"] as? Int,
                   let recipientId: Int = args["recipient"] as? Int,
                   let feeString: String = args["fee"] as? String,
-                  let rngSeed: FlutterStandardTypedData? = args["rngSeed"] as? FlutterStandardTypedData?,
+                  let rngSeed: FlutterStandardTypedData = args["rngSeed"] as? FlutterStandardTypedData,
                   let fee = UInt64(feeString),
                   let amountString: String = args["amount"] as? String,
                   let parsedAmount = UInt64(amountString) else {
@@ -240,11 +240,7 @@ struct FfiMobileCoinClient {
                       throw PluginError.invalidArguments
                   }
             let amount = Amount(parsedAmount, in: .MOB)
-            var rng = MobileCoinChaCha20Rng.init()
-
-            if (rngSeed != nil) {
-                rng = MobileCoinChaCha20Rng.init(seed: rngSeed!.data)
-            }
+            let rng = MobileCoinChaCha20Rng.init(seed: rngSeed.data)
 
             guard let recipient: PublicAddress = ObjectStorage.objectForKey(recipientId) as? PublicAddress,
                   let mobileCoinClient: MobileCoinClient = ObjectStorage.objectForKey(mobileClientId) as? MobileCoinClient else {
