@@ -61,14 +61,20 @@ class MobileCoinFlutterPluginChannelApi {
     required int recipientId,
     required PicoMob fee,
     required PicoMob amount,
-    required Uint8List rngSeed,
+    required String rngSeed,
   }) async {
+    if (rngSeed.codeUnits.length != 32) {
+      throw Exception(
+        '''Invalid rngSeed $rngSeed. Byte length must be 32, but received ${rngSeed.codeUnits.length}''',
+      );
+    }
+
     final Map<String, dynamic> params = <String, dynamic>{
       'id': mobileClientId,
       'recipient': recipientId,
       'fee': fee.picoCountAsString(),
       'amount': amount.picoCountAsString(),
-      'rngSeed': rngSeed,
+      'rngSeed': Uint8List.fromList(rngSeed.codeUnits),
     };
     final result = await _channel.invokeMethod(
       "MobileCoinClient#createPendingTransaction",
