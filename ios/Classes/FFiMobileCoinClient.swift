@@ -228,6 +228,7 @@ struct FfiMobileCoinClient {
             guard let mobileClientId: Int = args["id"] as? Int,
                   let recipientId: Int = args["recipient"] as? Int,
                   let feeString: String = args["fee"] as? String,
+                  let rngSeed: FlutterStandardTypedData? = args["rngSeed"] as? FlutterStandardTypedData?,
                   let fee = UInt64(feeString),
                   let amountString: String = args["amount"] as? String,
                   let parsedAmount = UInt64(amountString) else {
@@ -235,33 +236,35 @@ struct FfiMobileCoinClient {
                       throw PluginError.invalidArguments
                   }
             let amount = Amount(parsedAmount, in: .MOB)
+            var rng = MobileCoinChaCha20Rng.init()
+
+            if (rngSeed != nil) {
+                rng = MobileCoinChaCha20Rng.init(seed: rngSeed!.data)
+            }
+
             guard let recipient: PublicAddress = ObjectStorage.objectForKey(recipientId) as? PublicAddress,
                   let mobileCoinClient: MobileCoinClient = ObjectStorage.objectForKey(mobileClientId) as? MobileCoinClient else {
                       result(FlutterError(code: "NATIVE", message: "CreatePendingTransaction", details: "retrieve client"))
                       throw PluginError.invalidArguments
                   }
-            mobileCoinClient.prepareTransaction(to: recipient, memoType: .recoverable, amount: amount, fee: fee) { (pendingTx: Result<PendingSinglePayloadTransaction, TransactionPreparationError>) in
+            mobileCoinClient.prepareTransaction(to: recipient, memoType: .recoverable, amount: amount, fee: fee, rng: rng) { (pendingTx: Result<PendingSinglePayloadTransaction, TransactionPreparationError>) in
                 switch pendingTx {
                 case .success(let (pending)):
-                    do {
-                        var returnPayload: [String: Any] = [:]
+                    var returnPayload: [String: Any] = [:]
 
-                        returnPayload["transaction"] = FlutterStandardTypedData(bytes: pending.transaction.serializedData)
+                    returnPayload["transaction"] = FlutterStandardTypedData(bytes: pending.transaction.serializedData)
 
-                        let payloadTxOutPublicKey = pending.payloadTxOutContext.txOutPublicKey
-                        let payloadTxOutSharedSecret = pending.payloadTxOutContext.sharedSecretBytes
-                        let changeTxOutPublicKey = pending.changeTxOutContext.txOutPublicKey
-                        let changeTxOutSharedSecret = pending.changeTxOutContext.sharedSecretBytes
+                    let payloadTxOutPublicKey = pending.payloadTxOutContext.txOutPublicKey
+                    let payloadTxOutSharedSecret = pending.payloadTxOutContext.sharedSecretBytes
+                    let changeTxOutPublicKey = pending.changeTxOutContext.txOutPublicKey
+                    let changeTxOutSharedSecret = pending.changeTxOutContext.sharedSecretBytes
 
-                        returnPayload["payloadTxOutPublicKey"] = payloadTxOutPublicKey.base64EncodedString()
-                        returnPayload["payloadTxOutSharedSecret"] = payloadTxOutSharedSecret.base64EncodedString()
-                        returnPayload["changeTxOutPublicKey"] = changeTxOutPublicKey.base64EncodedString()
-                        returnPayload["changeTxOutSharedSecret"] = changeTxOutSharedSecret.base64EncodedString()
+                    returnPayload["payloadTxOutPublicKey"] = payloadTxOutPublicKey.base64EncodedString()
+                    returnPayload["payloadTxOutSharedSecret"] = payloadTxOutSharedSecret.base64EncodedString()
+                    returnPayload["changeTxOutPublicKey"] = changeTxOutPublicKey.base64EncodedString()
+                    returnPayload["changeTxOutSharedSecret"] = changeTxOutSharedSecret.base64EncodedString()
 
-                        result(returnPayload)
-                    } catch let error {
-                        result(FlutterError(code: "NATIVE", message: error.localizedDescription, details: "CreatePendingTransaction.hash"))
-                    }
+                    result(returnPayload)
                 case .failure(let e):
                     result(FlutterError(code: "NATIVE", message: e.localizedDescription, details: "CreatePendingTransaction.prepareTransaction"))
                 }
