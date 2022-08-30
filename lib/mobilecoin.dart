@@ -56,7 +56,7 @@ class MobileCoinFlutterPluginChannelApi {
     return json;
   }
 
-  Future<String> createPendingTransaction({
+  Future<Map<String, Object?>> createPendingTransaction({
     required int mobileClientId,
     required int recipientId,
     required PicoMob fee,
@@ -68,20 +68,20 @@ class MobileCoinFlutterPluginChannelApi {
       'fee': fee.picoCountAsString(),
       'amount': amount.picoCountAsString(),
     };
-    final json = await _channel.invokeMethod(
+    final result = await _channel.invokeMethod(
       "MobileCoinClient#createPendingTransaction",
       params,
     );
-    return json;
+    return Map<String, Object?>.from(result as Map);
   }
 
   Future<String> sendFunds({
     required int mobileClientId,
-    required int pendingTransactionId,
+    required Uint8List serializedTransaction,
   }) async {
     final Map<String, dynamic> params = <String, dynamic>{
       'id': mobileClientId,
-      'pendingTransactionId': pendingTransactionId,
+      'transaction': serializedTransaction,
     };
     final json =
         await _channel.invokeMethod("MobileCoinClient#sendFunds", params);
@@ -90,11 +90,11 @@ class MobileCoinFlutterPluginChannelApi {
 
   Future<int> checkTransactionStatus({
     required int mobileClientId,
-    required int transactionId,
+    required int receiptId,
   }) async {
     final Map<String, dynamic> params = <String, dynamic>{
       'id': mobileClientId,
-      'transactionId': transactionId,
+      'receiptId': receiptId,
     };
 
     return await _channel.invokeMethod(

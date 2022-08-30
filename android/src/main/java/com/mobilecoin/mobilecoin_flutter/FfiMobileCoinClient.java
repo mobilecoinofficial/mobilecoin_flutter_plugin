@@ -28,6 +28,7 @@ import com.mobilecoin.lib.exceptions.InvalidFogResponse;
 import com.mobilecoin.lib.exceptions.InvalidTransactionException;
 import com.mobilecoin.lib.exceptions.InvalidUriException;
 import com.mobilecoin.lib.exceptions.NetworkException;
+import com.mobilecoin.lib.exceptions.SerializationException;
 import com.mobilecoin.lib.exceptions.TransactionBuilderException;
 import com.mobilecoin.lib.network.TransportProtocol;
 
@@ -38,9 +39,11 @@ import org.json.JSONObject;
 import java.math.BigInteger;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Locale;
-import java.util.Objects;
 import java.util.Set;
+
+import consensus_common.ConsensusCommon;
 
 @Keep
 public class FfiMobileCoinClient {
@@ -109,9 +112,10 @@ public class FfiMobileCoinClient {
         mobileCoinClient.setFogBasicAuthorization(username, password);
     }
 
-    public static int checkTransactionStatus(int mobileClientId, int transactionId) throws AttestationException, InvalidFogResponse, NetworkException, FogSyncException {
+    public static int checkTransactionStatus(int mobileClientId, int receiptId)
+            throws AttestationException, InvalidFogResponse, NetworkException, FogSyncException {
         MobileCoinClient mobileCoinClient = (MobileCoinClient) ObjectStorage.objectForKey(mobileClientId);
-        Transaction transaction = (Transaction) ObjectStorage.objectForKey(transactionId);
+        Transaction transaction =(Transaction) ObjectStorage.objectForKey(receiptId);
 
         Transaction.Status status = mobileCoinClient.getTransactionStatus(transaction);
         switch (status) {
@@ -125,10 +129,10 @@ public class FfiMobileCoinClient {
         }
     }
 
-    public static String createPendingTransaction(int mobileClientId, int recipientId, @NonNull PicoMob fee, @NonNull PicoMob amount)
+    public static HashMap createPendingTransaction(int mobileClientId, int recipientId, @NonNull PicoMob fee, @NonNull PicoMob amount)
             throws InvalidFogResponse, AttestationException, FeeRejectedException, InsufficientFundsException,
             FragmentedAccountException, NetworkException, TransactionBuilderException, FogReportException,
-            JSONException, FogSyncException {
+            FogSyncException, SerializationException {
         PublicAddress recipient = (PublicAddress) ObjectStorage.objectForKey(recipientId);
         MobileCoinClient mobileCoinClient = (MobileCoinClient) ObjectStorage.objectForKey(mobileClientId);
         TxOutMemoBuilder txOutMemoBuilder = TxOutMemoBuilder.createSenderAndDestinationRTHMemoBuilder(mobileCoinClient.getAccountKey());
@@ -136,58 +140,64 @@ public class FfiMobileCoinClient {
         final PendingTransaction pendingTransaction = mobileCoinClient.prepareTransaction(recipient, new Amount(amount.getPicoCountAsBigInt(), TokenId.MOB),
                 new Amount(fee.getPicoCountAsBigInt(), TokenId.MOB), txOutMemoBuilder);
 
-        final int hashCode = pendingTransaction.getPayloadTxOutContext().hashCode();
-        ObjectStorage.addObject(hashCode, pendingTransaction);
-
-        JSONObject transactionObject = new JSONObject();
-        transactionObject.put("pendingTransactionId", hashCode);
+        HashMap returnPayload = new HashMap();
+        returnPayload.put("transaction", pendingTransaction.getTransaction().toByteArray());
 
         final RistrettoPublic payloadTxOutPublicKey = pendingTransaction.getPayloadTxOutContext().getTxOutPublicKey();
         final RistrettoPublic payloadTxOutSharedSecret = pendingTransaction.getPayloadTxOutContext().getSharedSecret();
         final RistrettoPublic changeTxOutPublicKey = pendingTransaction.getChangeTxOutContext().getTxOutPublicKey();
         final RistrettoPublic changeTxOutSharedSecret = pendingTransaction.getChangeTxOutContext().getSharedSecret();
 
-        transactionObject.put("payloadTxOutPublicKey", Base64.encodeToString(payloadTxOutPublicKey.getKeyBytes(), Base64.NO_WRAP));
-        transactionObject.put("payloadTxOutSharedSecret", Base64.encodeToString(payloadTxOutSharedSecret.getKeyBytes(), Base64.NO_WRAP));
-        transactionObject.put("changeTxOutPublicKey", Base64.encodeToString(changeTxOutPublicKey.getKeyBytes(), Base64.NO_WRAP));
-        transactionObject.put("changeTxOutSharedSecret", Base64.encodeToString(changeTxOutSharedSecret.getKeyBytes(), Base64.NO_WRAP));
+        returnPayload.put("payloadTxOutPublicKey", Base64.encodeToString(payloadTxOutPublicKey.getKeyBytes(), Base64.NO_WRAP));
+        returnPayload.put("payloadTxOutSharedSecret", Base64.encodeToString(payloadTxOutSharedSecret.getKeyBytes(), Base64.NO_WRAP));
+        returnPayload.put("changeTxOutPublicKey", Base64.encodeToString(changeTxOutPublicKey.getKeyBytes(), Base64.NO_WRAP));
+        returnPayload.put("changeTxOutSharedSecret", Base64.encodeToString(changeTxOutSharedSecret.getKeyBytes(), Base64.NO_WRAP));
 
-        return transactionObject.toString();
+        return returnPayload;
     }
 
-    public static String sendFunds(int mobileClientId, int pendingTransactionId)
-            throws JSONException, FlutterError {
+    public static String sendFunds(int mobileClientId, byte[] serializedTransaction)
+            throws SerializationException, JSONException {
         MobileCoinClient mobileCoinClient = (MobileCoinClient) ObjectStorage.objectForKey(mobileClientId);
-        PendingTransaction pendingTransaction = (PendingTransaction) ObjectStorage.objectForKey(pendingTransactionId);
-        Transaction transaction = pendingTransaction.getTransaction();
+        Transaction transaction = Transaction.fromBytes(serializedTransaction);
+        int receiptId = transaction.hashCode();
+
+        ObjectStorage.addObject(receiptId, transaction);
+
+        JSONObject resultObject = new JSONObject();
 
         try {
-            mobileCoinClient.submitTransaction(transaction);
+            final long blockIndex = mobileCoinClient.submitTransaction(transaction);
+
+            resultObject.put("status", "OK");
+            resultObject.put("blockIndex", blockIndex);
+            resultObject.put("receiptId", receiptId);
         } catch (InvalidTransactionException e) {
-            switch (Objects.requireNonNull(e.getMessage())) {
-            case "ContainsSpentKeyImage":
-                throw new FlutterError("NATIVE", "INPUT_ALREADY_SPENT", e.getMessage());
-            case "TxFeeError":
-                throw new FlutterError("NATIVE", "FEE_ERROR", e.getMessage());
-            case "MissingMemo":
-                throw new FlutterError("NATIVE", "MISSING_MEMO", e.getMessage());
-            case "TombstoneBlockTooFar":
-                throw new FlutterError("NATIVE", "TOMBSTONE_BLOCK_TOO_FAR", e.getMessage());
+            final ConsensusCommon.ProposeTxResult result = e.getResult() == null ?
+                    ConsensusCommon.ProposeTxResult.UNRECOGNIZED :
+                    e.getResult();
+
+            resultObject.put("blockIndex", e.getBlockIndex());
+
+            switch (result) {
+            case ContainsSpentKeyImage:
+            case ContainsExistingOutputPublicKey:
+                resultObject.put("status", "INPUT_ALREADY_SPENT");
+            case TxFeeError:
+                resultObject.put("status", "FEE_ERROR");
+            case MissingMemo:
+                resultObject.put("status", "MISSING_MEMO");
+            case TombstoneBlockTooFar:
+                resultObject.put("status", "TOMBSTONE_BLOCK_TOO_FAR");
             default:
-                throw new FlutterError("NATIVE", "INVALID_TRANSACTION", e.getMessage());
+                resultObject.put("status", "INVALID_TRANSACTION");
             }
         } catch (NetworkException e) {
-            throw new FlutterError("NATIVE", "NETWORK_ERROR", e.getMessage());
+            resultObject.put("status", "NETWORK_ERROR");
         } catch (AttestationException e) {
-            throw new FlutterError("NATIVE", "ATTESTATION_EXCEPTION", e.getMessage());
+            resultObject.put("status", "ATTESTATION_EXCEPTION");
         }
 
-        final int transactionHashCode = transaction.hashCode();
-        ObjectStorage.addObject(transactionHashCode, transaction);
-
-        JSONObject receiptObject = new JSONObject();
-        receiptObject.put("receiptId", transactionHashCode);
-
-        return receiptObject.toString();
+        return resultObject.toString();
     }
 }
