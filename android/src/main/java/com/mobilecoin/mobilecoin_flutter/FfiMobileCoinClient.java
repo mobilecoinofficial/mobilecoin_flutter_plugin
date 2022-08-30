@@ -79,7 +79,7 @@ public class FfiMobileCoinClient {
         AccountKey accountKey = mobileCoinClient.getAccountKey();
         result.put("balance", balance);
         result.put("blockCount", activity.getBlockCount());
-        Set<OwnedTxOut> ownedTxOuts = activity.getAllTokenTxOuts();
+        Set<OwnedTxOut> ownedTxOuts = activity.getAllTokenTxOuts(TokenId.MOB);
         JSONArray txOuts = new JSONArray();
         for (OwnedTxOut txOut : ownedTxOuts) {
             JSONObject jsonTxOut = new JSONObject();
