@@ -175,6 +175,7 @@ public class FfiMobileCoinClient {
 
             resultObject.put("status", "OK");
             resultObject.put("blockIndex", blockIndex);
+            resultObject.put("receiptId", receiptId);
         } catch (InvalidTransactionException e) {
             final ConsensusCommon.ProposeTxResult result = e.getResult() == null ?
                     ConsensusCommon.ProposeTxResult.UNRECOGNIZED :
