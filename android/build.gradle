@@ -24,7 +24,7 @@ rootProject.allprojects {
 apply plugin: 'com.android.library'
 
 dependencies {
-    implementation 'com.mobilecoin:android-sdk:1.2.3.pre-3'
+    implementation 'com.mobilecoin:android-sdk:1.2.2-pre3'
 }
 
 android {
