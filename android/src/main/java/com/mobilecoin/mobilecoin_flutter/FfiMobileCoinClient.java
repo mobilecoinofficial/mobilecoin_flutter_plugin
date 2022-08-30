@@ -112,7 +112,7 @@ public class FfiMobileCoinClient {
     public static int checkTransactionStatus(int mobileClientId, int receiptId)
             throws AttestationException, InvalidFogResponse, NetworkException, FogSyncException {
         MobileCoinClient mobileCoinClient = (MobileCoinClient) ObjectStorage.objectForKey(mobileClientId);
-        Transaction transaction =(Transaction) ObjectStorage.objectForKey(receiptId);
+        Transaction transaction = (Transaction) ObjectStorage.objectForKey(receiptId);
 
         Transaction.Status status = mobileCoinClient.getTransactionStatus(transaction);
         switch (status) {
@@ -126,7 +126,7 @@ public class FfiMobileCoinClient {
         }
     }
 
-    public static HashMap<String, Object> createPendingTransaction(int mobileClientId, int recipientId, @NonNull PicoMob fee, @NonNull PicoMob amount, String rngSeed)
+    public static HashMap<String, Object> createPendingTransaction(int mobileClientId, int recipientId, @NonNull PicoMob fee, @NonNull PicoMob amount, byte[] rngSeed)
             throws InvalidFogResponse, AttestationException, FeeRejectedException, InsufficientFundsException,
             FragmentedAccountException, NetworkException, TransactionBuilderException, FogReportException,
             FogSyncException, SerializationException {
@@ -138,7 +138,7 @@ public class FfiMobileCoinClient {
 
         // Reusing an rngSeed makes it so the public key is always the same, ensuring idempotence
         if (rngSeed != null) {
-            rng = ChaCha20Rng.fromSeed(rngSeed.getBytes());
+            rng = ChaCha20Rng.fromSeed(rngSeed);
         }
 
         final PendingTransaction pendingTransaction = mobileCoinClient.prepareTransaction(recipient, new Amount(amount.getPicoCountAsBigInt(), TokenId.MOB),
