@@ -240,6 +240,7 @@ struct FfiMobileCoinClient {
                       throw PluginError.invalidArguments
                   }
             let amount = Amount(parsedAmount, in: .MOB)
+            // rngSeed is required for now. If it were ever to be optional, we would need to utilize wordPos
             let rng = MobileCoinChaCha20Rng.init(seed: rngSeed.data)
 
             guard let recipient: PublicAddress = ObjectStorage.objectForKey(recipientId) as? PublicAddress,
