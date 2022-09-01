@@ -23,7 +23,7 @@ PODS:
     - gRPC-Swift
     - SwiftProtobuf (~> 1.5)
   - Logging (1.4.0)
-  - MobileCoin/Core (2.0.1):
+  - MobileCoin/Core (2.0.2):
     - gRPC-Swift (= 1.0.0)
     - LibMobileCoin/Core (= 2.0.0)
     - Logging (~> 1.4)
@@ -33,7 +33,7 @@ PODS:
     - SwiftProtobuf
   - mobilecoin_flutter (0.2.0):
     - Flutter
-    - MobileCoin/Core (= 2.0.1)
+    - MobileCoin/Core (= 2.0.2)
   - SwiftNIO (2.40.0):
     - _NIODataStructures (= 2.40.0)
     - CNIOAtomics (= 2.40.0)
@@ -202,8 +202,8 @@ SPEC CHECKSUMS:
   gRPC-Swift: 77154009a019e97f8c4bd8f2bb75fe9726801157
   LibMobileCoin: d1fbf7951d365e4fdc959ca3badc55261f756237
   Logging: beeb016c9c80cf77042d62e83495816847ef108b
-  MobileCoin: 59ca6cfe3ab34b774767f8f88f6782cdc34e9e75
-  mobilecoin_flutter: 61687e96b27202b5131d56d9b1c4a37ab21a3523
+  MobileCoin: 504e4692518fc4ff8a083346d7e5397462d67db5
+  mobilecoin_flutter: a835ad3c5d4708dc9aeeba9aa9c56556a5a4e58e
   SwiftNIO: 829958aab300642625091f82fc2f49cb7cf4ef24
   SwiftNIOConcurrencyHelpers: 697370136789b1074e4535eaae75cbd7f900370e
   SwiftNIOCore: 473fdfe746534d7aa25766916459eeaf6f92ef49
