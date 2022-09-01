@@ -33,6 +33,7 @@ class MobileCoinClient extends PlatformObject {
     PublicAddress recipient,
     PicoMob amount,
     PicoMob fee,
+    String rngSeed,
   ) async {
     return await MobileCoinFlutterPluginChannelApi.instance
         .createPendingTransaction(
@@ -40,6 +41,7 @@ class MobileCoinClient extends PlatformObject {
       recipientId: recipient.id,
       fee: fee,
       amount: amount,
+      rngSeed: rngSeed,
     );
   }
 

@@ -10,6 +10,7 @@ import com.mobilecoin.lib.AccountActivity;
 import com.mobilecoin.lib.AccountKey;
 import com.mobilecoin.lib.AccountSnapshot;
 import com.mobilecoin.lib.Amount;
+import com.mobilecoin.lib.ChaCha20Rng;
 import com.mobilecoin.lib.MobileCoinClient;
 import com.mobilecoin.lib.OwnedTxOut;
 import com.mobilecoin.lib.PendingTransaction;
@@ -115,7 +116,7 @@ public class FfiMobileCoinClient {
     public static int checkTransactionStatus(int mobileClientId, int receiptId)
             throws AttestationException, InvalidFogResponse, NetworkException, FogSyncException {
         MobileCoinClient mobileCoinClient = (MobileCoinClient) ObjectStorage.objectForKey(mobileClientId);
-        Transaction transaction =(Transaction) ObjectStorage.objectForKey(receiptId);
+        Transaction transaction = (Transaction) ObjectStorage.objectForKey(receiptId);
 
         Transaction.Status status = mobileCoinClient.getTransactionStatus(transaction);
         switch (status) {
@@ -129,7 +130,7 @@ public class FfiMobileCoinClient {
         }
     }
 
-    public static HashMap createPendingTransaction(int mobileClientId, int recipientId, @NonNull PicoMob fee, @NonNull PicoMob amount)
+    public static HashMap<String, Object> createPendingTransaction(int mobileClientId, int recipientId, @NonNull PicoMob fee, @NonNull PicoMob amount, byte[] rngSeed)
             throws InvalidFogResponse, AttestationException, FeeRejectedException, InsufficientFundsException,
             FragmentedAccountException, NetworkException, TransactionBuilderException, FogReportException,
             FogSyncException, SerializationException {
@@ -137,10 +138,13 @@ public class FfiMobileCoinClient {
         MobileCoinClient mobileCoinClient = (MobileCoinClient) ObjectStorage.objectForKey(mobileClientId);
         TxOutMemoBuilder txOutMemoBuilder = TxOutMemoBuilder.createSenderAndDestinationRTHMemoBuilder(mobileCoinClient.getAccountKey());
 
-        final PendingTransaction pendingTransaction = mobileCoinClient.prepareTransaction(recipient, new Amount(amount.getPicoCountAsBigInt(), TokenId.MOB),
-                new Amount(fee.getPicoCountAsBigInt(), TokenId.MOB), txOutMemoBuilder);
+        // Reusing an rngSeed makes it so the public key is always the same, ensuring idempotence
+        ChaCha20Rng rng = ChaCha20Rng.fromSeed(rngSeed);
 
-        HashMap returnPayload = new HashMap();
+        final PendingTransaction pendingTransaction = mobileCoinClient.prepareTransaction(recipient, new Amount(amount.getPicoCountAsBigInt(), TokenId.MOB),
+                new Amount(fee.getPicoCountAsBigInt(), TokenId.MOB), txOutMemoBuilder, rng);
+
+        HashMap<String, Object> returnPayload = new HashMap<>();
         returnPayload.put("transaction", pendingTransaction.getTransaction().toByteArray());
 
         final RistrettoPublic payloadTxOutPublicKey = pendingTransaction.getPayloadTxOutContext().getTxOutPublicKey();
