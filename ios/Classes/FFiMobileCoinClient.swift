@@ -208,8 +208,7 @@ struct FfiMobileCoinClient {
                 throw PluginError.invalidArguments
             }
 
-            mobileCoinClient.updateBalances {_ in}
-            mobileCoinClient.status(of: transaction) { (statusResult: Result<TransactionStatus, ConnectionError>) in
+            mobileCoinClient.txOutStatus(of: transaction) { (statusResult: Result<TransactionStatus, ConnectionError>) in
                 switch statusResult {
                 case .success(let status):
                     switch status {
@@ -295,15 +294,15 @@ struct FfiMobileCoinClient {
 
             ObjectStorage.addObject(transaction, forKey: receiptId);
 
-            var jsonObject: [String: Any] = [:]
             mobileCoinClient.submitTransaction(transaction: transaction) { (txResult: Result<(UInt64), SubmitTransactionError>) in
-                switch txResult {
-                case .success(let blockIndex):
-                    jsonObject["status"] = "OK"
-                    jsonObject["blockIndex"] = blockIndex
-                    jsonObject["receiptid"] = receiptId
-                case .failure(let error):
-                    do {
+                var jsonObject: [String: Any] = [:]
+                do {
+                    switch txResult {
+                    case .success(let blockIndex):
+                        jsonObject["status"] = "OK"
+                        jsonObject["blockIndex"] = blockIndex
+                        jsonObject["receiptId"] = receiptId
+                    case .failure(let error):
                         switch error.submissionError {
                         case .connectionError:
                             jsonObject["status"] = "CONNECTION_ERROR"
@@ -320,13 +319,13 @@ struct FfiMobileCoinClient {
                         }
 
                         jsonObject["blockIndex"] = error.consensusBlockCount
-
-                        let jsonData = try JSONSerialization.data(withJSONObject: jsonObject, options: [])
-                        let jsonString = String(data: jsonData, encoding: String.Encoding.ascii)!
-                        result(jsonString)
-                    } catch let error {
-                        result(FlutterError(code: "NATIVE", message: error.localizedDescription, details: "SendFunds.json"))
                     }
+
+                    let jsonData = try JSONSerialization.data(withJSONObject: jsonObject, options: [])
+                    let jsonString = String(data: jsonData, encoding: String.Encoding.ascii)!
+                    result(jsonString)
+                } catch let error {
+                    result(FlutterError(code: "NATIVE", message: error.localizedDescription, details: "SendFunds.json"))
                 }
             }
         }
