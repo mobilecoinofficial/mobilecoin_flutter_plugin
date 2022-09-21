@@ -117,11 +117,11 @@ struct FfiMobileCoinClient {
                       result(FlutterError(code: "NATIVE", message: "GetBalance", details: "parsing arguments"))
                       throw PluginError.invalidArguments
                   }
-            client.updateBalance { (balanceResult: Result<Balance, ConnectionError>) in
+            client.updateBalances { (balanceResult: Result<Balances, BalanceUpdateError>) in
                 switch balanceResult {
-                case .success(let balance):
+                case .success(let balances):
                     DispatchQueue.main.async {
-                        result(String(balance.amount() ?? 0))
+                        result(String(balances.mobBalance.amount() ?? 0))
                     }
                 case .failure(let error):
                     result(FlutterError(code: "NATIVE", message: error.localizedDescription, details: "GetBalance.updateBalance"))
@@ -137,14 +137,14 @@ struct FfiMobileCoinClient {
                       result(FlutterError(code: "NATIVE", message: "GetAccountActivity", details: "parsing arguments"))
                       throw PluginError.invalidArguments
                   }
-            client.updateBalance { (balanceResult: Result<Balance, ConnectionError>) in
+            client.updateBalances { (balanceResult: Result<Balances, BalanceUpdateError>) in
                 do {
                     let activity = client.accountActivity(for: .MOB)
                     let txOuts = activity.txOuts
                     var jsonObject: [String: Any] = [:]
                     switch balanceResult {
-                    case .success(let balance):
-                        let balance: UInt64 = balance.amount()!
+                    case .success(let balances):
+                        let balance: UInt64 = balances.mobBalance.amount()!
                         jsonObject["balance"] = String(balance)
                         jsonObject["blockCount"] = String(activity.blockCount)
                         
@@ -240,14 +240,17 @@ struct FfiMobileCoinClient {
                   }
             let amount = Amount(parsedAmount, in: .MOB)
             // rngSeed is required for now. If it were ever to be optional, we would need to utilize wordPos
-            let rng = MobileCoinChaCha20Rng.init(seed: rngSeed.data)
+            guard let rng = RngSeed(rngSeed.data) else {
+                result(FlutterError(code: "NATIVE", message: "CreatePendingTransaction", details: "rngSeed required"))
+                throw PluginError.invalidArguments
+            }
 
             guard let recipient: PublicAddress = ObjectStorage.objectForKey(recipientId) as? PublicAddress,
                   let mobileCoinClient: MobileCoinClient = ObjectStorage.objectForKey(mobileClientId) as? MobileCoinClient else {
                       result(FlutterError(code: "NATIVE", message: "CreatePendingTransaction", details: "retrieve client"))
                       throw PluginError.invalidArguments
                   }
-            mobileCoinClient.prepareTransaction(to: recipient, memoType: .recoverable, amount: amount, fee: fee, rng: rng) { (pendingTx: Result<PendingSinglePayloadTransaction, TransactionPreparationError>) in
+            mobileCoinClient.prepareTransaction(to: recipient, memoType: .recoverable, amount: amount, fee: fee, rngSeed: rng) { (pendingTx: Result<PendingSinglePayloadTransaction, TransactionPreparationError>) in
                 switch pendingTx {
                 case .success(let (pending)):
                     var returnPayload: [String: Any] = [:]
@@ -316,6 +319,8 @@ struct FfiMobileCoinClient {
                             jsonObject["status"] = "TOMBSTONE_BLOCK_TOO_FAR"
                         case .inputsAlreadySpent:
                             jsonObject["status"] = "INPUT_ALREADY_SPENT"
+                        case .outputAlreadyExists(_):
+                            jsonObject["status"] = "OUTPUT_ALREADY_EXISTS"
                         }
 
                         jsonObject["blockIndex"] = error.consensusBlockCount
