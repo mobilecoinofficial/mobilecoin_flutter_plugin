@@ -208,7 +208,8 @@ struct FfiMobileCoinClient {
                 throw PluginError.invalidArguments
             }
 
-            mobileCoinClient.txOutStatus(of: transaction) { (statusResult: Result<TransactionStatus, ConnectionError>) in
+            // more race condition testing will need to be done before changing this to `txOutStatus`
+            mobileCoinClient.status(of: transaction) { (statusResult: Result<TransactionStatus, ConnectionError>) in
                 switch statusResult {
                 case .success(let status):
                     switch status {
