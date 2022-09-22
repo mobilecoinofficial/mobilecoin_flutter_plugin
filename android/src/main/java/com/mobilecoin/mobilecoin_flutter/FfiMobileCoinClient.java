@@ -118,7 +118,8 @@ public class FfiMobileCoinClient {
         MobileCoinClient mobileCoinClient = (MobileCoinClient) ObjectStorage.objectForKey(mobileClientId);
         Transaction transaction = (Transaction) ObjectStorage.objectForKey(receiptId);
 
-        Transaction.Status status = mobileCoinClient.getTransactionStatusQuick(transaction);
+        // more race condition testing will need to be done before changing this to `getTransactionStatusQuick`
+        Transaction.Status status = mobileCoinClient.getTransactionStatus(transaction);
         switch (status) {
             case ACCEPTED:
                 return 1;
