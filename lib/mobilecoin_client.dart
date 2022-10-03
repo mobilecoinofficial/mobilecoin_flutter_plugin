@@ -33,6 +33,7 @@ class MobileCoinClient extends PlatformObject {
     PublicAddress recipient,
     PicoMob amount,
     PicoMob fee,
+    int tokenId,
     String rngSeed,
   ) async {
     return await MobileCoinFlutterPluginChannelApi.instance
@@ -41,6 +42,7 @@ class MobileCoinClient extends PlatformObject {
       recipientId: recipient.id,
       fee: fee,
       amount: amount,
+      tokenId: tokenId,
       rngSeed: rngSeed,
     );
   }
@@ -61,7 +63,7 @@ class MobileCoinClient extends PlatformObject {
     return result;
   }
 
-  Future<BigInt> getBalance() async {
+  Future<String> getBalance() async {
     return await MobileCoinFlutterPluginChannelApi.instance
         .getBalance(mobileCoinClientId: id);
   }
