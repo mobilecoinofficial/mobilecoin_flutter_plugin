@@ -120,8 +120,16 @@ struct FfiMobileCoinClient {
             client.updateBalances { (balanceResult: Result<Balances, BalanceUpdateError>) in
                 switch balanceResult {
                 case .success(let balances):
+                    var resultJson: [String: Any] = [:]
+                    for tokenId in balances.tokenIds {
+                        let balance = balances.balances[tokenId]
+                        resultJson[String(tokenId.value)] = String(balance?.amount() ?? 0)
+                    }
+                    let resultData = try! JSONSerialization.data(withJSONObject: resultJson, options: [])
+                    let resultString = String(data: resultData, encoding: String.Encoding.ascii)!
+
                     DispatchQueue.main.async {
-                        result(String(balances.mobBalance.amount() ?? 0))
+                        result(resultString)
                     }
                 case .failure(let error):
                     result(FlutterError(code: "NATIVE", message: error.localizedDescription, details: "GetBalance.updateBalance"))
@@ -139,36 +147,41 @@ struct FfiMobileCoinClient {
                   }
             client.updateBalances { (balanceResult: Result<Balances, BalanceUpdateError>) in
                 do {
-                    let activity = client.accountActivity(for: .MOB)
-                    let txOuts = activity.txOuts
-                    var jsonObject: [String: Any] = [:]
                     switch balanceResult {
                     case .success(let balances):
-                        let balance: UInt64 = balances.mobBalance.amount()!
-                        jsonObject["balance"] = String(balance)
-                        jsonObject["blockCount"] = String(activity.blockCount)
-                        
-                        var jsonTxOuts:[[String: Any]] = []
-                        for txOut in txOuts {
-                            var jsonTxOut: [String: Any] = [:]
-                            jsonTxOut["value"] = String(txOut.value)
-                            jsonTxOut["receivedDate"] = formatDate(date: txOut.receivedBlock.timestamp)
-                            jsonTxOut["publicKey"] = txOut.publicKey.base64EncodedString()
-                            jsonTxOut["receivedBlock"] = String(txOut.receivedBlock.index)
-                            jsonTxOut["keyImage"] = txOut.keyImage.base64EncodedString()
-                            jsonTxOut["sharedSecret"] = txOut.sharedSecret.base64EncodedString()
-                            if txOut.spentBlock != nil {
-                                jsonTxOut["spentBlock"] = String(txOut.spentBlock!.index)
+                        var resultJson: [String: Any] = [:]
+                        for tokenId in balances.tokenIds {
+                            let activity = client.accountActivity(for: tokenId)
+                            let txOuts = activity.txOuts
+                            var jsonObject: [String: Any] = [:]
 
-                                // spentBlockTimestamp is null when checking a spent TxOut before Fog Ledger knows it is spent
-                                if (txOut.spentBlock!.timestamp != nil) {
-                                    jsonTxOut["spentDate"] = formatDate(date: txOut.spentBlock!.timestamp)
+                            let balance: UInt64 = balances.balances[tokenId]?.amount() ?? 0
+                            jsonObject["balance"] = String(balance)
+                            jsonObject["blockCount"] = String(activity.blockCount)
+                            
+                            var jsonTxOuts:[[String: Any]] = []
+                            for txOut in txOuts {
+                                var jsonTxOut: [String: Any] = [:]
+                                jsonTxOut["value"] = String(txOut.value)
+                                jsonTxOut["receivedDate"] = formatDate(date: txOut.receivedBlock.timestamp)
+                                jsonTxOut["publicKey"] = txOut.publicKey.base64EncodedString()
+                                jsonTxOut["receivedBlock"] = String(txOut.receivedBlock.index)
+                                jsonTxOut["keyImage"] = txOut.keyImage.base64EncodedString()
+                                jsonTxOut["sharedSecret"] = txOut.sharedSecret.base64EncodedString()
+                                if txOut.spentBlock != nil {
+                                    jsonTxOut["spentBlock"] = String(txOut.spentBlock!.index)
+
+                                    // spentBlockTimestamp is null when checking a spent TxOut before Fog Ledger knows it is spent
+                                    if (txOut.spentBlock!.timestamp != nil) {
+                                        jsonTxOut["spentDate"] = formatDate(date: txOut.spentBlock!.timestamp)
+                                    }
                                 }
+                                jsonTxOuts.append(jsonTxOut)
                             }
-                            jsonTxOuts.append(jsonTxOut)
+                            jsonObject["txOuts"] = jsonTxOuts
+                            resultJson[String(tokenId.value)] = jsonObject
                         }
-                        jsonObject["txOuts"] = jsonTxOuts
-                        let jsonData = try JSONSerialization.data(withJSONObject: jsonObject, options: [])
+                        let jsonData = try JSONSerialization.data(withJSONObject: resultJson, options: [])
                         let jsonString = String(data: jsonData, encoding: String.Encoding.ascii)!
                         DispatchQueue.main.async {
                             result(jsonString)
@@ -234,12 +247,13 @@ struct FfiMobileCoinClient {
                   let feeString: String = args["fee"] as? String,
                   let rngSeed: FlutterStandardTypedData = args["rngSeed"] as? FlutterStandardTypedData,
                   let fee = UInt64(feeString),
+                  let tokenId = args["tokenId"] as? UInt64,
                   let amountString: String = args["amount"] as? String,
                   let parsedAmount = UInt64(amountString) else {
                       result(FlutterError(code: "NATIVE", message: "CreatePendingTransaction", details: "parsing arguments"))
                       throw PluginError.invalidArguments
                   }
-            let amount = Amount(parsedAmount, in: .MOB)
+            let amount = Amount(parsedAmount, in: TokenId(tokenId))
             // rngSeed is required for now. If it were ever to be optional, we would need to utilize wordPos
             guard let rng = RngSeed(rngSeed.data) else {
                 result(FlutterError(code: "NATIVE", message: "CreatePendingTransaction", details: "rngSeed required"))

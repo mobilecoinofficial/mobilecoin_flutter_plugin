@@ -38,13 +38,13 @@ class MobileCoinFlutterPluginChannelApi {
     return await _channel.invokeMethod("MobileCoinClient#create", params);
   }
 
-  Future<BigInt> getBalance({required int mobileCoinClientId}) async {
+  Future<String> getBalance({required int mobileCoinClientId}) async {
     final Map<String, dynamic> params = <String, dynamic>{
       'id': mobileCoinClientId,
     };
-    String balanceString =
+    String balance =
         await _channel.invokeMethod("MobileCoinClient#getBalance", params);
-    return BigInt.parse(balanceString);
+    return balance;
   }
 
   Future<String> getAccountActivity({required int mobileCoinClientId}) async {
@@ -61,6 +61,7 @@ class MobileCoinFlutterPluginChannelApi {
     required int recipientId,
     required PicoMob fee,
     required PicoMob amount,
+    required BigInt tokenId,
     required String rngSeed,
   }) async {
     if (rngSeed.codeUnits.length != 32) {
@@ -74,6 +75,7 @@ class MobileCoinFlutterPluginChannelApi {
       'recipient': recipientId,
       'fee': fee.picoCountAsString(),
       'amount': amount.picoCountAsString(),
+      'tokenId': tokenId.toString(),
       'rngSeed': Uint8List.fromList(rngSeed.codeUnits),
     };
     final result = await _channel.invokeMethod(

@@ -10,6 +10,7 @@ import com.mobilecoin.lib.AccountActivity;
 import com.mobilecoin.lib.AccountKey;
 import com.mobilecoin.lib.AccountSnapshot;
 import com.mobilecoin.lib.Amount;
+import com.mobilecoin.lib.Balance;
 import com.mobilecoin.lib.ChaCha20Rng;
 import com.mobilecoin.lib.MobileCoinClient;
 import com.mobilecoin.lib.OwnedTxOut;
@@ -37,11 +38,11 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.math.BigInteger;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 
 import consensus_common.ConsensusCommon;
@@ -64,43 +65,54 @@ public class FfiMobileCoinClient {
         return hashCode;
     }
 
-    public static BigInteger getBalance(int mobileClientId)
-            throws InvalidFogResponse, NetworkException, AttestationException, FogSyncException {
+    public static String getBalance(int mobileClientId)
+            throws InvalidFogResponse, NetworkException, AttestationException, FogSyncException, JSONException {
         MobileCoinClient mobileCoinClient = (MobileCoinClient) ObjectStorage.objectForKey(mobileClientId);
-        return mobileCoinClient.getBalance(TokenId.MOB).getValue();
+        Map<TokenId, Balance> balances = mobileCoinClient.getBalances();
+        JSONObject result = new JSONObject();
+        for (TokenId tokenId: balances.keySet()) {
+                String balance = balances.get(tokenId).getValue().toString();
+                result.put(tokenId.getId().toString(), balance);
+            }
+        return result.toString();
     }
 
     public static String getAccountActivity(int mobileClientId)
             throws NetworkException, InvalidFogResponse, AttestationException, JSONException, FogSyncException, TransactionBuilderException {
         MobileCoinClient mobileCoinClient = (MobileCoinClient) ObjectStorage.objectForKey(mobileClientId);
         AccountSnapshot snapshot = mobileCoinClient.getAccountSnapshot();
+        Map<TokenId, Balance> balances = snapshot.getBalances();
         JSONObject result = new JSONObject();
-        String balance = snapshot.getBalance(TokenId.MOB).getValue().toString();
-        AccountActivity activity = snapshot.getAccountActivity();
-        AccountKey accountKey = mobileCoinClient.getAccountKey();
-        result.put("balance", balance);
-        result.put("blockCount", activity.getBlockCount());
-        Set<OwnedTxOut> ownedTxOuts = activity.getAllTokenTxOuts(TokenId.MOB);
-        JSONArray txOuts = new JSONArray();
-        for (OwnedTxOut txOut : ownedTxOuts) {
-            JSONObject jsonTxOut = new JSONObject();
-            jsonTxOut.put("value", txOut.getAmount().getValue().toString());
-            jsonTxOut.put("receivedDate", formatDate(txOut.getReceivedBlockTimestamp()));
-            jsonTxOut.put("receivedBlock", txOut.getReceivedBlockIndex().toString());
-            jsonTxOut.put("publicKey", Base64.encodeToString(txOut.getPublicKey().getKeyBytes(), Base64.NO_WRAP));
-            jsonTxOut.put("keyImage", Base64.encodeToString(txOut.getKeyImage().getData(), Base64.NO_WRAP));
-            jsonTxOut.put("sharedSecret", Base64.encodeToString(txOut.getSharedSecret(accountKey).getKeyBytes(), Base64.NO_WRAP));
-            if (txOut.getSpentBlockIndex() != null) {
-                jsonTxOut.put("spentBlock", txOut.getSpentBlockIndex().toString());
+        for (TokenId tokenId : balances.keySet()) {
+            JSONObject activity = new JSONObject();
+            String balance = snapshot.getBalance(tokenId).getValue().toString();
+            AccountActivity accountActivity = snapshot.getAccountActivity();
+            AccountKey accountKey = mobileCoinClient.getAccountKey();
+            activity.put("balance", balance);
+            activity.put("blockCount", accountActivity.getBlockCount());
+            Set<OwnedTxOut> ownedTxOuts = accountActivity.getAllTokenTxOuts(tokenId);
+            JSONArray txOuts = new JSONArray();
+            for (OwnedTxOut txOut : ownedTxOuts) {
+                JSONObject jsonTxOut = new JSONObject();
+                jsonTxOut.put("value", txOut.getAmount().getValue().toString());
+                jsonTxOut.put("receivedDate", formatDate(txOut.getReceivedBlockTimestamp()));
+                jsonTxOut.put("receivedBlock", txOut.getReceivedBlockIndex().toString());
+                jsonTxOut.put("publicKey", Base64.encodeToString(txOut.getPublicKey().getKeyBytes(), Base64.NO_WRAP));
+                jsonTxOut.put("keyImage", Base64.encodeToString(txOut.getKeyImage().getData(), Base64.NO_WRAP));
+                jsonTxOut.put("sharedSecret", Base64.encodeToString(txOut.getSharedSecret(accountKey).getKeyBytes(), Base64.NO_WRAP));
+                if (txOut.getSpentBlockIndex() != null) {
+                    jsonTxOut.put("spentBlock", txOut.getSpentBlockIndex().toString());
 
-                // spentBlockTimestamp is null when checking a spent TxOut before Fog Ledger knows it is spent
-                if (txOut.getSpentBlockTimestamp() != null) {
-                    jsonTxOut.put("spentDate", formatDate(txOut.getSpentBlockTimestamp()));
+                    // spentBlockTimestamp is null when checking a spent TxOut before Fog Ledger knows it is spent
+                    if (txOut.getSpentBlockTimestamp() != null) {
+                        jsonTxOut.put("spentDate", formatDate(txOut.getSpentBlockTimestamp()));
+                    }
                 }
+                txOuts.put(jsonTxOut);
             }
-            txOuts.put(jsonTxOut);
+            activity.put("txOuts", txOuts);
+            result.put(tokenId.getId().toString(), activity);
         }
-        result.put("txOuts", txOuts);
         return result.toString();
     }
 
@@ -131,7 +143,7 @@ public class FfiMobileCoinClient {
         }
     }
 
-    public static HashMap<String, Object> createPendingTransaction(int mobileClientId, int recipientId, @NonNull PicoMob fee, @NonNull PicoMob amount, byte[] rngSeed)
+    public static HashMap<String, Object> createPendingTransaction(int mobileClientId, int recipientId, @NonNull PicoMob fee, @NonNull PicoMob amount, @NonNull TokenId tokenId, byte[] rngSeed)
             throws InvalidFogResponse, AttestationException, FeeRejectedException, InsufficientFundsException,
             FragmentedAccountException, NetworkException, TransactionBuilderException, FogReportException,
             FogSyncException, SerializationException {
@@ -142,8 +154,8 @@ public class FfiMobileCoinClient {
         // Reusing an rngSeed makes it so the public key is always the same, ensuring idempotence
         ChaCha20Rng rng = ChaCha20Rng.fromSeed(rngSeed);
 
-        final PendingTransaction pendingTransaction = mobileCoinClient.prepareTransaction(recipient, new Amount(amount.getPicoCountAsBigInt(), TokenId.MOB),
-                new Amount(fee.getPicoCountAsBigInt(), TokenId.MOB), txOutMemoBuilder, rng);
+        final PendingTransaction pendingTransaction = mobileCoinClient.prepareTransaction(recipient, new Amount(amount.getPicoCountAsBigInt(), tokenId),
+                new Amount(fee.getPicoCountAsBigInt(), tokenId), txOutMemoBuilder, rng);
 
         HashMap<String, Object> returnPayload = new HashMap<>();
         returnPayload.put("transaction", pendingTransaction.getTransaction().toByteArray());
