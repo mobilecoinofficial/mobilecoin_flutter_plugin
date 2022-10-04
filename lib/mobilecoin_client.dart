@@ -33,7 +33,7 @@ class MobileCoinClient extends PlatformObject {
     PublicAddress recipient,
     PicoMob amount,
     PicoMob fee,
-    int tokenId,
+    BigInt tokenId,
     String rngSeed,
   ) async {
     return await MobileCoinFlutterPluginChannelApi.instance

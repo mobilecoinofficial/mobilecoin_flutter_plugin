@@ -134,7 +134,7 @@ public class MobileCoinFlutterPlugin implements FlutterPlugin, MethodCallHandler
                 return api.setAuthorization(getCallArgument(call, "id"), getCallArgument(call, "username"),
                         getCallArgument(call, "password"));
             case "MobileCoinClient#createPendingTransaction":
-                int tokenIdValue = getCallArgument(call, "tokenId");
+                long tokenIdValue = getCallArgument(call, "tokenId");
                 TokenId tokenId = TokenId.from(UnsignedLong.fromLongBits(tokenIdValue));
                 return api.createPendingTransaction(getCallArgument(call, "id"), getCallArgument(call, "recipient"),
                         PicoMob.parsePico(getCallArgument(call, "fee")),

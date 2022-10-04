@@ -61,7 +61,7 @@ class MobileCoinFlutterPluginChannelApi {
     required int recipientId,
     required PicoMob fee,
     required PicoMob amount,
-    required int tokenId,
+    required BigInt tokenId,
     required String rngSeed,
   }) async {
     if (rngSeed.codeUnits.length != 32) {
@@ -75,7 +75,7 @@ class MobileCoinFlutterPluginChannelApi {
       'recipient': recipientId,
       'fee': fee.picoCountAsString(),
       'amount': amount.picoCountAsString(),
-      'tokenId': tokenId,
+      'tokenId': tokenId.toString(),
       'rngSeed': Uint8List.fromList(rngSeed.codeUnits),
     };
     final result = await _channel.invokeMethod(
