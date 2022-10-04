@@ -9,6 +9,7 @@ class PaymentRequest extends PlatformObject {
 
   static Future<PaymentRequest> fromPublicAddress({
     required PublicAddress publicAddress,
+    required BigInt tokenId,
     String? memo,
     PicoMob? amount,
   }) async {
@@ -17,6 +18,7 @@ class PaymentRequest extends PlatformObject {
       publicAddress: publicAddress,
       memo: memo,
       amount: amount,
+      tokenId: tokenId,
     );
     return PaymentRequest(objectId);
   }
@@ -29,11 +31,16 @@ class PaymentRequest extends PlatformObject {
 
   Future<BigInt> getValue() async {
     return await MobileCoinFlutterPluginChannelApi.instance
-        .paymentRequestGetValue(transferPayloadId: id);
+        .paymentRequestGetValue(paymentRequestId: id);
   }
 
   Future<String> getMemo() async {
     return await MobileCoinFlutterPluginChannelApi.instance
-        .paymentRequestGetMemo(transferPayloadId: id);
+        .paymentRequestGetMemo(paymentRequestId: id);
+  }
+
+  Future<BigInt> getTokenId() async {
+    return await MobileCoinFlutterPluginChannelApi.instance
+        .paymentRequestGetTokenId(paymentRequestId: id);
   }
 }

@@ -306,6 +306,7 @@ class MobileCoinFlutterPluginChannelApi {
 
   Future<int> paymentRequestCreate({
     required PublicAddress publicAddress,
+    required BigInt tokenId,
     String? memo,
     PicoMob? amount,
   }) async {
@@ -313,28 +314,40 @@ class MobileCoinFlutterPluginChannelApi {
       'publicAddressId': publicAddress.id,
       'memo': memo,
       'amount': amount?.picoCountAsString(),
+      'tokenId': tokenId.toString(),
     };
     return await _channel.invokeMethod("PaymentRequest#create", params);
   }
 
   Future<String> paymentRequestGetMemo({
-    required int transferPayloadId,
+    required int paymentRequestId,
   }) async {
     final Map<String, dynamic> params = <String, dynamic>{
-      'id': transferPayloadId,
+      'id': paymentRequestId,
     };
     return await _channel.invokeMethod("PaymentRequest#getMemo", params);
   }
 
   Future<BigInt> paymentRequestGetValue({
-    required int transferPayloadId,
+    required int paymentRequestId,
   }) async {
     final Map<String, dynamic> params = <String, dynamic>{
-      'id': transferPayloadId,
+      'id': paymentRequestId,
     };
     String valueString =
         await _channel.invokeMethod("PaymentRequest#getValue", params);
     return BigInt.parse(valueString);
+  }
+
+  Future<BigInt> paymentRequestGetTokenId({
+    required int paymentRequestId,
+  }) async {
+    final Map<String, dynamic> params = <String, dynamic>{
+      'id': paymentRequestId,
+    };
+    String tokenIdString =
+        await _channel.invokeMethod("PaymentRequest#getTokenId", params);
+    return BigInt.parse(tokenIdString);
   }
 
   Future<int> paymentRequestGetPublicAddress(
