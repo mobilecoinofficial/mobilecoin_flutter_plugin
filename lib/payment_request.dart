@@ -11,7 +11,7 @@ class PaymentRequest extends PlatformObject {
     required PublicAddress publicAddress,
     required BigInt tokenId,
     String? memo,
-    PicoMob? amount,
+    BigInt? amount,
   }) async {
     final objectId =
         await MobileCoinFlutterPluginChannelApi.instance.paymentRequestCreate(

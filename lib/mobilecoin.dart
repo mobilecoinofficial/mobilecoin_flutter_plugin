@@ -5,7 +5,6 @@ import 'package:flutter/services.dart';
 import 'package:mobilecoin_flutter/public_address.dart';
 
 import 'account_key.dart';
-import 'picomob.dart';
 
 class MobileCoinFlutterPluginChannelApi {
   static const MethodChannel _methodChannel =
@@ -59,8 +58,8 @@ class MobileCoinFlutterPluginChannelApi {
   Future<Map<String, Object?>> createPendingTransaction({
     required int mobileClientId,
     required int recipientId,
-    required PicoMob fee,
-    required PicoMob amount,
+    required BigInt fee,
+    required BigInt amount,
     required BigInt tokenId,
     required String rngSeed,
   }) async {
@@ -73,8 +72,8 @@ class MobileCoinFlutterPluginChannelApi {
     final Map<String, dynamic> params = <String, dynamic>{
       'id': mobileClientId,
       'recipient': recipientId,
-      'fee': fee.picoCountAsString(),
-      'amount': amount.picoCountAsString(),
+      'fee': fee.toString(),
+      'amount': amount.toString(),
       'tokenId': tokenId.toString(),
       'rngSeed': Uint8List.fromList(rngSeed.codeUnits),
     };
@@ -308,12 +307,12 @@ class MobileCoinFlutterPluginChannelApi {
     required PublicAddress publicAddress,
     required BigInt tokenId,
     String? memo,
-    PicoMob? amount,
+    BigInt? amount,
   }) async {
     final Map<String, dynamic> params = <String, dynamic>{
       'publicAddressId': publicAddress.id,
       'memo': memo,
-      'amount': amount?.picoCountAsString(),
+      'amount': amount?.toString(),
       'tokenId': tokenId.toString(),
     };
     return await _channel.invokeMethod("PaymentRequest#create", params);
