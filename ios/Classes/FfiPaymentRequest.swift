@@ -54,7 +54,7 @@ struct FfiPaymentRequest {
                   let paymentRequest = ObjectStorage.objectForKey(paymentRequestId) as? PaymentRequest else {
                       throw PluginError.invalidArguments
                   }
-            result(String(paymentRequest.tokenID ?? 0))
+            result(String(paymentRequest.tokenID))
         }
     }
     
