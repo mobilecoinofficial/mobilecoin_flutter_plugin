@@ -247,7 +247,8 @@ struct FfiMobileCoinClient {
                   let feeString: String = args["fee"] as? String,
                   let rngSeed: FlutterStandardTypedData = args["rngSeed"] as? FlutterStandardTypedData,
                   let fee = UInt64(feeString),
-                  let tokenId = args["tokenId"] as? UInt64,
+                  let tokenIdString = args["tokenId"] as? String,
+                  let tokenId = UInt64(tokenIdString),
                   let amountString: String = args["amount"] as? String,
                   let parsedAmount = UInt64(amountString) else {
                       result(FlutterError(code: "NATIVE", message: "CreatePendingTransaction", details: "parsing arguments"))
