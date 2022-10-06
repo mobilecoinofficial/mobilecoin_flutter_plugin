@@ -133,7 +133,7 @@ public class MobileCoinFlutterPlugin implements FlutterPlugin, MethodCallHandler
             case "MobileCoinClient#setAuthorization":
                 return api.setAuthorization(getCallArgument(call, "id"), getCallArgument(call, "username"),
                         getCallArgument(call, "password"));
-            case "MobileCoinClient#createPendingTransaction":
+            case "MobileCoinClient#createPendingTransaction": {
                 long tokenIdValue = getCallArgument(call, "tokenId");
                 TokenId tokenId = TokenId.from(UnsignedLong.fromLongBits(tokenIdValue));
                 return api.createPendingTransaction(getCallArgument(call, "id"), getCallArgument(call, "recipient"),
@@ -141,6 +141,7 @@ public class MobileCoinFlutterPlugin implements FlutterPlugin, MethodCallHandler
                         PicoMob.parsePico(getCallArgument(call, "amount")),
                         tokenId,
                         getCallArgument(call, "rngSeed"));
+            }
             case "MobileCoinClient#sendFunds":
                 return api.sendFunds(getCallArgument(call, "id"), getCallArgument(call, "transaction"));
             case "MobileCoinClient#checkTransactionStatus":
@@ -183,13 +184,18 @@ public class MobileCoinFlutterPlugin implements FlutterPlugin, MethodCallHandler
                 return api.transferPayloadGetMemo(getCallArgument(call, "id"));
             case "TransferPayload#getPublicKey":
                 return api.transferPayloadGetPublicKey(getCallArgument(call, "id"));
-            case "PaymentRequest#create":
+            case "PaymentRequest#create": {
+                BigInteger bigTokenId = new BigInteger((String) getCallArgument(call, "tokenId"));
+                TokenId tokenId = TokenId.from(UnsignedLong.fromBigInteger(bigTokenId));
                 return api.paymentRequestCreate(getCallArgument(call, "publicAddressId"),
-                        getCallArgument(call, "amount"), getCallArgument(call, "memo"));
+                        getCallArgument(call, "amount"), getCallArgument(call, "memo"), tokenId);
+            }
             case "PaymentRequest#getMemo":
                 return api.paymentRequestGetMemo(getCallArgument(call, "id"));
             case "PaymentRequest#getPublicAddress":
                 return api.paymentRequestGetPublicAddress(getCallArgument(call, "id"));
+            case "PaymentRequest#getTokenId":
+                return api.paymentRequestGetTokenId(getCallArgument(call, "id"));
             case "PaymentRequest#getValue":
                 return api.paymentRequestGetValue(getCallArgument(call, "id"));
             case "Mnemonic#fromBip39Entropy":
@@ -369,7 +375,10 @@ public class MobileCoinFlutterPlugin implements FlutterPlugin, MethodCallHandler
          * Creates a new <code>PaymentRequest</code> in local object storage, then
          * returns its id.
          */
-        int paymentRequestCreate(int publicAddressId, @Nullable String amount, @Nullable String memo);
+        int paymentRequestCreate(int publicAddressId,
+                                 @Nullable String amount,
+                                 @Nullable String memo,
+                                 @NonNull TokenId tokenId);
 
         /**
          * Looks up the given <code>PaymentRequest</code> in local object storage, then
@@ -382,6 +391,12 @@ public class MobileCoinFlutterPlugin implements FlutterPlugin, MethodCallHandler
          * returns its memo.
          */
         String paymentRequestGetMemo(int paymentRequestId);
+
+        /**
+         * Looks up the given <code>PaymentRequest</code> in local object storage, then
+         * returns its token id 64bit value represented as <code>String</code>.
+         */
+        String paymentRequestGetTokenId(int paymentRequestId);
 
         /**
          * Looks up the given <code>PaymentRequest</code> in local object storage, then
@@ -547,9 +562,9 @@ public class MobileCoinFlutterPlugin implements FlutterPlugin, MethodCallHandler
         }
 
         @Override
-        public int paymentRequestCreate(int publicAddressId, @Nullable String amount, @Nullable String memo) {
+        public int paymentRequestCreate(int publicAddressId, @Nullable String amount, @Nullable String memo, @NonNull TokenId tokenId) {
             UnsignedLong unsignedAmount = amount == null ? null : UnsignedLong.fromBigInteger(new BigInteger(amount));
-            return FfiPaymentRequest.create(publicAddressId, unsignedAmount, memo);
+            return FfiPaymentRequest.create(publicAddressId, unsignedAmount, memo, tokenId);
         }
 
         @Override
@@ -560,6 +575,11 @@ public class MobileCoinFlutterPlugin implements FlutterPlugin, MethodCallHandler
         @Override
         public String paymentRequestGetMemo(int paymentRequestId) {
             return FfiPaymentRequest.getMemo(paymentRequestId);
+        }
+
+        @Override
+        public String paymentRequestGetTokenId(int paymentRequestId) {
+            return FfiPaymentRequest.getTokenId(paymentRequestId);
         }
 
         @Override

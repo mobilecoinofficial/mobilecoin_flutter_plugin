@@ -4,7 +4,6 @@ import 'dart:typed_data';
 import 'package:mobilecoin_flutter/mobilecoin.dart';
 
 import 'account_key.dart';
-import 'picomob.dart';
 import 'platform_object.dart';
 import 'public_address.dart';
 
@@ -31,8 +30,8 @@ class MobileCoinClient extends PlatformObject {
 
   Future<Map<String, Object?>> createPendingTransaction(
     PublicAddress recipient,
-    PicoMob amount,
-    PicoMob fee,
+    BigInt amount,
+    BigInt fee,
     BigInt tokenId,
     String rngSeed,
   ) async {

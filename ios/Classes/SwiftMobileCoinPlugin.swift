@@ -72,6 +72,8 @@ class CommandFactory {
             return FfiPaymentRequest.GetMemo()
         case "PaymentRequest#getValue":
             return FfiPaymentRequest.GetValue()
+        case "PaymentRequest#getTokenId":
+            return FfiPaymentRequest.GetTokenId()
         case "PaymentRequest#getPublicAddress":
             return FfiPaymentRequest.GetPublicAddress()
         case "Mnemonic#fromBip39Entropy":
