@@ -221,20 +221,22 @@ struct FfiMobileCoinClient {
                 throw PluginError.invalidArguments
             }
 
-            // more race condition testing will need to be done before changing this to `txOutStatus`
-            mobileCoinClient.status(of: transaction) { (statusResult: Result<TransactionStatus, ConnectionError>) in
-                switch statusResult {
-                case .success(let status):
-                    switch status {
-                    case .unknown:
-                        result(0)
-                    case .accepted(block: _):
-                        result(1)
-                    case .failed:
-                        result(2)
+            mobileCoinClient.updateBalances { (balanceResult: Result<Balances, BalanceUpdateError>) in
+                // more race condition testing will need to be done before changing this to `txOutStatus`
+                mobileCoinClient.status(of: transaction) { (statusResult: Result<TransactionStatus, ConnectionError>) in
+                    switch statusResult {
+                    case .success(let status):
+                        switch status {
+                        case .unknown:
+                            result(0)
+                        case .accepted(block: _):
+                            result(1)
+                        case .failed:
+                            result(2)
+                        }
+                    case .failure(let error):
+                        result(FlutterError(code: "NATIVE", message: error.localizedDescription, details: "CheckTransactionStatus.updateBalance"))
                     }
-                case .failure(let error):
-                    result(FlutterError(code: "NATIVE", message: error.localizedDescription, details: "CheckTransactionStatus.updateBalance"))
                 }
             }
         }
