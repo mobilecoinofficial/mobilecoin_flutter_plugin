@@ -13,13 +13,13 @@ struct FfiPaymentRequest {
     struct Create: Command {
         func execute(args: [String : Any], result: @escaping FlutterResult) throws {
             guard let publicAddressId: Int = args["publicAddressId"] as? Int,
+                  let tokenIdString = args["tokenId"] as? String,
+                  let tokenID = UInt64(tokenIdString),
                   let publicAddress = ObjectStorage.objectForKey(publicAddressId) as? PublicAddress else {
                       throw PluginError.invalidArguments
                   }
             let memo: String? = args["memo"] as? String
             let amount: String? = args["amount"] as? String
-            let tokenIdString = args["tokenId"] as? String
-            let tokenID = UInt64(tokenIdString ?? "0")
             let value: UInt64? = amount != nil ? UInt64(amount!) : nil
             let paymentRequest = PaymentRequest(publicAddress: publicAddress, value:value, memo: memo, tokenID: tokenID);
             let hashCode = paymentRequest.hashValue
