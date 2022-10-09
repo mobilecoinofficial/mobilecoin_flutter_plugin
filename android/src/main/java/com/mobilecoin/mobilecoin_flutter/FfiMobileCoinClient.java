@@ -38,10 +38,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.HashMap;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
@@ -95,7 +92,11 @@ public class FfiMobileCoinClient {
             for (OwnedTxOut txOut : ownedTxOuts) {
                 JSONObject jsonTxOut = new JSONObject();
                 jsonTxOut.put("value", txOut.getAmount().getValue().toString());
-                jsonTxOut.put("receivedDate", formatDate(txOut.getReceivedBlockTimestamp()));
+
+                if (txOut.getReceivedBlockTimestamp() != null) {
+                    jsonTxOut.put("receivedDate", txOut.getReceivedBlockTimestamp().getTime());
+                }
+
                 jsonTxOut.put("receivedBlock", txOut.getReceivedBlockIndex().toString());
                 jsonTxOut.put("publicKey", Base64.encodeToString(txOut.getPublicKey().getKeyBytes(), Base64.NO_WRAP));
                 jsonTxOut.put("keyImage", Base64.encodeToString(txOut.getKeyImage().getData(), Base64.NO_WRAP));
@@ -105,7 +106,7 @@ public class FfiMobileCoinClient {
 
                     // spentBlockTimestamp is null when checking a spent TxOut before Fog Ledger knows it is spent
                     if (txOut.getSpentBlockTimestamp() != null) {
-                        jsonTxOut.put("spentDate", formatDate(txOut.getSpentBlockTimestamp()));
+                        jsonTxOut.put("spentDate", txOut.getSpentBlockTimestamp().getTime());
                     }
                 }
                 txOuts.put(jsonTxOut);
@@ -114,10 +115,6 @@ public class FfiMobileCoinClient {
             result.put(tokenId.getId().toString(), activity);
         }
         return result.toString();
-    }
-
-    private static String formatDate(Date date) {
-        return new SimpleDateFormat("MM/dd/yyyy KK:mm:ss a Z", Locale.US).format(date);
     }
 
     public static void setAuthorization(int mobileClientId, @NonNull String username, @NonNull String password) {

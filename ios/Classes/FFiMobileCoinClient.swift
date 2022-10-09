@@ -163,7 +163,7 @@ struct FfiMobileCoinClient {
                             for txOut in txOuts {
                                 var jsonTxOut: [String: Any] = [:]
                                 jsonTxOut["value"] = String(txOut.value)
-                                jsonTxOut["receivedDate"] = formatDate(date: txOut.receivedBlock.timestamp)
+                                jsonTxOut["receivedDate"] = txOut.receivedBlock.timestamp?.millisecondsSince1970
                                 jsonTxOut["publicKey"] = txOut.publicKey.base64EncodedString()
                                 jsonTxOut["receivedBlock"] = String(txOut.receivedBlock.index)
                                 jsonTxOut["keyImage"] = txOut.keyImage.base64EncodedString()
@@ -173,7 +173,7 @@ struct FfiMobileCoinClient {
 
                                     // spentBlockTimestamp is null when checking a spent TxOut before Fog Ledger knows it is spent
                                     if (txOut.spentBlock!.timestamp != nil) {
-                                        jsonTxOut["spentDate"] = formatDate(date: txOut.spentBlock!.timestamp)
+                                        jsonTxOut["spentDate"] = txOut.spentBlock!.timestamp?.millisecondsSince1970
                                     }
                                 }
                                 jsonTxOuts.append(jsonTxOut)
@@ -192,14 +192,6 @@ struct FfiMobileCoinClient {
                 } catch let error {
                     result(FlutterError(code: "NATIVE", message: error.localizedDescription, details: "GetAccountActivity.updateBalance"))
                 }
-            }
-            func formatDate(date: Date?) -> String? {
-                if let date = date {
-                    let dateFormatter = DateFormatter()
-                    dateFormatter.dateFormat = "MM/dd/yyyy KK:mm:ss a Z"
-                    return dateFormatter.string(from: date)
-                }
-                return nil
             }
         }
     }
@@ -352,5 +344,16 @@ struct FfiMobileCoinClient {
                 }
             }
         }
+    }
+}
+
+// From https://stackoverflow.com/a/40135192/1411004
+extension Date {
+    var millisecondsSince1970:Int64 {
+        Int64((self.timeIntervalSince1970 * 1000.0).rounded())
+    }
+
+    init(milliseconds:Int64) {
+        self = Date(timeIntervalSince1970: TimeInterval(milliseconds) / 1000)
     }
 }
