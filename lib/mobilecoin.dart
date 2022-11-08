@@ -276,6 +276,17 @@ class MobileCoinFlutterPluginChannelApi {
     return Uint8List.fromList(serializedBytes);
   }
 
+  Future<Uint8List> publicAddressGetAddressHash({
+    required int publicAddressId,
+  }) async {
+    final Map<String, dynamic> params = <String, dynamic>{
+      'id': publicAddressId,
+    };
+    final List<int> serializedBytes =
+        await _channel.invokeMethod("PublicAddress#getAddressHash", params);
+    return Uint8List.fromList(serializedBytes);
+  }
+
   Future<Uint8List> transferPayloadGetBip39Entropy(
       {required int transferPayloadId}) async {
     final Map<String, dynamic> params = <String, dynamic>{

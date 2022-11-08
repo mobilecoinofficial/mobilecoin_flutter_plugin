@@ -178,6 +178,8 @@ public class MobileCoinFlutterPlugin implements FlutterPlugin, MethodCallHandler
                 return api.publicAddressFromBytes(getCallArgument(call, "serializedBytes"));
             case "PublicAddress#toByteArray":
                 return api.publicAddressToByteArray(getCallArgument(call, "id"));
+            case "PublicAddress#getAddressHash":
+                return api.publicAddressGetAddressHash(getCallArgument(call, "id"));
             case "TransferPayload#getBip39Entropy":
                 return api.transferPayloadGetBip39Entropy(getCallArgument(call, "id"));
             case "TransferPayload#getMemo":
@@ -351,6 +353,12 @@ public class MobileCoinFlutterPlugin implements FlutterPlugin, MethodCallHandler
          * returns a serialized version as a <code>byte[]</code>.
          */
         byte[] publicAddressToByteArray(int publicAddressId);
+
+        /**
+         * Looks up the given <code>PublicAddress</code> in local object storage, then
+         * returns an address hash.
+         */
+        byte[] publicAddressGetAddressHash(int publicAddressId);
 
         /**
          * Looks up the given <code>TransferPayload</code> in local object storage, then
@@ -544,6 +552,11 @@ public class MobileCoinFlutterPlugin implements FlutterPlugin, MethodCallHandler
         @Override
         public byte[] publicAddressToByteArray(int publicAddressId) {
             return FfiPublicAddress.toByteArray(publicAddressId);
+        }
+
+        @Override
+        public byte[] publicAddressGetAddressHash(int publicAddressId) {
+            return FfiPublicAddress.getAddressHash(publicAddressId);
         }
 
         @Override

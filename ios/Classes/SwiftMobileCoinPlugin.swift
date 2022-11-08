@@ -38,6 +38,8 @@ class CommandFactory {
             return FfiPublicAddress.FromBytes()
         case "PublicAddress#toByteArray":
             return FfiPublicAddress.ToByteArray()
+        case "PublicAddress#getAddressHash":
+            return FfiPublicAddress.GetAddressHash()
         case "PrintableWrapper#toB58String":
             return FfiPrintableWrapper.ToB58String()
         case "PrintableWrapper#fromB58String":

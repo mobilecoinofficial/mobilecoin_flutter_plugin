@@ -21,4 +21,9 @@ public class FfiPublicAddress {
         PublicAddress publicAddress = (PublicAddress)ObjectStorage.objectForKey(addressId);
         return publicAddress.toByteArray();
     }
+
+    public static byte[] getAddressHash(int addressId) {
+        PublicAddress publicAddress = (PublicAddress)ObjectStorage.objectForKey(addressId);
+        return publicAddress.calculateAddressHash().getHashData();
+    }
 }

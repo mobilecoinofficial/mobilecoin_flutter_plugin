@@ -15,4 +15,9 @@ class PublicAddress extends PlatformObject {
     return await MobileCoinFlutterPluginChannelApi.instance
         .publicAddressToByteArray(publicAddressId: id);
   }
+
+  Future<Uint8List> getAddressHash() async {
+    return await MobileCoinFlutterPluginChannelApi.instance
+        .publicAddressGetAddressHash(publicAddressId: id);
+  }
 }

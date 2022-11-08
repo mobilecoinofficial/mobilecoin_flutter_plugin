@@ -32,6 +32,15 @@ struct FfiPublicAddress {
             result(publicAddress.serializedData)
         }
     }
+    struct GetAddressHash: Command {
+        func execute(args: [String : Any], result: @escaping FlutterResult) throws {
+            guard let addressId: Int = args["id"] as? Int,
+                  let publicAddress: PublicAddress = ObjectStorage.objectForKey(addressId) as? PublicAddress else {
+                      throw PluginError.invalidArguments
+                  }
+            result(publicAddress.addressHash)
+        }
+    }
 }
 
 
