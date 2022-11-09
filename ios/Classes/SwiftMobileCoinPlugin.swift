@@ -93,13 +93,13 @@ class CommandFactory {
 struct ObjectStorage {
     private static var managedObjects = [Int: Any]()
     private static let lockQueue = DispatchQueue(label: "com.mobilecoin.plugin", attributes: .concurrent)
-    
+
     static func objectForKey(_ key: Int) -> Any? {
         return lockQueue.sync {
             managedObjects[key]
         }
     }
-    
+
     static func addObject(_ obj: Any, forKey key: Int) {
         lockQueue.sync(flags: .barrier) {
             managedObjects[key] = obj
@@ -108,19 +108,19 @@ struct ObjectStorage {
 }
 
 public class SwiftMobileCoinPlugin: NSObject, FlutterPlugin {
-    
+
     public static func register(with registrar: FlutterPluginRegistrar) {
         let channel = FlutterMethodChannel(name: "mobilecoin_flutter", binaryMessenger: registrar.messenger())
         let instance = SwiftMobileCoinPlugin()
         registrar.addMethodCallDelegate(instance, channel: channel)
     }
-    
+
     private func executeNativeMethodCall(_ call: FlutterMethodCall, result: @escaping FlutterResult) throws {
         let args = call.arguments as! [String: Any]
         let command = try CommandFactory.commandForCall(call.method)
         try command.execute(args: args, result: result)
     }
-    
+
     public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
         do {
             try executeNativeMethodCall(call, result:result)

@@ -5,18 +5,23 @@ import android.util.Base64;
 
 import androidx.annotation.Keep;
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import com.mobilecoin.lib.AccountActivity;
 import com.mobilecoin.lib.AccountKey;
 import com.mobilecoin.lib.AccountSnapshot;
+import com.mobilecoin.lib.AddressHash;
 import com.mobilecoin.lib.Amount;
 import com.mobilecoin.lib.Balance;
 import com.mobilecoin.lib.ChaCha20Rng;
+import com.mobilecoin.lib.DestinationMemo;
 import com.mobilecoin.lib.MobileCoinClient;
 import com.mobilecoin.lib.OwnedTxOut;
 import com.mobilecoin.lib.PendingTransaction;
 import com.mobilecoin.lib.PublicAddress;
 import com.mobilecoin.lib.RistrettoPublic;
+import com.mobilecoin.lib.SenderMemo;
+import com.mobilecoin.lib.SenderWithPaymentRequestMemo;
 import com.mobilecoin.lib.TokenId;
 import com.mobilecoin.lib.Transaction;
 import com.mobilecoin.lib.TxOutMemoBuilder;
@@ -28,6 +33,7 @@ import com.mobilecoin.lib.exceptions.FragmentedAccountException;
 import com.mobilecoin.lib.exceptions.InsufficientFundsException;
 import com.mobilecoin.lib.exceptions.InvalidFogResponse;
 import com.mobilecoin.lib.exceptions.InvalidTransactionException;
+import com.mobilecoin.lib.exceptions.InvalidTxOutMemoException;
 import com.mobilecoin.lib.exceptions.InvalidUriException;
 import com.mobilecoin.lib.exceptions.NetworkException;
 import com.mobilecoin.lib.exceptions.SerializationException;
@@ -38,7 +44,10 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -101,6 +110,12 @@ public class FfiMobileCoinClient {
                 jsonTxOut.put("publicKey", Base64.encodeToString(txOut.getPublicKey().getKeyBytes(), Base64.NO_WRAP));
                 jsonTxOut.put("keyImage", Base64.encodeToString(txOut.getKeyImage().getData(), Base64.NO_WRAP));
                 jsonTxOut.put("sharedSecret", Base64.encodeToString(txOut.getSharedSecret(accountKey).getKeyBytes(), Base64.NO_WRAP));
+
+                final AddressHash addressHash = txOutAddressHash(txOut);
+                if (addressHash != null) {
+                    jsonTxOut.put("theirAddressHashHex", bytesToHex(addressHash.getHashData()));
+                }
+
                 if (txOut.getSpentBlockIndex() != null) {
                     jsonTxOut.put("spentBlock", txOut.getSpentBlockIndex().toString());
 
@@ -115,6 +130,41 @@ public class FfiMobileCoinClient {
             result.put(tokenId.getId().toString(), activity);
         }
         return result.toString();
+    }
+
+    @Nullable
+    static AddressHash txOutAddressHash(@NonNull OwnedTxOut txOut) {
+        switch (txOut.getTxOutMemo().getTxOutMemoType()) {
+            case NOT_SET:
+            case UNUSED:
+            case UNKNOWN:
+                return null;
+            case SENDER:
+                return ((SenderMemo) txOut.getTxOutMemo()).getUnvalidatedAddressHash();
+            case SENDER_WITH_PAYMENT_REQUEST:
+                return ((SenderWithPaymentRequestMemo) txOut.getTxOutMemo()).getUnvalidatedAddressHash();
+            case DESTINATION:
+                try {
+                    return ((DestinationMemo) txOut.getTxOutMemo()).getDestinationMemoData().getAddressHash();
+                } catch (InvalidTxOutMemoException e) {
+                    // TODO: log error
+                    return null;
+                }
+        }
+
+        return null;
+    }
+
+    private static final byte[] HEX_ARRAY = "0123456789abcdef".getBytes(StandardCharsets.US_ASCII);
+
+    private static String bytesToHex(byte[] bytes) {
+        byte[] hexChars = new byte[bytes.length * 2];
+        for (int j = 0; j < bytes.length; j++) {
+            int v = bytes[j] & 0xFF;
+            hexChars[j * 2] = HEX_ARRAY[v >>> 4];
+            hexChars[j * 2 + 1] = HEX_ARRAY[v & 0x0F];
+        }
+        return new String(hexChars, StandardCharsets.UTF_8);
     }
 
     public static void setAuthorization(int mobileClientId, @NonNull String username, @NonNull String password) {

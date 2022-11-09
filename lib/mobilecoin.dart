@@ -46,9 +46,13 @@ class MobileCoinFlutterPluginChannelApi {
     return balance;
   }
 
-  Future<String> getAccountActivity({required int mobileCoinClientId}) async {
+  Future<String> getAccountActivity({
+    required int mobileCoinClientId,
+    required List<Uint8List> serializedKnownPublicAddresses,
+  }) async {
     final Map<String, dynamic> params = <String, dynamic>{
       'id': mobileCoinClientId,
+      'serializedPublicAddresses': serializedKnownPublicAddresses,
     };
     String json = await _channel.invokeMethod(
         "MobileCoinClient#getAccountActivity", params);

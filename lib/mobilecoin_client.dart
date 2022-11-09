@@ -67,12 +67,25 @@ class MobileCoinClient extends PlatformObject {
         .getBalance(mobileCoinClientId: id);
   }
 
-  Future<String> getAccountActivity() async {
-    return await MobileCoinFlutterPluginChannelApi.instance
-        .getAccountActivity(mobileCoinClientId: id);
+  /// Gets activity associated with the current client as a JSON string.
+  ///
+  /// [serializedKnownPublicAddresses] used for reading RTH memos.
+  /// When supplied, it returns hashed public addresses of a transaction's
+  /// opposite party, which mitigates strangers looking up addresses that
+  /// they don't have the hash of.
+  /// The best way to supply it is with [PublicAddress.toByteArray].
+  /// Because of the async nature of that call, the consumer will likely
+  /// want to cache those serialized addresses.
+  Future<String> getAccountActivity(
+    List<Uint8List> serializedKnownPublicAddresses,
+  ) async {
+    return await MobileCoinFlutterPluginChannelApi.instance.getAccountActivity(
+      mobileCoinClientId: id,
+      serializedKnownPublicAddresses: serializedKnownPublicAddresses,
+    );
   }
 
-  ///Set the basic HTTP authorization username and password for future requests
+  /// Set the basic HTTP authorization username and password for future requests.
   Future<void> setAuthorization({
     required String username,
     required String password,

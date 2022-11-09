@@ -138,13 +138,34 @@ struct FfiMobileCoinClient {
         }
     }
 
+    struct Contact: PublicAddressProvider, Hashable {
+        let name: String
+        let username: String
+        let publicAddress: PublicAddress
+    }
+
     struct GetAccountActivity: Command {
+        func assembleContacts(serializedPublicAddresses: [FlutterStandardTypedData]) -> Set<Contact> {
+            var contacts = Set<Contact>();
+
+            serializedPublicAddresses.forEach { serializedPublicAddress in
+                let publicAddress = PublicAddress(serializedData: serializedPublicAddress.data)
+                if (publicAddress != nil) {
+                    contacts.insert(Contact(name: "", username: "", publicAddress: publicAddress!))
+                }
+            }
+
+            return contacts
+        }
+
         func execute(args: [String : Any], result: @escaping FlutterResult) throws {
             guard let clientId: Int = args["id"] as? Int,
+                  let publicAddresses = args["serializedPublicAddresses"] as? [FlutterStandardTypedData],
                   let client = ObjectStorage.objectForKey(clientId) as? MobileCoinClient else {
                       result(FlutterError(code: "NATIVE", message: "GetAccountActivity", details: "parsing arguments"))
                       throw PluginError.invalidArguments
                   }
+            let contacts = assembleContacts(serializedPublicAddresses: publicAddresses)
             client.updateBalances { (balanceResult: Result<Balances, BalanceUpdateError>) in
                 do {
                     switch balanceResult {
@@ -158,9 +179,11 @@ struct FfiMobileCoinClient {
                             let balance: UInt64 = balances.balances[tokenId]?.amount() ?? 0
                             jsonObject["balance"] = String(balance)
                             jsonObject["blockCount"] = String(activity.blockCount)
-                            
+                            let recoveredTransactions = MobileCoinClient.recoverTransactions(txOuts, contacts: contacts)
+
                             var jsonTxOuts:[[String: Any]] = []
-                            for txOut in txOuts {
+                            for transaction in recoveredTransactions {
+                                let txOut = transaction.txOut
                                 var jsonTxOut: [String: Any] = [:]
                                 jsonTxOut["value"] = String(txOut.value)
                                 jsonTxOut["receivedDate"] = txOut.receivedBlock.timestamp?.millisecondsSince1970
@@ -168,6 +191,11 @@ struct FfiMobileCoinClient {
                                 jsonTxOut["receivedBlock"] = String(txOut.receivedBlock.index)
                                 jsonTxOut["keyImage"] = txOut.keyImage.base64EncodedString()
                                 jsonTxOut["sharedSecret"] = txOut.sharedSecret.base64EncodedString()
+
+                                if transaction.memo != nil {
+                                    jsonTxOut["theirAddressHashHex"] = transaction.memo!.addressHashHex
+                                }
+
                                 if txOut.spentBlock != nil {
                                     jsonTxOut["spentBlock"] = String(txOut.spentBlock!.index)
 
@@ -249,18 +277,15 @@ struct FfiMobileCoinClient {
                       throw PluginError.invalidArguments
                   }
             let amount = Amount(parsedAmount, in: TokenId(tokenId))
-            // rngSeed is required for now. If it were ever to be optional, we would need to utilize wordPos
-            guard let rng = RngSeed(rngSeed.data) else {
-                result(FlutterError(code: "NATIVE", message: "CreatePendingTransaction", details: "rngSeed required"))
-                throw PluginError.invalidArguments
-            }
+            let rng = MobileCoinChaCha20Rng(seed: rngSeed.data)
 
             guard let recipient: PublicAddress = ObjectStorage.objectForKey(recipientId) as? PublicAddress,
                   let mobileCoinClient: MobileCoinClient = ObjectStorage.objectForKey(mobileClientId) as? MobileCoinClient else {
                       result(FlutterError(code: "NATIVE", message: "CreatePendingTransaction", details: "retrieve client"))
                       throw PluginError.invalidArguments
                   }
-            mobileCoinClient.prepareTransaction(to: recipient, memoType: .recoverable, amount: amount, fee: fee, rngSeed: rng) { (pendingTx: Result<PendingSinglePayloadTransaction, TransactionPreparationError>) in
+            mobileCoinClient.prepareTransaction(to: recipient, memoType: .recoverable, amount: amount, fee: fee, rng: rng) {
+                (pendingTx: Result<PendingSinglePayloadTransaction, TransactionPreparationError>) in
                 switch pendingTx {
                 case .success(let (pending)):
                     var returnPayload: [String: Any] = [:]
@@ -355,5 +380,18 @@ extension Date {
 
     init(milliseconds:Int64) {
         self = Date(timeIntervalSince1970: TimeInterval(milliseconds) / 1000)
+    }
+}
+
+extension RecoveredMemo {
+    var addressHashHex: String {
+        switch self {
+        case let .senderWithPaymentRequest(memo):
+            return memo.addressHashHex
+        case let .sender(memo):
+            return memo.addressHashHex
+        case let .destination(memo):
+            return memo.addressHashHex
+        }
     }
 }
