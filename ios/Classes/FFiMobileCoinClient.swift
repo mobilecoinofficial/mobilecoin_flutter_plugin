@@ -148,11 +148,11 @@ struct FfiMobileCoinClient {
         func assembleContacts(serializedPublicAddresses: [FlutterStandardTypedData]) -> Set<Contact> {
             var contacts = Set<Contact>();
 
-            serializedPublicAddresses.forEach { serializedPublicAddress in
-                let publicAddress = PublicAddress(serializedData: serializedPublicAddress.data)
-                if (publicAddress != nil) {
-                    contacts.insert(Contact(name: "", username: "", publicAddress: publicAddress!))
-                }
+            for serializedPublicAddress in serializedPublicAddresses {
+                guard let addressAsString: String = String(bytes: serializedPublicAddress.data, encoding: .utf8) else { continue }
+                guard case .publicAddress(let address) = Base58Coder.decode(addressAsString) else { continue }
+
+                contacts.insert(Contact(name: "", username: "", publicAddress: address))
             }
 
             return contacts
