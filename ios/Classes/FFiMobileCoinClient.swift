@@ -49,8 +49,8 @@ struct FfiMobileCoinClient {
                 mrSigner: useTestNet ? TESTNET_MRSIGNER : PROD_MRSIGNER,
                 productId: CONSENSUS_PRODUCT_ID,
                 minimumSecurityVersion: CONSENSUS_SECURITY_VERSION,
-                allowedConfigAdvisories: ["INTEL-SA-00334"],
-                allowedHardeningAdvisories: ["INTEL-SA-00334"]
+                allowedConfigAdvisories: [],
+                allowedHardeningAdvisories: ["INTEL-SA-00334", "INTEL-SA-00615", "INTEL-SA-00657"]
             )
             let consensusAttestation = try Attestation(consensusMrSigner.get())
             
@@ -58,8 +58,8 @@ struct FfiMobileCoinClient {
                 mrSigner: useTestNet ? TESTNET_MRSIGNER : PROD_MRSIGNER,
                 productId: FOG_VIEW_PRODUCT_ID,
                 minimumSecurityVersion: FOG_VIEW_SECURITY_VERSION,
-                allowedConfigAdvisories: ["INTEL-SA-00334"],
-                allowedHardeningAdvisories: ["INTEL-SA-00334"]
+                allowedConfigAdvisories: [],
+                allowedHardeningAdvisories: ["INTEL-SA-00334", "INTEL-SA-00615", "INTEL-SA-00657"]
             )
             let fogViewAttestation = try Attestation(fogViewMrSigner.get())
             
@@ -67,8 +67,8 @@ struct FfiMobileCoinClient {
                 mrSigner: useTestNet ? TESTNET_MRSIGNER : PROD_MRSIGNER,
                 productId: FOG_LEDGER_PRODUCT_ID,
                 minimumSecurityVersion: FOG_LEDGER_SECURITY_VERSION,
-                allowedConfigAdvisories: ["INTEL-SA-00334"],
-                allowedHardeningAdvisories: ["INTEL-SA-00334"]
+                allowedConfigAdvisories: [],
+                allowedHardeningAdvisories: ["INTEL-SA-00334", "INTEL-SA-00615", "INTEL-SA-00657"]
             )
             let fogKeyImageAttestation = try Attestation(fogLedgerMrSigner.get())
             
@@ -76,8 +76,8 @@ struct FfiMobileCoinClient {
                 mrSigner: useTestNet ? TESTNET_MRSIGNER : PROD_MRSIGNER,
                 productId: FOG_INGEST_PRODUCT_ID,
                 minimumSecurityVersion: FOG_INGEST_SECURITY_VERSION,
-                allowedConfigAdvisories: ["INTEL-SA-00334"],
-                allowedHardeningAdvisories: ["INTEL-SA-00334"]
+                allowedConfigAdvisories: [],
+                allowedHardeningAdvisories: ["INTEL-SA-00334", "INTEL-SA-00615", "INTEL-SA-00657"]
             )
             let fogIngestAttestation = try Attestation(fogIngestMrSigner.get())
             
