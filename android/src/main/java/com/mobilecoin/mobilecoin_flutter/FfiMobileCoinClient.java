@@ -191,7 +191,7 @@ public class FfiMobileCoinClient {
                     DestinationMemoData destinationMemoData = ((DestinationMemo) txOutMemo).getDestinationMemoData();
                     addressHash = destinationMemoData.getAddressHash();
                     jsonMemoData.put("fee", destinationMemoData.getFee().longValue());
-                    jsonMemoData.put("totalOutlay", destinationMemoData.getFee().longValue());
+                    jsonMemoData.put("totalOutlay", destinationMemoData.getTotalOutlay().longValue());
                     jsonMemoData.put("numberOfRecipients", destinationMemoData.getNumberOfRecipients());
                 break;
             case DESTINATION_WITH_PAYMENT_REQUEST:
@@ -200,7 +200,7 @@ public class FfiMobileCoinClient {
                 DestinationWithPaymentRequestMemoData destinationWithPaymentRequestMemoData = ((DestinationWithPaymentRequestMemo)txOutMemo).getDestinationWithPaymentRequestMemoData();
                 addressHash = destinationWithPaymentRequestMemoData.getAddressHash();
                 jsonMemoData.put("fee", destinationWithPaymentRequestMemoData.getFee().longValue());
-                jsonMemoData.put("totalOutlay", destinationWithPaymentRequestMemoData.getFee().longValue());
+                jsonMemoData.put("totalOutlay", destinationWithPaymentRequestMemoData.getTotalOutlay().longValue());
                 jsonMemoData.put("numberOfRecipients", destinationWithPaymentRequestMemoData.getNumberOfRecipients());
                 jsonMemoData.put("paymentRequestId", destinationWithPaymentRequestMemoData.getPaymentRequestId().toString());
                 break;
@@ -210,7 +210,7 @@ public class FfiMobileCoinClient {
                 DestinationWithPaymentIntentMemoData destinationWithPaymentIntentMemoData = ((DestinationWithPaymentIntentMemo)txOutMemo).getDestinationWithPaymentIntentMemoData();
                 addressHash = destinationWithPaymentIntentMemoData.getAddressHash();
                 jsonMemoData.put("fee", destinationWithPaymentIntentMemoData.getFee().longValue());
-                jsonMemoData.put("totalOutlay", destinationWithPaymentIntentMemoData.getFee().longValue());
+                jsonMemoData.put("totalOutlay", destinationWithPaymentIntentMemoData.getTotalOutlay().longValue());
                 jsonMemoData.put("numberOfRecipients", destinationWithPaymentIntentMemoData.getNumberOfRecipients());
                 jsonMemoData.put("paymentIntentId", destinationWithPaymentIntentMemoData.getPaymentIntentId().toString());
                 break;
