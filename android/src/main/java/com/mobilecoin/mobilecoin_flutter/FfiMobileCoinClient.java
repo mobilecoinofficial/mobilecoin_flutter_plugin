@@ -15,16 +15,25 @@ import com.mobilecoin.lib.Amount;
 import com.mobilecoin.lib.Balance;
 import com.mobilecoin.lib.ChaCha20Rng;
 import com.mobilecoin.lib.DestinationMemo;
+import com.mobilecoin.lib.DestinationMemoData;
+import com.mobilecoin.lib.DestinationWithPaymentIntentMemo;
+import com.mobilecoin.lib.DestinationWithPaymentIntentMemoData;
+import com.mobilecoin.lib.DestinationWithPaymentRequestMemo;
+import com.mobilecoin.lib.DestinationWithPaymentRequestMemoData;
 import com.mobilecoin.lib.MobileCoinClient;
 import com.mobilecoin.lib.OwnedTxOut;
 import com.mobilecoin.lib.PendingTransaction;
 import com.mobilecoin.lib.PublicAddress;
 import com.mobilecoin.lib.RistrettoPublic;
 import com.mobilecoin.lib.SenderMemo;
+import com.mobilecoin.lib.SenderWithPaymentIntentMemo;
 import com.mobilecoin.lib.SenderWithPaymentRequestMemo;
 import com.mobilecoin.lib.TokenId;
 import com.mobilecoin.lib.Transaction;
+import com.mobilecoin.lib.TxOutMemo;
 import com.mobilecoin.lib.TxOutMemoBuilder;
+import com.mobilecoin.lib.TxOutMemoType;
+import com.mobilecoin.lib.UnsignedLong;
 import com.mobilecoin.lib.exceptions.AttestationException;
 import com.mobilecoin.lib.exceptions.FeeRejectedException;
 import com.mobilecoin.lib.exceptions.FogReportException;
@@ -45,9 +54,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -56,11 +63,10 @@ import consensus_common.ConsensusCommon;
 @Keep
 public class FfiMobileCoinClient {
 
-    private FfiMobileCoinClient() {
-    }
+    private FfiMobileCoinClient() {}
 
-    public static int create(int accountKeyId, String fogUrl, String consensusUrl, boolean useTestNet)
-            throws InvalidUriException {
+    public static int create(int accountKeyId, String fogUrl, String consensusUrl,
+            boolean useTestNet) throws InvalidUriException {
         AccountKey accountKey = (AccountKey) ObjectStorage.objectForKey(accountKeyId);
 
         MobileCoinClient mobileCoinClient = new MobileCoinClient(accountKey, Uri.parse(fogUrl),
@@ -71,21 +77,24 @@ public class FfiMobileCoinClient {
         return hashCode;
     }
 
-    public static String getBalance(int mobileClientId)
-            throws InvalidFogResponse, NetworkException, AttestationException, FogSyncException, JSONException {
-        MobileCoinClient mobileCoinClient = (MobileCoinClient) ObjectStorage.objectForKey(mobileClientId);
+    public static String getBalance(int mobileClientId) throws InvalidFogResponse, NetworkException,
+            AttestationException, FogSyncException, JSONException {
+        MobileCoinClient mobileCoinClient =
+                (MobileCoinClient) ObjectStorage.objectForKey(mobileClientId);
         Map<TokenId, Balance> balances = mobileCoinClient.getBalances();
         JSONObject result = new JSONObject();
-        for (TokenId tokenId: balances.keySet()) {
-                String balance = balances.get(tokenId).getValue().toString();
-                result.put(tokenId.getId().toString(), balance);
-            }
+        for (TokenId tokenId : balances.keySet()) {
+            String balance = balances.get(tokenId).getValue().toString();
+            result.put(tokenId.getId().toString(), balance);
+        }
         return result.toString();
     }
 
     public static String getAccountActivity(int mobileClientId)
-            throws NetworkException, InvalidFogResponse, AttestationException, JSONException, FogSyncException, TransactionBuilderException {
-        MobileCoinClient mobileCoinClient = (MobileCoinClient) ObjectStorage.objectForKey(mobileClientId);
+            throws NetworkException, InvalidFogResponse, AttestationException, JSONException,
+            FogSyncException, TransactionBuilderException {
+        MobileCoinClient mobileCoinClient =
+                (MobileCoinClient) ObjectStorage.objectForKey(mobileClientId);
         AccountSnapshot snapshot = mobileCoinClient.getAccountSnapshot();
         Map<TokenId, Balance> balances = snapshot.getBalances();
         JSONObject result = new JSONObject();
@@ -107,19 +116,26 @@ public class FfiMobileCoinClient {
                 }
 
                 jsonTxOut.put("receivedBlock", txOut.getReceivedBlockIndex().toString());
-                jsonTxOut.put("publicKey", Base64.encodeToString(txOut.getPublicKey().getKeyBytes(), Base64.NO_WRAP));
-                jsonTxOut.put("keyImage", Base64.encodeToString(txOut.getKeyImage().getData(), Base64.NO_WRAP));
-                jsonTxOut.put("sharedSecret", Base64.encodeToString(txOut.getSharedSecret(accountKey).getKeyBytes(), Base64.NO_WRAP));
+                jsonTxOut.put("publicKey",
+                        Base64.encodeToString(txOut.getPublicKey().getKeyBytes(), Base64.NO_WRAP));
+                jsonTxOut.put("keyImage",
+                        Base64.encodeToString(txOut.getKeyImage().getData(), Base64.NO_WRAP));
+                jsonTxOut.put("sharedSecret", Base64.encodeToString(
+                        txOut.getSharedSecret(accountKey).getKeyBytes(), Base64.NO_WRAP));
 
-                final AddressHash addressHash = txOutAddressHash(txOut);
-                if (addressHash != null) {
-                    jsonTxOut.put("theirAddressHashHex", bytesToHex(addressHash.getHashData()));
-                }
+                TxOutMemo txOutMemo = txOut.getTxOutMemo();
+                try {
+                    JSONObject jsonMemo = memoToJson(txOutMemo);
+                    if (null != jsonMemo) {
+                        jsonTxOut.put("memo", jsonMemo);
+                    }
+                } catch (Exception ignored) { /* skip unknown memos */ }
 
                 if (txOut.getSpentBlockIndex() != null) {
                     jsonTxOut.put("spentBlock", txOut.getSpentBlockIndex().toString());
 
-                    // spentBlockTimestamp is null when checking a spent TxOut before Fog Ledger knows it is spent
+                    // spentBlockTimestamp is null when checking a spent TxOut before Fog Ledger
+                    // knows it is spent
                     if (txOut.getSpentBlockTimestamp() != null) {
                         jsonTxOut.put("spentDate", txOut.getSpentBlockTimestamp().getTime());
                     }
@@ -132,27 +148,84 @@ public class FfiMobileCoinClient {
         return result.toString();
     }
 
+
     @Nullable
-    static AddressHash txOutAddressHash(@NonNull OwnedTxOut txOut) {
-        switch (txOut.getTxOutMemo().getTxOutMemoType()) {
+    static JSONObject memoToJson(@NonNull TxOutMemo txOutMemo) throws JSONException, InvalidTxOutMemoException {
+        JSONObject jsonMemoData = new JSONObject();
+        final String memoTypeBytes;
+        final String memoTypeName;
+        final AddressHash addressHash;
+
+        TxOutMemoType memoType = txOutMemo.getTxOutMemoType();
+        switch (memoType) {
             case NOT_SET:
             case UNUSED:
             case UNKNOWN:
                 return null;
             case SENDER:
-                return ((SenderMemo) txOut.getTxOutMemo()).getUnvalidatedAddressHash();
+                memoTypeBytes = "0100";
+                memoTypeName = "SenderMemo";
+                addressHash = ((SenderMemo)txOutMemo).getUnvalidatedAddressHash();
+                break;
             case SENDER_WITH_PAYMENT_REQUEST:
-                return ((SenderWithPaymentRequestMemo) txOut.getTxOutMemo()).getUnvalidatedAddressHash();
+                memoTypeBytes = "0101";
+                memoTypeName = "SenderWithPaymentRequestIdMemo";
+                SenderWithPaymentRequestMemo senderWithPaymentRequestMemo = (SenderWithPaymentRequestMemo)txOutMemo;
+                UnsignedLong paymentRequestId = senderWithPaymentRequestMemo
+                        .getUnvalidatedSenderWithPaymentRequestMemoData() .getPaymentRequestId();
+                addressHash = senderWithPaymentRequestMemo.getUnvalidatedAddressHash();
+                jsonMemoData.put("paymentRequestId", paymentRequestId.toString());
+                break;
+            case SENDER_WITH_PAYMENT_INTENT:
+                memoTypeBytes = "0102";
+                memoTypeName = "SenderWithPaymentIntentIdMemo";
+                addressHash = ((SenderWithPaymentIntentMemo)txOutMemo).getUnvalidatedAddressHash();
+                SenderWithPaymentIntentMemo senderWithPaymentIntentMemo = (SenderWithPaymentIntentMemo)txOutMemo;
+                UnsignedLong paymentIntentId = senderWithPaymentIntentMemo
+                        .getUnvalidatedSenderWithPaymentIntentMemoData().getPaymentIntentId();
+                jsonMemoData.put("paymentIntentId", paymentIntentId.toString());
+                break;
             case DESTINATION:
-                try {
-                    return ((DestinationMemo) txOut.getTxOutMemo()).getDestinationMemoData().getAddressHash();
-                } catch (InvalidTxOutMemoException e) {
-                    // TODO: log error
-                    return null;
-                }
+                memoTypeBytes = "0200";
+                memoTypeName = "DestinationMemo";
+                    DestinationMemoData destinationMemoData = ((DestinationMemo) txOutMemo).getDestinationMemoData();
+                    addressHash = destinationMemoData.getAddressHash();
+                    jsonMemoData.put("fee", destinationMemoData.getFee().longValue());
+                    jsonMemoData.put("totalOutlay", destinationMemoData.getFee().longValue());
+                    jsonMemoData.put("numberOfRecipients", destinationMemoData.getNumberOfRecipients());
+                break;
+            case DESTINATION_WITH_PAYMENT_REQUEST:
+                memoTypeBytes = "0203";
+                memoTypeName = "DestinationWithPaymentRequestIdMemo";
+                DestinationWithPaymentRequestMemoData destinationWithPaymentRequestMemoData = ((DestinationWithPaymentRequestMemo)txOutMemo).getDestinationWithPaymentRequestMemoData();
+                addressHash = destinationWithPaymentRequestMemoData.getAddressHash();
+                jsonMemoData.put("fee", destinationWithPaymentRequestMemoData.getFee().longValue());
+                jsonMemoData.put("totalOutlay", destinationWithPaymentRequestMemoData.getFee().longValue());
+                jsonMemoData.put("numberOfRecipients", destinationWithPaymentRequestMemoData.getNumberOfRecipients());
+                jsonMemoData.put("paymentRequestId", destinationWithPaymentRequestMemoData.getPaymentRequestId().toString());
+                break;
+            case DESTINATION_WITH_PAYMENT_INTENT:
+                memoTypeBytes = "0204";
+                memoTypeName = "DestinationWithPaymentIntentIdMemo";
+                DestinationWithPaymentIntentMemoData destinationWithPaymentIntentMemoData = ((DestinationWithPaymentIntentMemo)txOutMemo).getDestinationWithPaymentIntentMemoData();
+                addressHash = destinationWithPaymentIntentMemoData.getAddressHash();
+                jsonMemoData.put("fee", destinationWithPaymentIntentMemoData.getFee().longValue());
+                jsonMemoData.put("totalOutlay", destinationWithPaymentIntentMemoData.getFee().longValue());
+                jsonMemoData.put("numberOfRecipients", destinationWithPaymentIntentMemoData.getNumberOfRecipients());
+                jsonMemoData.put("paymentIntentId", destinationWithPaymentIntentMemoData.getPaymentIntentId().toString());
+                break;
+            default:
+                // skip unknown memo
+                return null;
         }
+        String addressHashHex = bytesToHex(addressHash.getHashData());
+        jsonMemoData.put("addressHashHex", addressHashHex);
 
-        return null;
+        JSONObject jsonMemo = new JSONObject();
+        jsonMemo.put("typeBytes", memoTypeBytes);
+        jsonMemo.put("typeName", memoTypeName);
+        jsonMemo.put("data", jsonMemoData);
+        return jsonMemo;
     }
 
     private static final byte[] HEX_ARRAY = "0123456789abcdef".getBytes(StandardCharsets.US_ASCII);
@@ -167,17 +240,21 @@ public class FfiMobileCoinClient {
         return new String(hexChars, StandardCharsets.UTF_8);
     }
 
-    public static void setAuthorization(int mobileClientId, @NonNull String username, @NonNull String password) {
-        MobileCoinClient mobileCoinClient = (MobileCoinClient) ObjectStorage.objectForKey(mobileClientId);
+    public static void setAuthorization(int mobileClientId, @NonNull String username,
+            @NonNull String password) {
+        MobileCoinClient mobileCoinClient =
+                (MobileCoinClient) ObjectStorage.objectForKey(mobileClientId);
         mobileCoinClient.setFogBasicAuthorization(username, password);
     }
 
     public static int checkTransactionStatus(int mobileClientId, int receiptId)
             throws AttestationException, InvalidFogResponse, NetworkException, FogSyncException {
-        MobileCoinClient mobileCoinClient = (MobileCoinClient) ObjectStorage.objectForKey(mobileClientId);
+        MobileCoinClient mobileCoinClient =
+                (MobileCoinClient) ObjectStorage.objectForKey(mobileClientId);
         Transaction transaction = (Transaction) ObjectStorage.objectForKey(receiptId);
 
-        // more race condition testing will need to be done before changing this to `getTransactionStatusQuick`
+        // more race condition testing will need to be done before changing this to
+        // `getTransactionStatusQuick`
         Transaction.Status status = mobileCoinClient.getTransactionStatus(transaction);
         switch (status) {
             case ACCEPTED:
@@ -190,39 +267,53 @@ public class FfiMobileCoinClient {
         }
     }
 
-    public static HashMap<String, Object> createPendingTransaction(int mobileClientId, int recipientId, @NonNull PicoMob fee, @NonNull PicoMob amount, @NonNull TokenId tokenId, byte[] rngSeed)
-            throws InvalidFogResponse, AttestationException, FeeRejectedException, InsufficientFundsException,
-            FragmentedAccountException, NetworkException, TransactionBuilderException, FogReportException,
-            FogSyncException, SerializationException {
+    public static HashMap<String, Object> createPendingTransaction(int mobileClientId,
+            int recipientId, @NonNull PicoMob fee, @NonNull PicoMob amount,
+            @NonNull TokenId tokenId, byte[] rngSeed) throws InvalidFogResponse,
+            AttestationException, FeeRejectedException, InsufficientFundsException,
+            FragmentedAccountException, NetworkException, TransactionBuilderException,
+            FogReportException, FogSyncException, SerializationException {
         PublicAddress recipient = (PublicAddress) ObjectStorage.objectForKey(recipientId);
-        MobileCoinClient mobileCoinClient = (MobileCoinClient) ObjectStorage.objectForKey(mobileClientId);
-        TxOutMemoBuilder txOutMemoBuilder = TxOutMemoBuilder.createSenderAndDestinationRTHMemoBuilder(mobileCoinClient.getAccountKey());
+        MobileCoinClient mobileCoinClient =
+                (MobileCoinClient) ObjectStorage.objectForKey(mobileClientId);
+        TxOutMemoBuilder txOutMemoBuilder = TxOutMemoBuilder
+                .createSenderAndDestinationRTHMemoBuilder(mobileCoinClient.getAccountKey());
 
         // Reusing an rngSeed makes it so the public key is always the same, ensuring idempotence
         ChaCha20Rng rng = ChaCha20Rng.fromSeed(rngSeed);
 
-        final PendingTransaction pendingTransaction = mobileCoinClient.prepareTransaction(recipient, new Amount(amount.getPicoCountAsBigInt(), tokenId),
+        final PendingTransaction pendingTransaction = mobileCoinClient.prepareTransaction(recipient,
+                new Amount(amount.getPicoCountAsBigInt(), tokenId),
                 new Amount(fee.getPicoCountAsBigInt(), tokenId), txOutMemoBuilder, rng);
 
         HashMap<String, Object> returnPayload = new HashMap<>();
         returnPayload.put("transaction", pendingTransaction.getTransaction().toByteArray());
 
-        final RistrettoPublic payloadTxOutPublicKey = pendingTransaction.getPayloadTxOutContext().getTxOutPublicKey();
-        final RistrettoPublic payloadTxOutSharedSecret = pendingTransaction.getPayloadTxOutContext().getSharedSecret();
-        final RistrettoPublic changeTxOutPublicKey = pendingTransaction.getChangeTxOutContext().getTxOutPublicKey();
-        final RistrettoPublic changeTxOutSharedSecret = pendingTransaction.getChangeTxOutContext().getSharedSecret();
+        final RistrettoPublic payloadTxOutPublicKey =
+                pendingTransaction.getPayloadTxOutContext().getTxOutPublicKey();
+        final RistrettoPublic payloadTxOutSharedSecret =
+                pendingTransaction.getPayloadTxOutContext().getSharedSecret();
+        final RistrettoPublic changeTxOutPublicKey =
+                pendingTransaction.getChangeTxOutContext().getTxOutPublicKey();
+        final RistrettoPublic changeTxOutSharedSecret =
+                pendingTransaction.getChangeTxOutContext().getSharedSecret();
 
-        returnPayload.put("payloadTxOutPublicKey", Base64.encodeToString(payloadTxOutPublicKey.getKeyBytes(), Base64.NO_WRAP));
-        returnPayload.put("payloadTxOutSharedSecret", Base64.encodeToString(payloadTxOutSharedSecret.getKeyBytes(), Base64.NO_WRAP));
-        returnPayload.put("changeTxOutPublicKey", Base64.encodeToString(changeTxOutPublicKey.getKeyBytes(), Base64.NO_WRAP));
-        returnPayload.put("changeTxOutSharedSecret", Base64.encodeToString(changeTxOutSharedSecret.getKeyBytes(), Base64.NO_WRAP));
+        returnPayload.put("payloadTxOutPublicKey",
+                Base64.encodeToString(payloadTxOutPublicKey.getKeyBytes(), Base64.NO_WRAP));
+        returnPayload.put("payloadTxOutSharedSecret",
+                Base64.encodeToString(payloadTxOutSharedSecret.getKeyBytes(), Base64.NO_WRAP));
+        returnPayload.put("changeTxOutPublicKey",
+                Base64.encodeToString(changeTxOutPublicKey.getKeyBytes(), Base64.NO_WRAP));
+        returnPayload.put("changeTxOutSharedSecret",
+                Base64.encodeToString(changeTxOutSharedSecret.getKeyBytes(), Base64.NO_WRAP));
 
         return returnPayload;
     }
 
     public static String sendFunds(int mobileClientId, byte[] serializedTransaction)
             throws SerializationException, JSONException {
-        MobileCoinClient mobileCoinClient = (MobileCoinClient) ObjectStorage.objectForKey(mobileClientId);
+        MobileCoinClient mobileCoinClient =
+                (MobileCoinClient) ObjectStorage.objectForKey(mobileClientId);
         Transaction transaction = Transaction.fromBytes(serializedTransaction);
         int receiptId = transaction.hashCode();
 
@@ -237,24 +328,24 @@ public class FfiMobileCoinClient {
             resultObject.put("blockIndex", blockIndex);
             resultObject.put("receiptId", receiptId);
         } catch (InvalidTransactionException e) {
-            final ConsensusCommon.ProposeTxResult result = e.getResult() == null ?
-                    ConsensusCommon.ProposeTxResult.UNRECOGNIZED :
-                    e.getResult();
+            final ConsensusCommon.ProposeTxResult result =
+                    e.getResult() == null ? ConsensusCommon.ProposeTxResult.UNRECOGNIZED
+                            : e.getResult();
 
             resultObject.put("blockIndex", e.getBlockIndex());
 
             switch (result) {
-            case ContainsSpentKeyImage:
-            case ContainsExistingOutputPublicKey:
-                resultObject.put("status", "INPUT_ALREADY_SPENT");
-            case TxFeeError:
-                resultObject.put("status", "FEE_ERROR");
-            case MissingMemo:
-                resultObject.put("status", "MISSING_MEMO");
-            case TombstoneBlockTooFar:
-                resultObject.put("status", "TOMBSTONE_BLOCK_TOO_FAR");
-            default:
-                resultObject.put("status", "INVALID_TRANSACTION");
+                case ContainsSpentKeyImage:
+                case ContainsExistingOutputPublicKey:
+                    resultObject.put("status", "INPUT_ALREADY_SPENT");
+                case TxFeeError:
+                    resultObject.put("status", "FEE_ERROR");
+                case MissingMemo:
+                    resultObject.put("status", "MISSING_MEMO");
+                case TombstoneBlockTooFar:
+                    resultObject.put("status", "TOMBSTONE_BLOCK_TOO_FAR");
+                default:
+                    resultObject.put("status", "INVALID_TRANSACTION");
             }
         } catch (NetworkException e) {
             resultObject.put("status", "NETWORK_ERROR");
