@@ -192,9 +192,23 @@ struct FfiMobileCoinClient {
                                 jsonTxOut["keyImage"] = txOut.keyImage.base64EncodedString()
                                 jsonTxOut["sharedSecret"] = txOut.sharedSecret.base64EncodedString()
 
-                                if transaction.memo != nil {
-                                    jsonTxOut["theirAddressHashHex"] = transaction.memo!.addressHashHex
+                                if let memo = transaction.memo {
+                                    jsonTxOut["theirAddressHashHex"] = memo.addressHashHex
+
+                                    // Encode memo as JSON == [String:Any]
+                                    if let encoded = memo.toDictionary() {
+                                        jsonTxOut["memo"] = encoded
+                                    }
                                 }
+
+                                // Unauthenticated memo's can be used w/o a matching contact/public-address 
+                                if let unauthenticatedMemo = transaction.unauthenticatedMemo,
+                                   let encoded = unauthenticatedMemo.toDictionary() {
+                                    // Encode memo as JSON == [String:Any]
+                                    // Will overwrite if already set which is ok for now.
+                                    jsonTxOut["memo"] = encoded
+                                }
+
 
                                 if txOut.spentBlock != nil {
                                     jsonTxOut["spentBlock"] = String(txOut.spentBlock!.index)
@@ -388,10 +402,78 @@ extension RecoveredMemo {
         switch self {
         case let .senderWithPaymentRequest(memo):
             return memo.addressHashHex
+        case let .senderWithPaymentIntent(memo):
+            return memo.addressHashHex
         case let .sender(memo):
+            return memo.addressHashHex
+        case let .destinationWithPaymentRequest(memo):
+            return memo.addressHashHex
+        case let .destinationWithPaymentIntent(memo):
             return memo.addressHashHex
         case let .destination(memo):
             return memo.addressHashHex
         }
+    }
+}
+
+extension RecoveredMemo {
+    func toDictionary() -> [String: Any]? {
+        let encoder = DictionaryEncoder()
+        let dictionary: Any = {
+            switch self {
+            case .sender(let memo):
+                return try? encoder.encode(memo) 
+            case .senderWithPaymentRequest(let memo):
+                return try? encoder.encode(memo) 
+            case .senderWithPaymentIntent(let memo):
+                return try? encoder.encode(memo) 
+            case .destination(let memo):
+                return try? encoder.encode(memo) 
+            case .destinationWithPaymentRequest(let memo):
+                return try? encoder.encode(memo) 
+            case .destinationWithPaymentIntent(let memo):
+                return try? encoder.encode(memo) 
+            }
+        }()
+
+        return dictionary as? [String: Any]
+    }
+}
+
+extension UnauthenticatedSenderMemo {
+    func toDictionary() -> [String: Any]? {
+        let encoder = DictionaryEncoder()
+        let dictionary: Any = {
+            switch self {
+            case .sender(let memo):
+                return try? encoder.encode(memo) 
+            case .senderWithPaymentRequest(let memo):
+                return try? encoder.encode(memo) 
+            case .senderWithPaymentIntent(let memo):
+                return try? encoder.encode(memo) 
+            }
+        }()
+
+        return dictionary as? [String: Any]
+    }
+}
+
+class DictionaryEncoder {
+    private let jsonEncoder = JSONEncoder()
+
+    /// Encodes given Encodable value into an array or dictionary
+    func encode<T>(_ value: T) throws -> Any where T: Encodable {
+        let jsonData = try jsonEncoder.encode(value)
+        return try JSONSerialization.jsonObject(with: jsonData, options: .allowFragments)
+    }
+}
+
+class DictionaryDecoder {
+    private let jsonDecoder = JSONDecoder()
+
+    /// Decodes given Decodable type from given array or dictionary
+    func decode<T>(_ type: T.Type, from json: Any) throws -> T where T: Decodable {
+        let jsonData = try JSONSerialization.data(withJSONObject: json, options: [])
+        return try jsonDecoder.decode(type, from: jsonData)
     }
 }
