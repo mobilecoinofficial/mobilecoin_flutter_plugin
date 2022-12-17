@@ -172,7 +172,7 @@ public class FfiMobileCoinClient {
                 memoTypeName = "SenderWithPaymentRequestIdMemo";
                 SenderWithPaymentRequestMemo senderWithPaymentRequestMemo = (SenderWithPaymentRequestMemo)txOutMemo;
                 UnsignedLong paymentRequestId = senderWithPaymentRequestMemo
-                        .getUnvalidatedSenderWithPaymentRequestMemoData() .getPaymentRequestId();
+                        .getUnvalidatedSenderWithPaymentRequestMemoData().getPaymentRequestId();
                 addressHash = senderWithPaymentRequestMemo.getUnvalidatedAddressHash();
                 jsonMemoData.put("paymentRequestId", paymentRequestId.toString());
                 break;
@@ -190,18 +190,18 @@ public class FfiMobileCoinClient {
                 memoTypeName = "DestinationMemo";
                     DestinationMemoData destinationMemoData = ((DestinationMemo) txOutMemo).getDestinationMemoData();
                     addressHash = destinationMemoData.getAddressHash();
-                    jsonMemoData.put("fee", destinationMemoData.getFee().longValue());
-                    jsonMemoData.put("totalOutlay", destinationMemoData.getTotalOutlay().longValue());
-                    jsonMemoData.put("numberOfRecipients", destinationMemoData.getNumberOfRecipients());
+                    jsonMemoData.put("fee", destinationMemoData.getFee().toString());
+                    jsonMemoData.put("totalOutlay", destinationMemoData.getTotalOutlay().toString());
+                    jsonMemoData.put("numberOfRecipients", String.valueOf(destinationMemoData.getNumberOfRecipients()));
                 break;
             case DESTINATION_WITH_PAYMENT_REQUEST:
                 memoTypeBytes = "0203";
                 memoTypeName = "DestinationWithPaymentRequestIdMemo";
                 DestinationWithPaymentRequestMemoData destinationWithPaymentRequestMemoData = ((DestinationWithPaymentRequestMemo)txOutMemo).getDestinationWithPaymentRequestMemoData();
                 addressHash = destinationWithPaymentRequestMemoData.getAddressHash();
-                jsonMemoData.put("fee", destinationWithPaymentRequestMemoData.getFee().longValue());
-                jsonMemoData.put("totalOutlay", destinationWithPaymentRequestMemoData.getTotalOutlay().longValue());
-                jsonMemoData.put("numberOfRecipients", destinationWithPaymentRequestMemoData.getNumberOfRecipients());
+                jsonMemoData.put("fee", destinationWithPaymentRequestMemoData.getFee().toString());
+                jsonMemoData.put("totalOutlay", destinationWithPaymentRequestMemoData.getTotalOutlay().toString());
+                jsonMemoData.put("numberOfRecipients", String.valueOf(destinationWithPaymentRequestMemoData.getNumberOfRecipients()));
                 jsonMemoData.put("paymentRequestId", destinationWithPaymentRequestMemoData.getPaymentRequestId().toString());
                 break;
             case DESTINATION_WITH_PAYMENT_INTENT:
@@ -209,9 +209,9 @@ public class FfiMobileCoinClient {
                 memoTypeName = "DestinationWithPaymentIntentIdMemo";
                 DestinationWithPaymentIntentMemoData destinationWithPaymentIntentMemoData = ((DestinationWithPaymentIntentMemo)txOutMemo).getDestinationWithPaymentIntentMemoData();
                 addressHash = destinationWithPaymentIntentMemoData.getAddressHash();
-                jsonMemoData.put("fee", destinationWithPaymentIntentMemoData.getFee().longValue());
-                jsonMemoData.put("totalOutlay", destinationWithPaymentIntentMemoData.getTotalOutlay().longValue());
-                jsonMemoData.put("numberOfRecipients", destinationWithPaymentIntentMemoData.getNumberOfRecipients());
+                jsonMemoData.put("fee", destinationWithPaymentIntentMemoData.getFee().toString());
+                jsonMemoData.put("totalOutlay", destinationWithPaymentIntentMemoData.getTotalOutlay().toString());
+                jsonMemoData.put("numberOfRecipients", String.valueOf(destinationWithPaymentIntentMemoData.getNumberOfRecipients()));
                 jsonMemoData.put("paymentIntentId", destinationWithPaymentIntentMemoData.getPaymentIntentId().toString());
                 break;
             default:
