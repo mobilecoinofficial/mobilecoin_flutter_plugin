@@ -1,8 +1,7 @@
-import 'package:mobilecoin_flutter/mobilecoin.dart';
-import 'package:mobilecoin_flutter/payment_request.dart';
-import 'package:mobilecoin_flutter/public_address.dart';
-import 'package:mobilecoin_flutter/transfer_payload.dart';
-
+import 'mobilecoin.dart';
+import 'payment_request.dart';
+import 'public_address.dart';
+import 'transfer_payload.dart';
 import 'platform_object.dart';
 
 class PrintableWrapper extends PlatformObject {

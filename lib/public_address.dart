@@ -1,5 +1,5 @@
 import 'dart:typed_data';
-import 'package:mobilecoin_flutter/mobilecoin.dart';
+import 'mobilecoin.dart';
 import 'platform_object.dart';
 
 class PublicAddress extends PlatformObject {

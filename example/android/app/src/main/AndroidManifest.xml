@@ -2,7 +2,8 @@
     package="com.mobilecoin.mobilecoin_flutter_example">
    <application
         android:label="mobilecoin_flutter_example"
-        android:icon="@mipmap/ic_launcher">
+        android:icon="@mipmap/ic_launcher"
+        android:name="${applicationName}">
         <activity
             android:name=".MainActivity"
             android:exported="true"

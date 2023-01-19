@@ -1,5 +1,5 @@
-import 'package:mobilecoin_flutter/mobilecoin.dart';
-import 'package:mobilecoin_flutter/public_address.dart';
+import 'mobilecoin.dart';
+import 'public_address.dart';
 
 import 'platform_object.dart';
 

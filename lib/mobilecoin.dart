@@ -2,8 +2,8 @@ import 'dart:typed_data';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
-import 'package:mobilecoin_flutter/public_address.dart';
 
+import 'public_address.dart';
 import 'account_key.dart';
 
 class MobileCoinFlutterPluginChannelApi {
@@ -388,7 +388,7 @@ class MobileCoinFlutterPluginChannelApi {
       'mnemonicPhrase': mnemonicPhrase,
     };
     final entropy = await _channel.invokeMethod(
-      "Mnemonic#toBip39Entropy",
+      'Mnemonic#toBip39Entropy',
       params,
     );
     return Uint8List.fromList(entropy);
@@ -397,7 +397,35 @@ class MobileCoinFlutterPluginChannelApi {
   Future<String> mnemonicAllWords() async {
     final Map<String, dynamic> params = <String, dynamic>{};
     return await _channel.invokeMethod(
-      "Mnemonic#allWords",
+      'Mnemonic#allWords',
+      params,
+    );
+  }
+
+  Future<Uint8List> cryptoBoxEncrypt({
+    required PublicAddress recipient,
+    required Uint8List data,
+  }) async {
+    final Map<String, dynamic> params = <String, dynamic>{
+      'publicAddressId': recipient.id,
+      'data': data,
+    };
+    return await _channel.invokeMethod(
+      'CryptoBox#encrypt',
+      params,
+    );
+  }
+
+  Future<Uint8List> cryptoBoxDecrypt({
+    required AccountKey accountKey,
+    required Uint8List data,
+  }) async {
+    final Map<String, dynamic> params = <String, dynamic>{
+      'accountKeyId': accountKey.id,
+      'data': data,
+    };
+    return await _channel.invokeMethod(
+      'CryptoBox#decrypt',
       params,
     );
   }

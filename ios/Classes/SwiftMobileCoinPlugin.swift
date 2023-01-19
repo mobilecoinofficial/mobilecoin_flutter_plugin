@@ -84,6 +84,10 @@ class CommandFactory {
             return FfiMnemonic.ToBip39Entropy()
         case "Mnemonic#allWords":
             return FfiMnemonic.AllWords()
+        case "CryptoBox#encrypt":
+            return FfiCryptoBox.encrypt()
+        case "CryptoBox#decrypt":
+            return FfiCryptoBox.decrypt()
         default:
             throw PluginError.invalidCall
         }

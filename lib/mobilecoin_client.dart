@@ -1,8 +1,7 @@
 import 'dart:async';
 import 'dart:typed_data';
 
-import 'package:mobilecoin_flutter/mobilecoin.dart';
-
+import 'mobilecoin.dart';
 import 'account_key.dart';
 import 'platform_object.dart';
 import 'public_address.dart';

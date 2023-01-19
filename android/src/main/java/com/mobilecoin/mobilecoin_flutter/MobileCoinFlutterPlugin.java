@@ -206,6 +206,12 @@ public class MobileCoinFlutterPlugin implements FlutterPlugin, MethodCallHandler
                 return api.mnemonicToBip39Entropy(getCallArgument(call, "mnemonicPhrase"));
             case "Mnemonic#allWords":
                 return api.mnemonicAllWords();
+            case "CryptoBox#encrypt":
+                return api.cryptoBoxEncrypt(getCallArgument(call, "data"), 
+                        getCallArgument(call, "publicAddressId"));
+            case "CryptoBox#decrypt":
+                return api.cryptoBoxDecrypt(getCallArgument(call, "data"), 
+                        getCallArgument(call, "accountKeyId"));
             default:
                 throw new UnsupportedOperationException();
             }
@@ -430,6 +436,18 @@ public class MobileCoinFlutterPlugin implements FlutterPlugin, MethodCallHandler
          * <code>String</code>
          */
         String mnemonicAllWords() throws BadMnemonicException;
+
+        /** 
+         * Encrypt data using recipient's public key
+         * Note: only recipient's account key can decrypt it
+         */ 
+        public byte[] cryptoBoxEncrypt(byte[] data, int publicAddressId) throws Exception;
+
+        /** 
+         * Decrypt data using recipient's account key
+         * Note: only recipient's account key can decrypt it
+         */ 
+        public byte[] cryptoBoxDecrypt(byte[] data, int accountKeyId) throws Exception;
     }
 
     static class DefaultMobileCoinFlutterPluginChannelApi implements MobileCoinFlutterPluginChannelApi {
@@ -613,6 +631,16 @@ public class MobileCoinFlutterPlugin implements FlutterPlugin, MethodCallHandler
         @Override
         public String mnemonicAllWords() throws BadMnemonicException {
             return FfiMnemonic.allWords();
+        }
+        
+        @Override
+        public byte[] cryptoBoxEncrypt(byte[] data, int publicAddressId) throws Exception {
+            return FfiCryptoBox.encrypt(data, publicAddressId);
+        }
+
+        @Override
+        public byte[] cryptoBoxDecrypt(byte[] data, int accountKeyId) throws Exception {
+            return FfiCryptoBox.decrypt(data, accountKeyId);
         }
     }
 }
