@@ -150,6 +150,28 @@ public class MobileCoinFlutterPlugin implements FlutterPlugin, MethodCallHandler
                 return api.getAccountKeyFromBip39Entropy(getCallArgument(call, "bip39Entropy"),
                         call.argument("fogReportUri"), getCallArgument(call, "reportId"),
                         call.argument("fogAuthoritySpki"));
+            
+            case "MobileCoinClient#requiresDefragmentation": {
+                BigInteger bigTokenId = new BigInteger((String) getCallArgument(call, "tokenId"));
+                TokenId tokenId = TokenId.from(UnsignedLong.fromBigInteger(bigTokenId));
+                return api.accountRequiresDefragmentation(
+                    getCallArgument(call, "id"), 
+                    PicoMob.parsePico(getCallArgument(call, "amount")),
+                    tokenId
+                );
+            }
+            case "MobileCoinClient#defragmentAccount": {
+                BigInteger bigTokenId = new BigInteger((String) getCallArgument(call, "tokenId"));
+                TokenId tokenId = TokenId.from(UnsignedLong.fromBigInteger(bigTokenId));
+                api.defragmentAccount(
+                    getCallArgument(call, "id"), 
+                    PicoMob.parsePico(getCallArgument(call, "amount")), 
+                    tokenId,
+                    getCallArgument(call, "shouldWriteRTHMemos"),
+                    getCallArgument(call, "rngSeed")
+                );
+                return null;
+            }
             case "AccountKey#getPublicAddress":
                 return api.getAccountKeyPublicAddress(getCallArgument(call, "id"));
             case "PrintableWrapper#fromB58String":
@@ -448,6 +470,36 @@ public class MobileCoinFlutterPlugin implements FlutterPlugin, MethodCallHandler
          * Note: only recipient's account key can decrypt it
          */ 
         public byte[] cryptoBoxDecrypt(byte[] data, int accountKeyId) throws Exception;
+        /**
+         * Returns wether or not MobileCoin client can send a specified amount
+         * without account defragmentation
+         */
+
+        boolean accountRequiresDefragmentation(
+            int mobileClientId, 
+            @NonNull PicoMob amount, 
+            @NonNull TokenId tokenId
+        ) throws Exception;
+        
+        /// Defragments the user's account.
+        ///
+        /// An account needs to be defragmented when an account balance consists
+        /// of multiple coins and there are no big enough coins to successfully
+        /// send the transaction.
+        /// If the account is too fragmented, it might be necessary to defragment
+        /// the account more than once. However, wallet fragmentation is a
+        /// rare occurrence since there is an internal mechanism to defragment
+        /// the account during other operations.
+        ///
+        /// `shouldWriteRTHMemos` writes sender and destination memos for a defrag
+        /// transactions if true.
+        void defragmentAccount(
+            int mobileClientId, 
+            @NonNull PicoMob amount, 
+            @NonNull TokenId tokenId, 
+            boolean shouldWriteRTHMemos, 
+            @Nullable byte[] rngSeed
+        ) throws Exception;
     }
 
     static class DefaultMobileCoinFlutterPluginChannelApi implements MobileCoinFlutterPluginChannelApi {
@@ -641,6 +693,32 @@ public class MobileCoinFlutterPlugin implements FlutterPlugin, MethodCallHandler
         @Override
         public byte[] cryptoBoxDecrypt(byte[] data, int accountKeyId) throws Exception {
             return FfiCryptoBox.decrypt(data, accountKeyId);
+        }
+
+        public boolean accountRequiresDefragmentation(
+            int mobileClientId, 
+            @NonNull PicoMob amount, 
+            @NonNull TokenId tokenId
+        ) throws Exception {
+            return FfiMobileCoinClient.requiresDefragmentation(
+                mobileClientId, 
+                amount, 
+                tokenId
+            );
+        }
+
+        @Override
+        public void defragmentAccount(int mobileClientId, @NonNull PicoMob amount, 
+        @NonNull TokenId tokenId, boolean shouldWriteRTHMemos, 
+        @Nullable byte[] rngSeed
+        ) throws Exception {
+            FfiMobileCoinClient.defragmentAccount(
+                mobileClientId, 
+                amount, 
+                tokenId, 
+                shouldWriteRTHMemos, 
+                rngSeed
+            );
         }
     }
 }

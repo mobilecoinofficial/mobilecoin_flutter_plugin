@@ -95,4 +95,42 @@ class MobileCoinClient extends PlatformObject {
       password: password,
     );
   }
+
+  /// Returns wether or not MobileCoin client can send a specified amount
+  /// without account defragmentation
+  Future<bool> requiresDefragmentation(BigInt tokenId, BigInt amount) async {
+    return await MobileCoinFlutterPluginChannelApi.instance
+        .accountRequiresDefragmentation(
+      mobileCoinClientId: id,
+      amount: amount,
+      tokenId: tokenId,
+    );
+  }
+
+  /// Defragments the user's account.
+  ///
+  /// An account needs to be defragmented when an account balance consists
+  /// of multiple coins and there are no big enough coins to successfully
+  /// send the transaction.
+  /// If the account is too fragmented, it might be necessary to defragment
+  /// the account more than once. However, wallet fragmentation is a
+  /// rare occurrence since there is an internal mechanism to defragment
+  /// the account during other operations.
+  ///
+  /// `shouldWriteRTHMemos` writes sender and destination memos for a defrag
+  /// transaction if true.
+  Future<void> defragmentAccount({
+    required BigInt tokenId,
+    required BigInt amount,
+    bool? shouldWriteRTHMemos = false,
+    String? rngSeed,
+  }) async {
+    return await MobileCoinFlutterPluginChannelApi.instance.defragmentAccount(
+      mobileCoinClientId: id,
+      amount: amount,
+      tokenId: tokenId,
+      shouldWriteRTHMemos: shouldWriteRTHMemos!,
+      rngSeed: rngSeed,
+    );
+  }
 }

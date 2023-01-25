@@ -14,6 +14,8 @@ import com.mobilecoin.lib.AddressHash;
 import com.mobilecoin.lib.Amount;
 import com.mobilecoin.lib.Balance;
 import com.mobilecoin.lib.ChaCha20Rng;
+import com.mobilecoin.lib.DefaultRng;
+import com.mobilecoin.lib.DefragmentationDelegate;
 import com.mobilecoin.lib.DestinationMemo;
 import com.mobilecoin.lib.DestinationMemoData;
 import com.mobilecoin.lib.DestinationWithPaymentIntentMemo;
@@ -57,6 +59,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import java.math.BigInteger;
 
 import consensus_common.ConsensusCommon;
 
@@ -354,5 +357,49 @@ public class FfiMobileCoinClient {
         }
 
         return resultObject.toString();
+    }
+
+    public static boolean requiresDefragmentation(int mobileClientId,
+    @NonNull PicoMob amount, @NonNull TokenId tokenId) throws Exception {
+        MobileCoinClient mobileCoinClient =
+                (MobileCoinClient) ObjectStorage.objectForKey(mobileClientId);
+        return mobileCoinClient.requiresDefragmentation(
+            new Amount(amount.getPicoCountAsBigInt(), tokenId)
+        );
+    }
+
+    public static void defragmentAccount(int mobileClientId, 
+    @NonNull PicoMob amount, @NonNull TokenId tokenId, 
+    boolean shouldWriteRTHMemos, @Nullable byte[] rngSeed
+    ) throws Exception {
+        MobileCoinClient mobileCoinClient =
+                (MobileCoinClient) ObjectStorage.objectForKey(mobileClientId);
+
+        DefragmentationDelegate defragDelegate = new DefragmentationDelegate() {
+            @Override
+            public void onStart() { }
+
+            @Override
+            public boolean onStepReady(@NonNull PendingTransaction defragStepTx,
+                                       @NonNull BigInteger fee) throws NetworkException,
+                    InvalidTransactionException, AttestationException {
+                mobileCoinClient.submitTransaction(defragStepTx.getTransaction());
+                return true;
+            }
+
+            @Override
+            public void onComplete() { }
+
+            @Override
+            public void onCancel() { }
+        };
+
+        Amount tokenAmount = new Amount(amount.getPicoCountAsBigInt(), tokenId);
+        if (null == rngSeed || rngSeed.length < 32) {
+            mobileCoinClient.defragmentAccount(tokenAmount, defragDelegate, shouldWriteRTHMemos, DefaultRng.createInstance());
+        } else {
+            ChaCha20Rng rng = ChaCha20Rng.fromSeed(rngSeed);
+            mobileCoinClient.defragmentAccount(tokenAmount, defragDelegate, shouldWriteRTHMemos, rng);
+        }
     }
 }

@@ -429,4 +429,44 @@ class MobileCoinFlutterPluginChannelApi {
       params,
     );
   }
+
+  Future<bool> accountRequiresDefragmentation({
+    required int mobileCoinClientId,
+    required BigInt tokenId,
+    required BigInt amount,
+  }) async {
+    final Map<String, dynamic> params = <String, dynamic>{
+      'id': mobileCoinClientId,
+      'amount': amount.toString(),
+      'tokenId': tokenId.toString(),
+    };
+    return await _channel.invokeMethod(
+      "MobileCoinClient#requiresDefragmentation",
+      params,
+    );
+  }
+
+  Future<void> defragmentAccount({
+    required int mobileCoinClientId,
+    required BigInt tokenId,
+    required BigInt amount,
+    required bool shouldWriteRTHMemos,
+    String? rngSeed,
+  }) async {
+    final Map<String, dynamic> params = <String, dynamic>{
+      'id': mobileCoinClientId,
+      'amount': amount.toString(),
+      'tokenId': tokenId.toString(),
+      'shouldWriteRTHMemos': shouldWriteRTHMemos,
+      'rngSeed': (null != rngSeed)
+          ? Uint8List.fromList(
+              rngSeed.codeUnits,
+            )
+          : Uint8List.fromList(List.empty()),
+    };
+    return await _channel.invokeMethod(
+      "MobileCoinClient#defragmentAccount",
+      params,
+    );
+  }
 }
