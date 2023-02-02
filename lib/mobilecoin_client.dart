@@ -122,7 +122,7 @@ class MobileCoinClient extends PlatformObject {
   Future<void> defragmentAccount({
     required BigInt tokenId,
     required BigInt amount,
-    bool? shouldWriteRTHMemos = false,
+    bool? shouldWriteRTHMemos = true,
     String? rngSeed,
   }) async {
     return await MobileCoinFlutterPluginChannelApi.instance.defragmentAccount(
