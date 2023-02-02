@@ -175,12 +175,11 @@ public class MobileCoinFlutterPlugin implements FlutterPlugin, MethodCallHandler
             case "MobileCoinClient#estimateTotalFee": {
                 BigInteger bigTokenId = new BigInteger((String) getCallArgument(call, "tokenId"));
                 TokenId tokenId = TokenId.from(UnsignedLong.fromBigInteger(bigTokenId));
-                api.estimateTotalFee(
+                return api.estimateTotalFee(
                     getCallArgument(call, "id"), 
                     new BigInteger((String)getCallArgument(call, "amount")), 
                     tokenId
                 );
-                return null;
             }
             case "AccountKey#getPublicAddress":
                 return api.getAccountKeyPublicAddress(getCallArgument(call, "id"));
