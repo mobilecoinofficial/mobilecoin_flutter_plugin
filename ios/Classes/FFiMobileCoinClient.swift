@@ -110,6 +110,108 @@ struct FfiMobileCoinClient {
         }
     };
     
+    struct RequiresDefragmentation: Command {
+        func execute(args: [String : Any], result: @escaping FlutterResult) throws {
+            guard let clientId: Int = args["id"] as? Int,
+                  let toSendAmountString = args["amount"] as? String,
+                  let toSendAmount = UInt64(toSendAmountString),
+                  let toSendTokenIdString = args["tokenId"] as? String,
+                  let toSendTokenIdUInt = UInt64(toSendTokenIdString),
+                  let client = ObjectStorage.objectForKey(clientId) as? MobileCoinClient else {
+                      result(FlutterError(code: "NATIVE", message: "RequiresDefragmentation", details: "parsing arguments"))
+                      throw PluginError.invalidArguments
+                  }
+
+            let toSendTokenId = TokenId(toSendTokenIdUInt)
+            let amount = Amount(toSendAmount, in: toSendTokenId)
+
+            client.requiresDefragmentation(toSendAmount: amount) { (requiresDefragResult: Result<Bool, TransactionEstimationFetcherError>) in
+                switch requiresDefragResult {
+                case .success(let requiresDefragmentation):
+                    DispatchQueue.main.async {
+                        result(requiresDefragmentation)
+                    }
+                case .failure(let error):
+                    result(FlutterError(code: "NATIVE", message: error.localizedDescription, details: "RequiresDefragmentation.requiresDefragmentation"))
+                }
+            }
+        }
+    }
+
+    struct EstimateTotalFee: Command {
+        func execute(args: [String : Any], result: @escaping FlutterResult) throws {
+            guard let clientId: Int = args["id"] as? Int,
+                  let toSendAmountString = args["amount"] as? String,
+                  let toSendAmount = UInt64(toSendAmountString),
+                  let toSendTokenIdString = args["tokenId"] as? String,
+                  let toSendTokenIdUInt = UInt64(toSendTokenIdString),
+                  let client = ObjectStorage.objectForKey(clientId) as? MobileCoinClient else {
+                      result(FlutterError(code: "NATIVE", message: "EstimateTotalFee", details: "parsing arguments"))
+                      throw PluginError.invalidArguments
+                  }
+
+            let toSendTokenId = TokenId(toSendTokenIdUInt)
+            let amount = Amount(toSendAmount, in: toSendTokenId)
+
+            client.estimateToalFee(toSendAmount: amount) { (estimateTotalFeeResult: Result<UInt64, TransactionEstimationFetcherError>) in
+                switch estimateTotalFeeResult {
+                case .success(let feeValue):
+                    DispatchQueue.main.async {
+                        result(feeValue)
+                    }
+                case .failure(let error):
+                    result(FlutterError(code: "NATIVE", message: error.localizedDescription, details: "EstimateTotalFee.estimation"))
+                }
+            }
+        }
+    }
+
+    struct DefragmentAccount: Command {
+        func execute(args: [String : Any], result: @escaping FlutterResult) throws {
+            guard let clientId: Int = args["id"] as? Int,
+                  let toSendAmountString = args["amount"] as? String,
+                  let toSendAmount = UInt64(toSendAmountString),
+                  let toSendTokenIdString = args["tokenId"] as? String,
+                  let toSendTokenIdUInt = UInt64(toSendTokenIdString),
+                  let shouldWriteRTHMemos = args["shouldWriteRTHMemos"] as? Bool,
+                  let client = ObjectStorage.objectForKey(clientId) as? MobileCoinClient else {
+                      result(FlutterError(code: "NATIVE", message: "DefragmentAccount", details: "parsing arguments"))
+                      throw PluginError.invalidArguments
+                  }
+
+            let toSendTokenId = TokenId(toSendTokenIdUInt)
+            let amount = Amount(toSendAmount, in: toSendTokenId)
+            let rngSeed = {
+                guard let rngSeedData = args["rngSeed"] as? [UInt8] else { return RngSeed() }
+                return RngSeed(rngSeedData)
+            }()
+
+            client.prepareDefragmentationStepTransactions(
+                    toSendAmount: amount,
+                    recoverableMemo: shouldWriteRTHMemos,
+                    rngSeed: rngSeed) 
+            {
+                switch preperationResult {
+                case .success(let stepTransactions):
+                    client.submitDefragStepTransactions(
+                        transactions: stepTransactions
+                    ) { result in
+                        switch preperationResult {
+                        case .success(let blockIndexes):
+                            DispatchQueue.main.async {
+                                result(blockIndexes)
+                            }
+                        case .failure(let error):
+                            result(FlutterError(code: "NATIVE", message: error.localizedDescription, details: "DefragAccount.prepareDefragmentationStepTransactions"))
+                        }
+                    }
+                case .failure(let error):
+                    result(FlutterError(code: "NATIVE", message: error.localizedDescription, details: "DefragAccount.prepareDefragmentationStepTransactions"))
+                }
+            }
+        }
+    }
+
     struct GetBalance: Command {
         func execute(args: [String : Any], result: @escaping FlutterResult) throws {
             guard let clientId: Int = args["id"] as? Int,

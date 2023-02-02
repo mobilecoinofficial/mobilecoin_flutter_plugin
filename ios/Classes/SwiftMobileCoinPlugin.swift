@@ -22,6 +22,12 @@ class CommandFactory {
             return FfiAccountKey.GetPublicAddress()
         case "MobileCoinClient#create":
             return FfiMobileCoinClient.Create()
+        case "MobileCoinClient#requiresDefragmentation":
+            return FfiMobileCoinClient.RequiresDefragmentation()
+        case "MobileCoinClient#estimateTotalFee":
+            return FfiMobileCoinClient.EstimateTotalFee()
+        case "MobileCoinClient#defragmentAccount":
+            return FfiMobileCoinClient.DefragmentAccount()
         case "MobileCoinClient#getBalance":
             return FfiMobileCoinClient.GetBalance()
         case "MobileCoinClient#getAccountActivity":
