@@ -156,7 +156,7 @@ public class MobileCoinFlutterPlugin implements FlutterPlugin, MethodCallHandler
                 TokenId tokenId = TokenId.from(UnsignedLong.fromBigInteger(bigTokenId));
                 return api.accountRequiresDefragmentation(
                     getCallArgument(call, "id"), 
-                    PicoMob.parsePico(getCallArgument(call, "amount")),
+                    new BigInteger((String)getCallArgument(call, "amount")),
                     tokenId
                 );
             }
@@ -165,10 +165,20 @@ public class MobileCoinFlutterPlugin implements FlutterPlugin, MethodCallHandler
                 TokenId tokenId = TokenId.from(UnsignedLong.fromBigInteger(bigTokenId));
                 api.defragmentAccount(
                     getCallArgument(call, "id"), 
-                    PicoMob.parsePico(getCallArgument(call, "amount")), 
+                    new BigInteger((String)getCallArgument(call, "amount")), 
                     tokenId,
                     getCallArgument(call, "shouldWriteRTHMemos"),
                     getCallArgument(call, "rngSeed")
+                );
+                return null;
+            }
+            case "MobileCoinClient#estimateTotalFee": {
+                BigInteger bigTokenId = new BigInteger((String) getCallArgument(call, "tokenId"));
+                TokenId tokenId = TokenId.from(UnsignedLong.fromBigInteger(bigTokenId));
+                api.estimateTotalFee(
+                    getCallArgument(call, "id"), 
+                    new BigInteger((String)getCallArgument(call, "amount")), 
+                    tokenId
                 );
                 return null;
             }
@@ -477,7 +487,7 @@ public class MobileCoinFlutterPlugin implements FlutterPlugin, MethodCallHandler
 
         boolean accountRequiresDefragmentation(
             int mobileClientId, 
-            @NonNull PicoMob amount, 
+            @NonNull BigInteger amount, 
             @NonNull TokenId tokenId
         ) throws Exception;
         
@@ -495,10 +505,16 @@ public class MobileCoinFlutterPlugin implements FlutterPlugin, MethodCallHandler
         /// transactions if true.
         void defragmentAccount(
             int mobileClientId, 
-            @NonNull PicoMob amount, 
+            @NonNull BigInteger amount, 
             @NonNull TokenId tokenId, 
             boolean shouldWriteRTHMemos, 
             @Nullable byte[] rngSeed
+        ) throws Exception;
+
+        public String estimateTotalFee(
+            int mobileClientId, 
+            @NonNull BigInteger amount, 
+            @NonNull TokenId tokenId
         ) throws Exception;
     }
 
@@ -697,7 +713,7 @@ public class MobileCoinFlutterPlugin implements FlutterPlugin, MethodCallHandler
 
         public boolean accountRequiresDefragmentation(
             int mobileClientId, 
-            @NonNull PicoMob amount, 
+            @NonNull BigInteger amount, 
             @NonNull TokenId tokenId
         ) throws Exception {
             return FfiMobileCoinClient.requiresDefragmentation(
@@ -708,7 +724,7 @@ public class MobileCoinFlutterPlugin implements FlutterPlugin, MethodCallHandler
         }
 
         @Override
-        public void defragmentAccount(int mobileClientId, @NonNull PicoMob amount, 
+        public void defragmentAccount(int mobileClientId, @NonNull BigInteger amount, 
         @NonNull TokenId tokenId, boolean shouldWriteRTHMemos, 
         @Nullable byte[] rngSeed
         ) throws Exception {
@@ -718,6 +734,19 @@ public class MobileCoinFlutterPlugin implements FlutterPlugin, MethodCallHandler
                 tokenId, 
                 shouldWriteRTHMemos, 
                 rngSeed
+            );
+        }
+
+        @Override
+        public String estimateTotalFee(
+            int mobileClientId, 
+            @NonNull BigInteger amount, 
+            @NonNull TokenId tokenId
+        ) throws Exception {
+            return FfiMobileCoinClient.estimateTotalFee(
+                mobileClientId, 
+                amount, 
+                tokenId
             );
         }
     }

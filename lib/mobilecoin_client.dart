@@ -133,4 +133,17 @@ class MobileCoinClient extends PlatformObject {
       rngSeed: rngSeed,
     );
   }
+
+  /// Estimates the minimum fee required to send a transaction with the
+  /// specified amount. Includes defragmentation fees.
+  Future<BigInt> estimateTotalFee({
+    required BigInt tokenId,
+    required BigInt amount,
+  }) async {
+    return await MobileCoinFlutterPluginChannelApi.instance.estimateTotalFee(
+      mobileCoinClientId: id,
+      amount: amount,
+      tokenId: tokenId,
+    );
+  }
 }

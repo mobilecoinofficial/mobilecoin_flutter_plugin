@@ -469,4 +469,22 @@ class MobileCoinFlutterPluginChannelApi {
       params,
     );
   }
+
+  Future<BigInt> estimateTotalFee({
+    required int mobileCoinClientId,
+    required BigInt tokenId,
+    required BigInt amount,
+  }) async {
+    final Map<String, dynamic> params = <String, dynamic>{
+      'id': mobileCoinClientId,
+      'amount': amount.toString(),
+      'tokenId': tokenId.toString(),
+    };
+    return BigInt.parse(
+      await _channel.invokeMethod(
+        "MobileCoinClient#estimateTotalFee",
+        params,
+      ),
+    );
+  }
 }

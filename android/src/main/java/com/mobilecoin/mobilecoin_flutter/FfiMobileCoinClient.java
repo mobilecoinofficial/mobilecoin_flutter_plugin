@@ -360,16 +360,16 @@ public class FfiMobileCoinClient {
     }
 
     public static boolean requiresDefragmentation(int mobileClientId,
-    @NonNull PicoMob amount, @NonNull TokenId tokenId) throws Exception {
+        @NonNull BigInteger amount, @NonNull TokenId tokenId) throws Exception {
         MobileCoinClient mobileCoinClient =
                 (MobileCoinClient) ObjectStorage.objectForKey(mobileClientId);
         return mobileCoinClient.requiresDefragmentation(
-            new Amount(amount.getPicoCountAsBigInt(), tokenId)
+            new Amount(amount, tokenId)
         );
     }
 
     public static void defragmentAccount(int mobileClientId, 
-    @NonNull PicoMob amount, @NonNull TokenId tokenId, 
+        @NonNull BigInteger amount, @NonNull TokenId tokenId, 
     boolean shouldWriteRTHMemos, @Nullable byte[] rngSeed
     ) throws Exception {
         MobileCoinClient mobileCoinClient =
@@ -394,12 +394,23 @@ public class FfiMobileCoinClient {
             public void onCancel() { }
         };
 
-        Amount tokenAmount = new Amount(amount.getPicoCountAsBigInt(), tokenId);
+        Amount tokenAmount = new Amount(amount, tokenId);
         if (null == rngSeed || rngSeed.length < 32) {
             mobileCoinClient.defragmentAccount(tokenAmount, defragDelegate, shouldWriteRTHMemos, DefaultRng.createInstance());
         } else {
             ChaCha20Rng rng = ChaCha20Rng.fromSeed(rngSeed);
             mobileCoinClient.defragmentAccount(tokenAmount, defragDelegate, shouldWriteRTHMemos, rng);
         }
+    }
+    
+    public static String estimateTotalFee(int mobileClientId, 
+        @NonNull BigInteger amount, @NonNull TokenId tokenId
+    ) throws Exception {
+        MobileCoinClient mobileCoinClient =
+                (MobileCoinClient) ObjectStorage.objectForKey(mobileClientId);
+
+        Amount tokenAmount = new Amount(amount, tokenId);
+        Amount fee = mobileCoinClient.estimateTotalFee(tokenAmount);
+        return fee.getValue().toString();
     }
 }
