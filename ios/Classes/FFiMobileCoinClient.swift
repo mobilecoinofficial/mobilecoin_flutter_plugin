@@ -153,7 +153,7 @@ struct FfiMobileCoinClient {
             let toSendTokenId = TokenId(toSendTokenIdUInt)
             let amount = Amount(toSendAmount, in: toSendTokenId)
 
-            client.estimateToalFee(toSendAmount: amount) { (estimateTotalFeeResult: Result<UInt64, TransactionEstimationFetcherError>) in
+            client.estimateTotalFee(toSendAmount: amount) { (estimateTotalFeeResult: Result<UInt64, TransactionEstimationFetcherError>) in
                 switch estimateTotalFeeResult {
                 case .success(let feeValue):
                     DispatchQueue.main.async {
@@ -182,21 +182,26 @@ struct FfiMobileCoinClient {
             let toSendTokenId = TokenId(toSendTokenIdUInt)
             let amount = Amount(toSendAmount, in: toSendTokenId)
             let rngSeed = {
-                guard let rngSeedData = args["rngSeed"] as? [UInt8] else { return RngSeed() }
-                return RngSeed(rngSeedData)
+                guard 
+                    let rngSeedDataArray = args["rngSeed"] as? [UInt8],
+                    let rngSeedData = Data(rngSeedDataArray),
+                    let rngSeed = RngSeed(rngSeedData)
+                else { return RngSeed() }
+
+                return rngSeed
             }()
 
             client.prepareDefragmentationStepTransactions(
                     toSendAmount: amount,
                     recoverableMemo: shouldWriteRTHMemos,
                     rngSeed: rngSeed) 
-            {
+            { prepreationResult in
                 switch preperationResult {
                 case .success(let stepTransactions):
                     client.submitDefragStepTransactions(
                         transactions: stepTransactions
                     ) { result in
-                        switch preperationResult {
+                        switch result {
                         case .success(let blockIndexes):
                             DispatchQueue.main.async {
                                 result(blockIndexes)
