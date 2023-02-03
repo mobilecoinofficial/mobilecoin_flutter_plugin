@@ -173,6 +173,7 @@ struct FfiMobileCoinClient {
                   let toSendAmount = UInt64(toSendAmountString),
                   let toSendTokenIdString = args["tokenId"] as? String,
                   let toSendTokenIdUInt = UInt64(toSendTokenIdString),
+                  let rngSeedData: FlutterStandardTypedData = args["rngSeed"] as? FlutterStandardTypedData,
                   let shouldWriteRTHMemos = args["shouldWriteRTHMemos"] as? Bool,
                   let client = ObjectStorage.objectForKey(clientId) as? MobileCoinClient else {
                       result(FlutterError(code: "NATIVE", message: "DefragmentAccount", details: "parsing arguments"))
@@ -181,27 +182,19 @@ struct FfiMobileCoinClient {
 
             let toSendTokenId = TokenId(toSendTokenIdUInt)
             let amount = Amount(toSendAmount, in: toSendTokenId)
-            let rngSeed = {
-                guard 
-                    let rngSeedDataArray = args["rngSeed"] as? [UInt8],
-                    let rngSeedData = Data(rngSeedDataArray),
-                    let rngSeed = RngSeed(rngSeedData)
-                else { return RngSeed() }
-
-                return rngSeed
-            }()
+            let rngSeed = RngSeed(rngSeedData.data) ?? RngSeed()
 
             client.prepareDefragmentationStepTransactions(
                     toSendAmount: amount,
                     recoverableMemo: shouldWriteRTHMemos,
                     rngSeed: rngSeed) 
-            { prepreationResult in
+            { (preperationResult: Result<[Transaction], DefragTransactionPreparationError>) in
                 switch preperationResult {
                 case .success(let stepTransactions):
                     client.submitDefragStepTransactions(
                         transactions: stepTransactions
-                    ) { result in
-                        switch result {
+                    ) { (defragResult: Result<[UInt64], SubmitTransactionError>) in
+                        switch defragResult {
                         case .success(let blockIndexes):
                             DispatchQueue.main.async {
                                 result(blockIndexes)
