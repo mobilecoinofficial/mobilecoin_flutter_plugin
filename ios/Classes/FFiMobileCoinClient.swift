@@ -157,7 +157,7 @@ struct FfiMobileCoinClient {
                 switch estimateTotalFeeResult {
                 case .success(let feeValue):
                     DispatchQueue.main.async {
-                        result(feeValue)
+                        result("\(feeValue)")
                     }
                 case .failure(let error):
                     result(FlutterError(code: "NATIVE", message: error.localizedDescription, details: "EstimateTotalFee.estimation"))
