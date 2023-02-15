@@ -40,6 +40,8 @@ class CommandFactory {
             return FfiMobileCoinClient.SendFunds()
         case "MobileCoinClient#checkTransactionStatus":
             return FfiMobileCoinClient.CheckTransactionStatus()
+        case "MobileCoinClient#getTransferableAmount":
+            return FfiMobileCoinClient.GetTransferableAmount();
         case "PublicAddress#fromBytes":
             return FfiPublicAddress.FromBytes()
         case "PublicAddress#toByteArray":

@@ -487,4 +487,20 @@ class MobileCoinFlutterPluginChannelApi {
       ),
     );
   }
+
+  Future<BigInt> getTransferableAmount({
+    required int mobileCoinClientId,
+    required BigInt tokenId,
+  }) async {
+    final Map<String, dynamic> params = <String, dynamic>{
+      'id': mobileCoinClientId,
+      'tokenId': tokenId.toString(),
+    };
+    return BigInt.parse(
+      await _channel.invokeMethod(
+        "MobileCoinClient#getTransferableAmount",
+        params,
+      ),
+    );
+  }
 }

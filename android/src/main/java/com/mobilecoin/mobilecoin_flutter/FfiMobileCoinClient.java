@@ -413,4 +413,15 @@ public class FfiMobileCoinClient {
         Amount fee = mobileCoinClient.estimateTotalFee(tokenAmount);
         return fee.getValue().toString();
     }
+    
+    public static String getTransferableAmount(
+            int mobileClientId, 
+            @NonNull TokenId tokenId
+    ) throws Exception {
+        MobileCoinClient mobileCoinClient =
+                (MobileCoinClient) ObjectStorage.objectForKey(mobileClientId);
+
+        Amount amount = mobileCoinClient.getTransferableAmount(tokenId);
+        return amount.getValue().toString();
+    }
 }

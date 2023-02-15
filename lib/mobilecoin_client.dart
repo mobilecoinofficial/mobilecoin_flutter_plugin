@@ -146,4 +146,11 @@ class MobileCoinClient extends PlatformObject {
       tokenId: tokenId,
     );
   }
+
+  /// Calculate the total transferable amount excluding all the required
+  /// fees for such transfer.
+  Future<BigInt> getTransferableAmount({required BigInt tokenId}) {
+    return MobileCoinFlutterPluginChannelApi.instance
+        .getTransferableAmount(mobileCoinClientId: id, tokenId: tokenId);
+  }
 }

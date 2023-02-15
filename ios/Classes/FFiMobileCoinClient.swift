@@ -166,6 +166,30 @@ struct FfiMobileCoinClient {
         }
     }
 
+    struct GetTransferableAmount: Command {
+        func execute(args: [String : Any], result: @escaping FlutterResult) throws {
+            guard let clientId: Int = args["id"] as? Int,
+                  let tokenIdString = args["tokenId"] as? String,
+                  let tokenIdUInt = UInt64(tokenIdString),
+                  let client = ObjectStorage.objectForKey(clientId) as? MobileCoinClient else {
+                      result(FlutterError(code: "NATIVE", message: "getTransferableAmount", details: "parsing arguments"))
+                      throw PluginError.invalidArguments
+                  }
+
+            let tokenId = TokenId(tokenIdUInt)
+            client.amountTransferable(tokenId) { (amountTransferableResult: Result<UInt64, BalanceTransferEstimationFetcherError>) in
+                switch amountTransferableResult {
+                case .success(let amount):
+                    DispatchQueue.main.async {
+                        result("\(amount)")
+                    }
+                case .failure(let error):
+                    result(FlutterError(code: "NATIVE", message: error.localizedDescription, details: "amountTransferable"))
+                }
+            }
+        }
+    }
+
     struct DefragmentAccount: Command {
         func execute(args: [String : Any], result: @escaping FlutterResult) throws {
             guard let clientId: Int = args["id"] as? Int,

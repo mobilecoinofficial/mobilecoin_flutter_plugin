@@ -181,6 +181,14 @@ public class MobileCoinFlutterPlugin implements FlutterPlugin, MethodCallHandler
                     tokenId
                 );
             }
+            case "MobileCoinClient#getTransferableAmount": {
+                BigInteger bigTokenId = new BigInteger((String) getCallArgument(call, "tokenId"));
+                TokenId tokenId = TokenId.from(UnsignedLong.fromBigInteger(bigTokenId));
+                return api.getTransferableAmount(
+                    getCallArgument(call, "id"), 
+                    tokenId
+                );
+            }
             case "AccountKey#getPublicAddress":
                 return api.getAccountKeyPublicAddress(getCallArgument(call, "id"));
             case "PrintableWrapper#fromB58String":
@@ -490,18 +498,19 @@ public class MobileCoinFlutterPlugin implements FlutterPlugin, MethodCallHandler
             @NonNull TokenId tokenId
         ) throws Exception;
         
-        /// Defragments the user's account.
-        ///
-        /// An account needs to be defragmented when an account balance consists
-        /// of multiple coins and there are no big enough coins to successfully
-        /// send the transaction.
-        /// If the account is too fragmented, it might be necessary to defragment
-        /// the account more than once. However, wallet fragmentation is a
-        /// rare occurrence since there is an internal mechanism to defragment
-        /// the account during other operations.
-        ///
-        /// `shouldWriteRTHMemos` writes sender and destination memos for a defrag
-        /// transactions if true.
+        /** Defragments the user's account.
+        *
+        * An account needs to be defragmented when an account balance consists
+        * of multiple coins and there are no big enough coins to successfully
+        * send the transaction.
+        * If the account is too fragmented, it might be necessary to defragment
+        * the account more than once. However, wallet fragmentation is a
+        * rare occurrence since there is an internal mechanism to defragment
+        * the account during other operations.
+        *
+        * `shouldWriteRTHMemos` writes sender and destination memos for a defrag
+        * transactions if true.
+        */
         void defragmentAccount(
             int mobileClientId, 
             @NonNull BigInteger amount, 
@@ -510,9 +519,25 @@ public class MobileCoinFlutterPlugin implements FlutterPlugin, MethodCallHandler
             @Nullable byte[] rngSeed
         ) throws Exception;
 
+        /**
+        * Estimates the minimum fee required to send a transaction with the specified amount. The account
+        * balance consists of multiple coins, if there are no big enough coins to successfully send the
+        * transaction {@link FragmentedAccountException} will be thrown. The account needs to be
+        * defragmented in order to send the specified amount. See {@link MobileCoinAccountClient#defragmentAccount}.
+        *
+        * @param amount amount to send
+        */
         public String estimateTotalFee(
             int mobileClientId, 
             @NonNull BigInteger amount, 
+            @NonNull TokenId tokenId
+        ) throws Exception;
+
+        /**
+        * Calculate the total transferable amount excluding all the required fees for such transfer.
+        */
+        public String getTransferableAmount(
+            int mobileClientId, 
             @NonNull TokenId tokenId
         ) throws Exception;
     }
@@ -745,6 +770,17 @@ public class MobileCoinFlutterPlugin implements FlutterPlugin, MethodCallHandler
             return FfiMobileCoinClient.estimateTotalFee(
                 mobileClientId, 
                 amount, 
+                tokenId
+            );
+        }
+
+        @Override
+        public String getTransferableAmount(
+            int mobileClientId, 
+            @NonNull TokenId tokenId
+        ) throws Exception {
+            return FfiMobileCoinClient.getTransferableAmount(
+                mobileClientId, 
                 tokenId
             );
         }
