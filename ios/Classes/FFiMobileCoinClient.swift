@@ -303,6 +303,14 @@ struct FfiMobileCoinClient {
                             let balance: UInt64 = balances.balances[tokenId]?.amount() ?? 0
                             jsonObject["balance"] = String(balance)
                             jsonObject["blockCount"] = String(activity.blockCount)
+                            client.amountTransferable(tokenId) { (amountTransferableResult: Result<UInt64, BalanceTransferEstimationFetcherError>) in
+                                switch amountTransferableResult {
+                                    case .success(let amount):
+                                        jsonObject["transferableAmount"] = String(amount)
+                                    case .failure(let error):
+                                        result(FlutterError(code: "NATIVE", message: error.localizedDescription, details: "amountTransferable"))
+                                }
+                            }
                             let recoveredTransactions = MobileCoinClient.recoverTransactions(txOuts, contacts: contacts)
 
                             var jsonTxOuts:[[String: Any]] = []

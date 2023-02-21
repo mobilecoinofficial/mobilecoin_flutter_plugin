@@ -103,10 +103,13 @@ public class FfiMobileCoinClient {
         JSONObject result = new JSONObject();
         for (TokenId tokenId : balances.keySet()) {
             JSONObject activity = new JSONObject();
+            Amount minFee = mobileCoinClient.getOrFetchMinimumTxFee(tokenId);
+            Amount transferableAmount = snapshot.getTransferableAmount(minFee);
             String balance = snapshot.getBalance(tokenId).getValue().toString();
             AccountActivity accountActivity = snapshot.getAccountActivity();
             AccountKey accountKey = mobileCoinClient.getAccountKey();
             activity.put("balance", balance);
+            activity.put("transferableAmount", transferableAmount.getValue().toString());
             activity.put("blockCount", accountActivity.getBlockCount());
             Set<OwnedTxOut> ownedTxOuts = accountActivity.getAllTokenTxOuts(tokenId);
             JSONArray txOuts = new JSONArray();
