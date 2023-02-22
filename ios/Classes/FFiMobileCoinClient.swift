@@ -295,7 +295,6 @@ struct FfiMobileCoinClient {
                     switch balanceResult {
                     case .success(let balances):
                         var resultJson: [String: Any] = [:]
-                        let activityQueue = DispatchQueue.init(label: "AccountActivityQueue")
                         let activityDispatchGroup = DispatchGroup()
                         for tokenId in balances.tokenIds {
                             let activity = client.accountActivity(for: tokenId)
@@ -306,16 +305,15 @@ struct FfiMobileCoinClient {
                             jsonObject["balance"] = String(balance)
                             jsonObject["blockCount"] = String(activity.blockCount)
                             activityDispatchGroup.enter()
-                            activityQueue.sync {
-                                client.amountTransferable(tokenId: tokenId) { (amountTransferableResult: Result<UInt64, BalanceTransferEstimationFetcherError>) in
-                                    switch amountTransferableResult {
-                                        case .success(let amount):
-                                            jsonObject["transferableAmount"] = String(amount)
-                                        case .failure(let error):
-                                            result(FlutterError(code: "NATIVE", message: error.localizedDescription, details: "amountTransferable"))
-                                    }
-                                    activityDispatchGroup.leave()
+                            client.amountTransferable(tokenId: tokenId) { (amountTransferableResult: Result<UInt64, BalanceTransferEstimationFetcherError>) in
+                                switch amountTransferableResult {
+                                    case .success(let amount):
+                                        jsonObject["transferableAmount"] = String(amount)
+                                        print ("transferableAmount = \(amount)")
+                                    case .failure(let error):
+                                        result(FlutterError(code: "NATIVE", message: error.localizedDescription, details: "amountTransferable"))
                                 }
+                                activityDispatchGroup.leave()
                             }
                             let recoveredTransactions = MobileCoinClient.recoverTransactions(txOuts, contacts: contacts)
 
@@ -358,12 +356,12 @@ struct FfiMobileCoinClient {
                                 }
                                 jsonTxOuts.append(jsonTxOut)
                             }
+                            activityDispatchGroup.wait()
                             jsonObject["txOuts"] = jsonTxOuts
                             resultJson[String(tokenId.value)] = jsonObject
                         }
                         let jsonData = try JSONSerialization.data(withJSONObject: resultJson, options: [])
                         let jsonString = String(data: jsonData, encoding: String.Encoding.ascii)!
-                        activityDispatchGroup.wait()
                         DispatchQueue.main.async {
                             result(jsonString)
                         }
