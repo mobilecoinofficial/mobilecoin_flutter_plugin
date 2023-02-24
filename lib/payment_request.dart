@@ -33,7 +33,7 @@ class PaymentRequest extends PlatformObject {
         .paymentRequestGetValue(paymentRequestId: id);
   }
 
-  Future<String> getMemo() async {
+  Future<String?> getMemo() async {
     return await MobileCoinFlutterPluginChannelApi.instance
         .paymentRequestGetMemo(paymentRequestId: id);
   }

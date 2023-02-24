@@ -333,7 +333,7 @@ class MobileCoinFlutterPluginChannelApi {
     return await _channel.invokeMethod("PaymentRequest#create", params);
   }
 
-  Future<String> paymentRequestGetMemo({
+  Future<String?> paymentRequestGetMemo({
     required int paymentRequestId,
   }) async {
     final Map<String, dynamic> params = <String, dynamic>{
