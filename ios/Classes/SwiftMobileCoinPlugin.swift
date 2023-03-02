@@ -20,6 +20,10 @@ class CommandFactory {
             return FfiAccountKey.FromBip39Entropy()
         case "AccountKey#getPublicAddress":
             return FfiAccountKey.GetPublicAddress()
+        case "ClientConfig#create":
+            return FfiClientConfig.Create()
+        case "ClientConfig#addServiceConfig":
+            return FfiClientConfig.AddServiceConfig()
         case "MobileCoinClient#create":
             return FfiMobileCoinClient.Create()
         case "MobileCoinClient#requiresDefragmentation":

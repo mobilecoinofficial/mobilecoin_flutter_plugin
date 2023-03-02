@@ -2,6 +2,9 @@ import 'dart:typed_data';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
+import 'package:mobilecoin_flutter/attestation/client_config.dart';
+import 'package:mobilecoin_flutter/attestation/service_config.dart';
+import 'package:mobilecoin_flutter/public_address.dart';
 
 import 'public_address.dart';
 import 'account_key.dart';
@@ -22,17 +25,18 @@ class MobileCoinFlutterPluginChannelApi {
 
   final MethodChannel _channel;
 
-  Future<int> createMobileCoinClient({
-    required AccountKey accountKey,
-    required String fogUrl,
-    required String consensusUrl,
-    required bool useTestNet,
-  }) async {
+  Future<int> createMobileCoinClient(
+      {required AccountKey accountKey,
+      required String fogUrl,
+      required String consensusUrl,
+      required bool useTestNet,
+      required ClientConfig attestClientConfig}) async {
     final Map<String, dynamic> params = <String, dynamic>{
       'accountKey': accountKey.id,
       'fogUrl': fogUrl,
       'consensusUrl': consensusUrl,
       'useTestNet': useTestNet,
+      'clientConfigId': attestClientConfig.id
     };
     return await _channel.invokeMethod("MobileCoinClient#create", params);
   }
@@ -398,6 +402,33 @@ class MobileCoinFlutterPluginChannelApi {
     final Map<String, dynamic> params = <String, dynamic>{};
     return await _channel.invokeMethod(
       'Mnemonic#allWords',
+      params,
+    );
+  }
+
+  Future<int> createClientConfig() async {
+    final Map<String, dynamic> params = <String, dynamic>{};
+    return await _channel.invokeMethod(
+      "ClientConfig#create",
+      params,
+    );
+  }
+
+  Future<void> addServiceConfig(
+    int clientConfigId,
+    ServiceConfig serviceConfig,
+  ) async {
+    final Map<String, dynamic> params = <String, dynamic>{
+      'clientConfigId': clientConfigId,
+      ServiceConfig.fogViewMrEnclaveKey: serviceConfig.fogViewMrEnclave,
+      ServiceConfig.fogLedgerMrEnclaveKey: serviceConfig.fogLedgerMrEnclave,
+      ServiceConfig.fogReportMrEnclaveKey: serviceConfig.fogReportMrEnclave,
+      ServiceConfig.consensusMrEnclaveKey: serviceConfig.consensusMrEnclave,
+      ServiceConfig.hardeningAdvisoriesKey:
+          serviceConfig.hardeningAdvisories.join(','),
+    };
+    await _channel.invokeMethod(
+      "ClientConfig#addServiceConfig",
       params,
     );
   }

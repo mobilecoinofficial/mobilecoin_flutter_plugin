@@ -14,6 +14,7 @@ import com.mobilecoin.lib.AddressHash;
 import com.mobilecoin.lib.Amount;
 import com.mobilecoin.lib.Balance;
 import com.mobilecoin.lib.ChaCha20Rng;
+import com.mobilecoin.lib.ClientConfig;
 import com.mobilecoin.lib.DefaultRng;
 import com.mobilecoin.lib.DefragmentationDelegate;
 import com.mobilecoin.lib.DestinationMemo;
@@ -69,11 +70,11 @@ public class FfiMobileCoinClient {
     private FfiMobileCoinClient() {}
 
     public static int create(int accountKeyId, String fogUrl, String consensusUrl,
-            boolean useTestNet) throws InvalidUriException {
+            boolean useTestNet, Integer clientConfigId) throws InvalidUriException {
         AccountKey accountKey = (AccountKey) ObjectStorage.objectForKey(accountKeyId);
-
+        ClientConfig clientConfig = (ClientConfig) ObjectStorage.objectForKey(clientConfigId);
         MobileCoinClient mobileCoinClient = new MobileCoinClient(accountKey, Uri.parse(fogUrl),
-                Uri.parse(consensusUrl), TransportProtocol.forGRPC());
+                Uri.parse(consensusUrl), clientConfig, TransportProtocol.forGRPC());
 
         final int hashCode = mobileCoinClient.hashCode();
         ObjectStorage.addObject(hashCode, mobileCoinClient);
@@ -285,7 +286,8 @@ public class FfiMobileCoinClient {
         TxOutMemoBuilder txOutMemoBuilder = TxOutMemoBuilder
                 .createSenderAndDestinationRTHMemoBuilder(mobileCoinClient.getAccountKey());
 
-        // Reusing an rngSeed makes it so the public key is always the same, ensuring idempotence
+        // Reusing an rngSeed makes it so the public key is always the same, ensuring
+        // idempotence
         ChaCha20Rng rng = ChaCha20Rng.fromSeed(rngSeed);
 
         final PendingTransaction pendingTransaction = mobileCoinClient.prepareTransaction(recipient,

@@ -1,6 +1,9 @@
 import 'dart:async';
 import 'dart:typed_data';
 
+import 'package:mobilecoin_flutter/attestation/client_config.dart';
+import 'package:mobilecoin_flutter/mobilecoin.dart';
+
 import 'mobilecoin.dart';
 import 'account_key.dart';
 import 'platform_object.dart';
@@ -16,14 +19,15 @@ class MobileCoinClient extends PlatformObject {
     String fogUrl,
     String consensusUrl,
     bool useTestNet,
+    ClientConfig attestClientConfig,
   ) async {
-    final objectId =
-        await MobileCoinFlutterPluginChannelApi.instance.createMobileCoinClient(
-      accountKey: accountKey,
-      fogUrl: fogUrl,
-      consensusUrl: consensusUrl,
-      useTestNet: useTestNet,
-    );
+    final objectId = await MobileCoinFlutterPluginChannelApi.instance
+        .createMobileCoinClient(
+            accountKey: accountKey,
+            fogUrl: fogUrl,
+            consensusUrl: consensusUrl,
+            useTestNet: useTestNet,
+            attestClientConfig: attestClientConfig);
     return MobileCoinClient(accountKey, objectId);
   }
 

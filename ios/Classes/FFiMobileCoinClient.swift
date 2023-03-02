@@ -9,92 +9,63 @@ import Foundation
 import MobileCoin
 
 struct FfiMobileCoinClient {
-    
-    static let PROD_MRSIGNER_HEX = 
-    "2c1a561c4ab64cbc04bfa445cdf7bed9b2ad6f6b04d38d3137f3622b29fdb30e"
-    static let PROD_MRSIGNER = Data([
-        44, 26, 86, 28, 74, 182, 76, 188, 4, 191, 164, 69, 205, 247, 190, 217, 178, 173, 111, 
-        107, 4, 211, 141, 49, 55, 243, 98, 43, 41, 253, 179, 14,
-    ])
-    static let TESTNET_MRSIGNER_HEX =
-    "bf7fa957a6a94acb588851bc8767eca5776c79f4fc2aa6bcb99312c3c386c"
-    static let TESTNET_MRSIGNER = Data([
-        191, 127, 169, 87, 166, 169, 74, 203, 88, 136, 81, 188, 135, 103, 224, 202, 87, 112, 108,
-        121, 244, 252, 42, 166, 188, 185, 147, 1, 44, 60, 56, 108,
-    ])
 
-    static let CONSENSUS_PRODUCT_ID: UInt16 = 1
-    static let CONSENSUS_SECURITY_VERSION: UInt16 = 1
-    
-    static let FOG_VIEW_PRODUCT_ID: UInt16 = 3
-    static let FOG_VIEW_SECURITY_VERSION: UInt16 = 1
-    
-    static let FOG_LEDGER_PRODUCT_ID: UInt16 = 2
-    static let FOG_LEDGER_SECURITY_VERSION: UInt16 = 1
-    
-    static let FOG_INGEST_PRODUCT_ID: UInt16 = 4
-    static let FOG_INGEST_SECURITY_VERSION: UInt16 = 1
-    
     struct Create: Command {
         func execute(args: [String : Any], result: @escaping FlutterResult) throws {
-            guard let accountKeyId = args["accountKey"] as? Int,
-                  let fogUrl = args["fogUrl"] as? String,
-                  let consensusUrl = args["consensusUrl"] as? String,
-                  let useTestNet = args["useTestNet"] as? Bool,
-                  let accountKey = ObjectStorage.objectForKey(accountKeyId) as? AccountKey else {
-                      result(FlutterError(code: "NATIVE", message: "Create", details: "parsing arguments"))
-                      throw PluginError.invalidArguments
-                  }
-            let consensusMrSigner = Attestation.MrSigner.make(
-                mrSigner: useTestNet ? TESTNET_MRSIGNER : PROD_MRSIGNER,
-                productId: CONSENSUS_PRODUCT_ID,
-                minimumSecurityVersion: CONSENSUS_SECURITY_VERSION,
-                allowedConfigAdvisories: [],
-                allowedHardeningAdvisories: ["INTEL-SA-00334", "INTEL-SA-00615", "INTEL-SA-00657"]
-            )
-            let consensusAttestation = try Attestation(consensusMrSigner.get())
+            guard 
+                let accountKeyId = args["accountKey"] as? Int,
+                let fogUrl = args["fogUrl"] as? String,
+                let consensusUrl = args["consensusUrl"] as? String,
+                let useTestNet = args["useTestNet"] as? Bool,
+                let clientConfigId = args["clientConfigId"] as? Int,
+                let clientConfig = ObjectStorage.objectForKey(clientConfigId) as? ClientConfig,
+                let accountKey = ObjectStorage.objectForKey(accountKeyId) as? AccountKey
+            else {
+                result(FlutterError(code: "NATIVE", message: "Create", details: "parsing arguments"))
+                throw PluginError.invalidArguments
+            }
+
+            let consensusMrEnclave = clientConfig.consensusMrEnclaves
+            let fogViewMrEnclave = clientConfig.fogViewMrEnclaves
+            let fogReportMrEnclave = clientConfig.fogReportMrEnclaves
+            let fogLedgerMrEnclave = clientConfig.fogLedgerMrEnclaves
+
+            // Ensure one or more valid MrEnclaves for each service
+            guard 
+                consensusMrEnclave.count > 0,
+                fogViewMrEnclave.count > 0,
+                fogReportMrEnclave.count > 0,
+                fogLedgerMrEnclave.count > 0
+            else {
+                result(FlutterError(code: "NATIVE", message: "Create", details: "parsing arguments"))
+                throw PluginError.invalidArguments
+            }
+
+            let consensusAttestation = try Attestation(mrEnclaves: consensusMrEnclave)
+            let fogViewAttestation = try Attestation(mrEnclaves: fogViewMrEnclave)
+            let fogReportAttestation = try Attestation(mrEnclaves: fogReportMrEnclave)
+            let fogLedgerAttestation = try Attestation(mrEnclaves: fogLedgerMrEnclave)
             
-            let fogViewMrSigner = Attestation.MrSigner.make(
-                mrSigner: useTestNet ? TESTNET_MRSIGNER : PROD_MRSIGNER,
-                productId: FOG_VIEW_PRODUCT_ID,
-                minimumSecurityVersion: FOG_VIEW_SECURITY_VERSION,
-                allowedConfigAdvisories: [],
-                allowedHardeningAdvisories: ["INTEL-SA-00334", "INTEL-SA-00615", "INTEL-SA-00657"]
-            )
-            let fogViewAttestation = try Attestation(fogViewMrSigner.get())
-            
-            let fogLedgerMrSigner = Attestation.MrSigner.make(
-                mrSigner: useTestNet ? TESTNET_MRSIGNER : PROD_MRSIGNER,
-                productId: FOG_LEDGER_PRODUCT_ID,
-                minimumSecurityVersion: FOG_LEDGER_SECURITY_VERSION,
-                allowedConfigAdvisories: [],
-                allowedHardeningAdvisories: ["INTEL-SA-00334", "INTEL-SA-00615", "INTEL-SA-00657"]
-            )
-            let fogKeyImageAttestation = try Attestation(fogLedgerMrSigner.get())
-            
-            let fogIngestMrSigner = Attestation.MrSigner.make(
-                mrSigner: useTestNet ? TESTNET_MRSIGNER : PROD_MRSIGNER,
-                productId: FOG_INGEST_PRODUCT_ID,
-                minimumSecurityVersion: FOG_INGEST_SECURITY_VERSION,
-                allowedConfigAdvisories: [],
-                allowedHardeningAdvisories: ["INTEL-SA-00334", "INTEL-SA-00615", "INTEL-SA-00657"]
-            )
-            let fogIngestAttestation = try Attestation(fogIngestMrSigner.get())
-            
-            let client = try MobileCoinClient.make(accountKey: accountKey, config: MobileCoinClient.Config.make(consensusUrl: consensusUrl,
-                                                                                                                consensusAttestation: consensusAttestation,
-                                                                                                                fogUrl: fogUrl,
-                                                                                                                fogViewAttestation: fogViewAttestation,
-                                                                                                                fogKeyImageAttestation: fogKeyImageAttestation,
-                                                                                                                fogMerkleProofAttestation: fogKeyImageAttestation,
-                                                                                                                fogReportAttestation: fogIngestAttestation,
-                                                                                                                transportProtocol: .grpc).get()).get()
+            let client = try MobileCoinClient.make(
+                accountKey: accountKey, 
+                config: MobileCoinClient.Config.make(
+                    consensusUrl: consensusUrl,
+                    consensusAttestation: consensusAttestation,
+                    fogUrl: fogUrl,
+                    fogViewAttestation: fogViewAttestation,
+                    fogKeyImageAttestation: fogLedgerAttestation,
+                    fogMerkleProofAttestation: fogLedgerAttestation,
+                    fogReportAttestation: fogReportAttestation,
+                    transportProtocol: .grpc
+                ).get()
+            ).get()
+
             let hash: Int = ObjectIdentifier(client).hashValue
             ObjectStorage.addObject(client, forKey: hash)
             result(hash)
         }
     }
-    
+
     struct SetAuthorization: Command {
         func execute(args: [String : Any], result: @escaping FlutterResult) throws {
             guard let clientId: Int = args["id"] as? Int,
@@ -612,5 +583,42 @@ class DictionaryDecoder {
     func decode<T>(_ type: T.Type, from json: Any) throws -> T where T: Decodable {
         let jsonData = try JSONSerialization.data(withJSONObject: json, options: [])
         return try jsonDecoder.decode(type, from: jsonData)
+    }
+}
+
+public enum HexEncoding {
+    static func data(fromHexEncodedString hexEncodedString: String) -> Data? {
+        guard hexEncodedString.count.isMultiple(of: 2) else { return nil }
+        let byteStrings = hexEncodedString.chunked(maxLength: 2)
+
+        let bytes = byteStrings.compactMap { UInt8($0, radix: 16) }
+        guard byteStrings.count == bytes.count else { return nil }
+
+        return Data(bytes)
+    }
+
+    private static let hexCharacters = Array("0123456789abcdef")
+
+    static func hexEncodedString(fromData data: Data) -> String {
+        data.reduce(into: "") { result, byte in
+            result.append(Self.hexCharacters[Int(byte / 0x10)])
+            result.append(Self.hexCharacters[Int(byte % 0x10)])
+        }
+    }
+}
+
+extension Collection {
+    func chunked(maxLength: Int) -> [SubSequence] {
+        var chunks: [SubSequence] = []
+        var nextIndex = startIndex
+        while true {
+            let startIndex = nextIndex
+            _ = formIndex(&nextIndex, offsetBy: maxLength, limitedBy: endIndex)
+            guard distance(from: startIndex, to: endIndex) > 0 else {
+                break
+            }
+            chunks.append(self[startIndex ..< Swift.min(nextIndex, self.endIndex)])
+        }
+        return chunks
     }
 }

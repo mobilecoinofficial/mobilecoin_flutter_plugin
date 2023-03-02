@@ -10,6 +10,7 @@ environment:
 dependencies:
   crypto: ^3.0.1
   decimal:
+  equatable: ^2.0.5
   flutter:
     sdk: flutter
 

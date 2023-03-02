@@ -25,6 +25,7 @@ import org.json.JSONException;
 
 import java.math.BigInteger;
 import java.util.HashMap;
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -46,7 +47,8 @@ public class MobileCoinFlutterPlugin implements FlutterPlugin, MethodCallHandler
     /// and unregister it
     /// when the Flutter Engine is detached from the Activity
     private MethodChannel channel;
-    private final ExecutorService executorService = Executors.newFixedThreadPool(EXECUTOR_THREAD_POOL_SIZE);
+    private final ExecutorService executorService =
+            Executors.newFixedThreadPool(EXECUTOR_THREAD_POOL_SIZE);
 
     private final ChannelMessageDispatcher dispatcher;
 
@@ -62,7 +64,8 @@ public class MobileCoinFlutterPlugin implements FlutterPlugin, MethodCallHandler
 
     @Override
     public void onAttachedToEngine(@NonNull FlutterPluginBinding flutterPluginBinding) {
-        channel = new MethodChannel(flutterPluginBinding.getBinaryMessenger(), "mobilecoin_flutter");
+        channel =
+                new MethodChannel(flutterPluginBinding.getBinaryMessenger(), "mobilecoin_flutter");
         channel.setMethodCallHandler(this);
     }
 
@@ -94,14 +97,13 @@ public class MobileCoinFlutterPlugin implements FlutterPlugin, MethodCallHandler
     }
 
     /**
-     * Interprets an incoming plugin channel message and then invokes the
-     * appropriate <code>MobileCoinFlutterPluginChannelApi</code>.
+     * Interprets an incoming plugin channel message and then invokes the appropriate
+     * <code>MobileCoinFlutterPluginChannelApi</code>.
      *
-     * The dispatching of channel messages is handled by a dedicated object so that
-     * we can test this object without worrying about threading concerns. The
-     * channel's <code>onMethodCall</code> method includes a <code>post()</code> to
-     * a background thread to do work, followed by another <code>post()</code> to
-     * get back to Flutter's platform thread to send the response.
+     * The dispatching of channel messages is handled by a dedicated object so that we can test this
+     * object without worrying about threading concerns. The channel's <code>onMethodCall</code>
+     * method includes a <code>post()</code> to a background thread to do work, followed by another
+     * <code>post()</code> to get back to Flutter's platform thread to send the response.
      */
     static class ChannelMessageDispatcher {
         private final MobileCoinFlutterPluginChannelApi api;
@@ -122,11 +124,13 @@ public class MobileCoinFlutterPlugin implements FlutterPlugin, MethodCallHandler
         public Object onMethodCall(@NonNull final MethodCall call) throws Exception {
             String message = call.method;
             switch (message) {
-            case "MobileCoinClient#create":
-                return api.createMobileCoinClient(getCallArgument(call, "accountKey"), getCallArgument(call, "fogUrl"),
-                        getCallArgument(call, "consensusUrl"), getCallArgument(call, "useTestNet"));
-            case "MobileCoinClient#getAccountActivity":
-                return api.getAccountActivity(getCallArgument(call, "id"));
+                case "MobileCoinClient#create":
+                    return api.createMobileCoinClient(getCallArgument(call, "accountKey"),
+                            getCallArgument(call, "fogUrl"), getCallArgument(call, "consensusUrl"),
+                            getCallArgument(call, "useTestNet"),
+                            getCallArgument(call, "clientConfigId"));
+                case "MobileCoinClient#getAccountActivity":
+                    return api.getAccountActivity(getCallArgument(call, "id"));
 
             case "MobileCoinClient#getBalance":
                 return api.getBalance(getCallArgument(call, "id"));
@@ -251,6 +255,17 @@ public class MobileCoinFlutterPlugin implements FlutterPlugin, MethodCallHandler
             case "CryptoBox#decrypt":
                 return api.cryptoBoxDecrypt(getCallArgument(call, "data"), 
                         getCallArgument(call, "accountKeyId"));
+            case "ClientConfig#create":
+                return api.clientConfigCreate();
+            case "ClientConfig#addServiceConfig":
+                String hardeningAdvisories = getCallArgument(call, "hardeningAdvisories");
+                api.clientConfigAddServiceConfig(getCallArgument(call, "clientConfigId"),
+                        getCallArgument(call, "fogViewMrEnclave"),
+                        getCallArgument(call, "fogLedgerMrEnclave"),
+                        getCallArgument(call, "fogReportMrEnclave"),
+                        getCallArgument(call, "consensusMrEnclave"),
+                        hardeningAdvisories.split(",", 0));
+                return "";
             default:
                 throw new UnsupportedOperationException();
             }
@@ -259,38 +274,42 @@ public class MobileCoinFlutterPlugin implements FlutterPlugin, MethodCallHandler
 
     interface MobileCoinFlutterPluginChannelApi {
         /**
-         * Creates a new <code>FftMobileCoinClient</code> and returns the hashCode of
-         * the new instance.
+         * Creates a new <code>FftMobileCoinClient</code> and returns the hashCode of the new
+         * instance.
          */
-        Integer createMobileCoinClient(Integer accountKey, String fogUrl, String consensusUrl, boolean useTestNet)
-                throws InvalidUriException;
-
+        Integer createMobileCoinClient(Integer accountKey, String fogUrl, String consensusUrl,
+                boolean useTestNet, Integer clientConfigId) throws InvalidUriException;
 
         /**
-        * Retrieves and returns the current balance of all coins of the given
-          * <code>FftMobileCoinClient</code>.
-          * The returned result is JSON encoded in format {tokenId: balance}
+         * Retrieves and returns the current balance of all coins of the given
+         * <code>FftMobileCoinClient</code>. The returned result is JSON encoded in format {tokenId:
+         * balance}
          */
-        String getBalance(Integer mobileCoinClientId)
-                throws InvalidFogResponse, NetworkException, AttestationException, FogSyncException, JSONException;
+        String getBalance(Integer mobileCoinClientId) throws InvalidFogResponse, NetworkException,
+                AttestationException, FogSyncException, JSONException;
 
         String getAccountActivity(Integer mobileCoinClientId)
-                throws InvalidFogResponse, NetworkException, AttestationException, JSONException, FogSyncException, TransactionBuilderException;
+                throws InvalidFogResponse, NetworkException, AttestationException, JSONException,
+                FogSyncException, TransactionBuilderException;
 
         /**
          * Set the basic HTTP authorization username and password for future requests
          */
-        Void setAuthorization(int mobileClientId, @NonNull String username, @NonNull String password);
+        Void setAuthorization(int mobileClientId, @NonNull String username,
+                @NonNull String password);
 
         /**
          * Creates a PendingTransaction object from the given <code>FftMobileCoinClient</code> to
-         * the given <code>recipient</code> and then returns pending transaction ID, along with
-         * the payloadPublicKey, changePublicKey, payloadSharedSecret, and changeSharedSecret
+         * the given <code>recipient</code> and then returns pending transaction ID, along with the
+         * payloadPublicKey, changePublicKey, payloadSharedSecret, and changeSharedSecret
          */
-        HashMap<String, Object> createPendingTransaction(int mobileClientId, int recipientId, @NonNull PicoMob fee, @NonNull PicoMob amount, @NonNull TokenId tokenId, @NonNull byte[] rngSeed)
-                throws InvalidFogResponse, InterruptedException, InvalidTransactionException, AttestationException,
-                FeeRejectedException, InsufficientFundsException, FragmentedAccountException, NetworkException,
-                TransactionBuilderException, FogReportException, FogSyncException, SerializationException;
+        HashMap<String, Object> createPendingTransaction(int mobileClientId, int recipientId,
+                @NonNull PicoMob fee, @NonNull PicoMob amount, @NonNull TokenId tokenId,
+                @NonNull byte[] rngSeed)
+                throws InvalidFogResponse, InterruptedException, InvalidTransactionException,
+                AttestationException, FeeRejectedException, InsufficientFundsException,
+                FragmentedAccountException, NetworkException, TransactionBuilderException,
+                FogReportException, FogSyncException, SerializationException;
 
         /**
          * Sends from the given <code>FftMobileCoinClient</code> based on the
@@ -300,8 +319,8 @@ public class MobileCoinFlutterPlugin implements FlutterPlugin, MethodCallHandler
                 throws SerializationException, JSONException;
 
         /**
-         * Checks to see if a transaction has gone through, given a transactionId
-         * returns an integer representing the results.
+         * Checks to see if a transaction has gone through, given a transactionId returns an integer
+         * representing the results.
          */
         Integer checkTransactionStatus(int mobileClientId, int receiptId)
                 throws AttestationException, InvalidFogResponse, NetworkException, FogSyncException;
@@ -310,18 +329,17 @@ public class MobileCoinFlutterPlugin implements FlutterPlugin, MethodCallHandler
          *
          */
         int getAccountKeyFromBip39Entropy(byte[] bip39Entropy, String fogReportUri, String reportId,
-                                          byte[] fogAuthoritySpki) throws InvalidUriException, BadEntropyException;
+                byte[] fogAuthoritySpki) throws InvalidUriException, BadEntropyException;
 
         /**
-         * Retrieves the public address for the given <code>AccountKey</code>, stores
-         * the address is local object storage, and returns its hash code.
+         * Retrieves the public address for the given <code>AccountKey</code>, stores the address is
+         * local object storage, and returns its hash code.
          */
         int getAccountKeyPublicAddress(int publicAddressId);
 
         /**
-         * Creates a <code>PrintableWrapper</code> from the given
-         * <code>b58String</code>, stores it in local object storage, and returns its
-         * hash code.
+         * Creates a <code>PrintableWrapper</code> from the given <code>b58String</code>, stores it
+         * in local object storage, and returns its hash code.
          */
         int printableWrapperFromB58String(String b58String) throws Exception;
 
@@ -338,8 +356,8 @@ public class MobileCoinFlutterPlugin implements FlutterPlugin, MethodCallHandler
 
         /**
          * Retrieves the <code>PublicAddress</code> associated with the given
-         * <code>PrintableWrapper</code>, stores the public address in local object
-         * storage, and returns its hash code.
+         * <code>PrintableWrapper</code>, stores the public address in local object storage, and
+         * returns its hash code.
          */
         int printableWrapperGetPublicAddress(int printableWrapperId);
 
@@ -350,15 +368,14 @@ public class MobileCoinFlutterPlugin implements FlutterPlugin, MethodCallHandler
         int printableWrapperFromPublicAddress(int publicAddressId) throws SerializationException;
 
         /**
-         * Returns true if the given <code>PrintableWrapper</code> has a transfer
-         * payload.
+         * Returns true if the given <code>PrintableWrapper</code> has a transfer payload.
          */
         boolean printableWrapperHasTransferPayload(int printableWrapperId);
 
         /**
          * Retrieves the <code>TransferPayload</code> associated with the given
-         * <code>PrintableWrapper</code>, stores the transfer payload in local object
-         * storage, and returns its hash code.
+         * <code>PrintableWrapper</code>, stores the transfer payload in local object storage, and
+         * returns its hash code.
          */
         int printableWrapperGetTransferPayload(int printableWrapperId);
 
@@ -369,15 +386,14 @@ public class MobileCoinFlutterPlugin implements FlutterPlugin, MethodCallHandler
         int printableWrapperFromPaymentRequest(int paymentRequestId) throws SerializationException;
 
         /**
-         * Returns true if the given <code>PrintableWrapper</code> has a paymentRequest
-         * payload.
+         * Returns true if the given <code>PrintableWrapper</code> has a paymentRequest payload.
          */
         boolean printableWrapperHasPaymentRequest(int printableWrapperId);
 
         /**
          * Retrieves the <code>PaymentRequest</code> associated with the given
-         * <code>PrintableWrapper</code>, stores the payment request in local object
-         * storage, and returns its hash code.
+         * <code>PrintableWrapper</code>, stores the payment request in local object storage, and
+         * returns its hash code.
          */
         int printableWrapperGetPaymentRequest(int printableWrapperId);
 
@@ -385,96 +401,99 @@ public class MobileCoinFlutterPlugin implements FlutterPlugin, MethodCallHandler
          * Returns the <code>PrintableWrapper</code> associated with the given
          * <code>transferPayloadId</code>.
          */
-        int printableWrapperFromTransferPayload(int transferPayloadId) throws SerializationException;
+        int printableWrapperFromTransferPayload(int transferPayloadId)
+                throws SerializationException;
 
         /**
-         * Deserializes the given <code>byte[]</code> into a <code>PublicAddress</code>,
-         * stores the address in local object storage, and returns its hash code.
+         * Deserializes the given <code>byte[]</code> into a <code>PublicAddress</code>, stores the
+         * address in local object storage, and returns its hash code.
          */
         int publicAddressFromBytes(byte[] publicAddress) throws Exception;
 
         /**
-         * Looks up the given <code>PublicAddress</code> in local object storage, then
-         * returns a serialized version as a <code>byte[]</code>.
+         * Looks up the given <code>PublicAddress</code> in local object storage, then returns a
+         * serialized version as a <code>byte[]</code>.
          */
         byte[] publicAddressToByteArray(int publicAddressId);
 
         /**
-         * Looks up the given <code>PublicAddress</code> in local object storage, then
-         * returns an address hash.
+         * Looks up the given <code>PublicAddress</code> in local object storage, then returns an
+         * address hash.
          */
         byte[] publicAddressGetAddressHash(int publicAddressId);
 
         /**
-         * Looks up the given <code>TransferPayload</code> in local object storage, then
-         * returns its root entropy as a <code>byte[]</code>.
+         * Looks up the given <code>TransferPayload</code> in local object storage, then returns its
+         * root entropy as a <code>byte[]</code>.
          */
         byte[] transferPayloadGetBip39Entropy(int transferPayloadId);
 
         /**
-         * Looks up the given <code>TransferPayload</code> in local object storage, then
-         * returns its memo.
+         * Looks up the given <code>TransferPayload</code> in local object storage, then returns its
+         * memo.
          */
         String transferPayloadGetMemo(int transferPayloadId);
 
         /**
-         * Looks up the given <code>TransferPayload</code> in local object storage,
-         * retrieves its public key, stores the public key in local object storage, and
-         * then returns the public key's hash code.
+         * Looks up the given <code>TransferPayload</code> in local object storage, retrieves its
+         * public key, stores the public key in local object storage, and then returns the public
+         * key's hash code.
          */
         int transferPayloadGetPublicKey(int transferPayloadId);
 
         /**
-         * Creates a new <code>PaymentRequest</code> in local object storage, then
-         * returns its id.
+         * Creates a new <code>PaymentRequest</code> in local object storage, then returns its id.
          */
-        int paymentRequestCreate(int publicAddressId,
-                                 @Nullable String amount,
-                                 @Nullable String memo,
-                                 @NonNull TokenId tokenId);
+        int paymentRequestCreate(int publicAddressId, @Nullable String amount,
+                @Nullable String memo, @NonNull TokenId tokenId);
 
         /**
-         * Looks up the given <code>PaymentRequest</code> in local object storage, then
-         * returns its amount value as a <code>String</code>.
+         * Looks up the given <code>PaymentRequest</code> in local object storage, then returns its
+         * amount value as a <code>String</code>.
          */
         String paymentRequestGetValue(int paymentRequestId);
 
         /**
-         * Looks up the given <code>PaymentRequest</code> in local object storage, then
-         * returns its memo.
+         * Looks up the given <code>PaymentRequest</code> in local object storage, then returns its
+         * memo.
          */
         String paymentRequestGetMemo(int paymentRequestId);
 
         /**
-         * Looks up the given <code>PaymentRequest</code> in local object storage, then
-         * returns its token id 64bit value represented as <code>String</code>.
+         * Looks up the given <code>PaymentRequest</code> in local object storage, then returns its
+         * token id 64bit value represented as <code>String</code>.
          */
         String paymentRequestGetTokenId(int paymentRequestId);
 
         /**
-         * Looks up the given <code>PaymentRequest</code> in local object storage, then
-         * retrieves its public address, stores that public address in local object
-         * storage, and then returns the public address' hash code.
+         * Looks up the given <code>PaymentRequest</code> in local object storage, then retrieves
+         * its public address, stores that public address in local object storage, and then returns
+         * the public address' hash code.
          */
         int paymentRequestGetPublicAddress(int paymentRequestId);
 
         /**
-         * Convert the given b39 entropy into the mnemonic phrase The mnemonic phrase is
-         * a string of 24 words delimited by a space
+         * Convert the given b39 entropy into the mnemonic phrase The mnemonic phrase is a string of
+         * 24 words delimited by a space
          */
         String mnemonicFromBip39Entropy(byte[] entropy) throws BadEntropyException;
 
         /**
-         * Convert mnemonic phrase into the b39 entropy The mnemonic phrase is a string
-         * of 24 words delimited by a space
+         * Convert mnemonic phrase into the b39 entropy The mnemonic phrase is a string of 24 words
+         * delimited by a space
          */
         byte[] mnemonicToBip39Entropy(String mnemonicPhrase) throws BadMnemonicException;
 
         /**
-         * Returns a list of all allowed words for mnemonic phrases as a
-         * <code>String</code>
+         * Returns a list of all allowed words for mnemonic phrases as a <code>String</code>
          */
         String mnemonicAllWords() throws BadMnemonicException;
+
+        int clientConfigCreate();
+
+        void clientConfigAddServiceConfig(Integer clientConfigId, String fogViewMrEnclave,
+                String fogLedgerMrEnclave, String forReportMrEnclave, String consensusMrEnclave,
+                String[] hardeningAdvisories) throws AttestationException;
 
         /** 
          * Encrypt data using recipient's public key
@@ -542,38 +561,46 @@ public class MobileCoinFlutterPlugin implements FlutterPlugin, MethodCallHandler
         ) throws Exception;
     }
 
-    static class DefaultMobileCoinFlutterPluginChannelApi implements MobileCoinFlutterPluginChannelApi {
+    static class DefaultMobileCoinFlutterPluginChannelApi
+            implements MobileCoinFlutterPluginChannelApi {
 
         @Override
-        public Integer createMobileCoinClient(Integer accountKey, String fogUrl, String consensusUrl,
-                                              boolean useTestNet) throws InvalidUriException {
-            return FfiMobileCoinClient.create(accountKey, fogUrl, consensusUrl, useTestNet);
+        public Integer createMobileCoinClient(Integer accountKey, String fogUrl,
+                String consensusUrl, boolean useTestNet, Integer clientConfigId)
+                throws InvalidUriException {
+            return FfiMobileCoinClient.create(accountKey, fogUrl, consensusUrl, useTestNet,
+                    clientConfigId);
         }
 
         @Override
-        public String getBalance(Integer mobileCoinClientId)
-                throws InvalidFogResponse, NetworkException, AttestationException, FogSyncException, JSONException {
+        public String getBalance(Integer mobileCoinClientId) throws InvalidFogResponse,
+                NetworkException, AttestationException, FogSyncException, JSONException {
             return FfiMobileCoinClient.getBalance(mobileCoinClientId);
         }
 
         @Override
         public String getAccountActivity(Integer mobileCoinClientId)
-                throws InvalidFogResponse, NetworkException, AttestationException, JSONException, FogSyncException, TransactionBuilderException {
+                throws InvalidFogResponse, NetworkException, AttestationException, JSONException,
+                FogSyncException, TransactionBuilderException {
             return FfiMobileCoinClient.getAccountActivity(mobileCoinClientId);
         }
 
         @Override
-        public Void setAuthorization(int mobileClientId, @NonNull String username, @NonNull String password) {
+        public Void setAuthorization(int mobileClientId, @NonNull String username,
+                @NonNull String password) {
             FfiMobileCoinClient.setAuthorization(mobileClientId, username, password);
             return null;
         }
 
         @Override
-        public HashMap<String, Object> createPendingTransaction(int mobileClientId, int recipientId, @NonNull PicoMob fee, @NonNull PicoMob amount, @NonNull TokenId tokenId, @NonNull byte[] rngSeed)
-                throws InvalidFogResponse, AttestationException, FeeRejectedException, InsufficientFundsException,
-                FragmentedAccountException, NetworkException, TransactionBuilderException, FogReportException,
-                FogSyncException, SerializationException {
-            return FfiMobileCoinClient.createPendingTransaction(mobileClientId, recipientId, fee, amount, tokenId, rngSeed);
+        public HashMap<String, Object> createPendingTransaction(int mobileClientId, int recipientId,
+                @NonNull PicoMob fee, @NonNull PicoMob amount, @NonNull TokenId tokenId,
+                @NonNull byte[] rngSeed) throws InvalidFogResponse, AttestationException,
+                FeeRejectedException, InsufficientFundsException, FragmentedAccountException,
+                NetworkException, TransactionBuilderException, FogReportException, FogSyncException,
+                SerializationException {
+            return FfiMobileCoinClient.createPendingTransaction(mobileClientId, recipientId, fee,
+                    amount, tokenId, rngSeed);
         }
 
         @Override
@@ -584,14 +611,17 @@ public class MobileCoinFlutterPlugin implements FlutterPlugin, MethodCallHandler
 
         @Override
         public Integer checkTransactionStatus(int mobileClientId, int receiptId)
-                throws AttestationException, InvalidFogResponse, NetworkException, FogSyncException {
+                throws AttestationException, InvalidFogResponse, NetworkException,
+                FogSyncException {
             return FfiMobileCoinClient.checkTransactionStatus(mobileClientId, receiptId);
         }
 
         @Override
-        public int getAccountKeyFromBip39Entropy(byte[] entropy, String fogReportUri, String reportId,
-                                                 byte[] fogAuthoritySpki) throws InvalidUriException, BadEntropyException {
-            return FfiAccountKey.fromBip39Entropy(entropy, fogReportUri, reportId, fogAuthoritySpki);
+        public int getAccountKeyFromBip39Entropy(byte[] entropy, String fogReportUri,
+                String reportId, byte[] fogAuthoritySpki)
+                throws InvalidUriException, BadEntropyException {
+            return FfiAccountKey.fromBip39Entropy(entropy, fogReportUri, reportId,
+                    fogAuthoritySpki);
         }
 
         @Override
@@ -605,7 +635,8 @@ public class MobileCoinFlutterPlugin implements FlutterPlugin, MethodCallHandler
         }
 
         @Override
-        public String printableWrapperToB58String(int printableWrapperId) throws SerializationException {
+        public String printableWrapperToB58String(int printableWrapperId)
+                throws SerializationException {
             return FfiPrintableWrapper.toB58String(printableWrapperId);
         }
 
@@ -620,7 +651,8 @@ public class MobileCoinFlutterPlugin implements FlutterPlugin, MethodCallHandler
         }
 
         @Override
-        public int printableWrapperFromPublicAddress(int publicAddressId) throws SerializationException {
+        public int printableWrapperFromPublicAddress(int publicAddressId)
+                throws SerializationException {
             return FfiPrintableWrapper.fromPublicAddress(publicAddressId);
         }
 
@@ -635,7 +667,8 @@ public class MobileCoinFlutterPlugin implements FlutterPlugin, MethodCallHandler
         }
 
         @Override
-        public int printableWrapperFromPaymentRequest(int paymentRequestId) throws SerializationException {
+        public int printableWrapperFromPaymentRequest(int paymentRequestId)
+                throws SerializationException {
             return FfiPrintableWrapper.fromPaymentRequest(paymentRequestId);
         }
 
@@ -650,7 +683,8 @@ public class MobileCoinFlutterPlugin implements FlutterPlugin, MethodCallHandler
         }
 
         @Override
-        public int printableWrapperFromTransferPayload(int transferPayloadId) throws SerializationException {
+        public int printableWrapperFromTransferPayload(int transferPayloadId)
+                throws SerializationException {
             return FfiPrintableWrapper.fromTransferPayload(transferPayloadId);
         }
 
@@ -685,8 +719,10 @@ public class MobileCoinFlutterPlugin implements FlutterPlugin, MethodCallHandler
         }
 
         @Override
-        public int paymentRequestCreate(int publicAddressId, @Nullable String amount, @Nullable String memo, @NonNull TokenId tokenId) {
-            UnsignedLong unsignedAmount = amount == null ? null : UnsignedLong.fromBigInteger(new BigInteger(amount));
+        public int paymentRequestCreate(int publicAddressId, @Nullable String amount,
+                @Nullable String memo, @NonNull TokenId tokenId) {
+            UnsignedLong unsignedAmount =
+                    amount == null ? null : UnsignedLong.fromBigInteger(new BigInteger(amount));
             return FfiPaymentRequest.create(publicAddressId, unsignedAmount, memo, tokenId);
         }
 
@@ -723,6 +759,19 @@ public class MobileCoinFlutterPlugin implements FlutterPlugin, MethodCallHandler
         @Override
         public String mnemonicAllWords() throws BadMnemonicException {
             return FfiMnemonic.allWords();
+        }
+
+        @Override
+        public int clientConfigCreate() {
+            return FfiClientConfig.create();
+        }
+
+        @Override
+        public void clientConfigAddServiceConfig(Integer clientConfigId, String fogViewMrEnclave,
+                String fogLedgerMrEnclave, String forReportMrEnclave, String consensusMrEnclave,
+                String[] hardeningAdvisories) throws AttestationException {
+            FfiClientConfig.addServiceConfig(clientConfigId, fogViewMrEnclave, fogLedgerMrEnclave,
+                    forReportMrEnclave, consensusMrEnclave, hardeningAdvisories);
         }
         
         @Override
