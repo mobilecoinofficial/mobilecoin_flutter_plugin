@@ -46,6 +46,17 @@ class CommandFactory {
             return FfiMobileCoinClient.CheckTransactionStatus()
         case "MobileCoinClient#getTransferableAmount":
             return FfiMobileCoinClient.GetTransferableAmount();
+
+        case "RistrettoPublic#fromBytes":
+            return FfiRistrettoPublic.FromBytes()
+        case "RistrettoPublic#toByteArray":
+            return FfiRistrettoPublic.ToByteArray()
+
+        case "RistrettoPrivate#fromBytes":
+            return FfiRistrettoPrivate.FromBytes()
+        case "RistrettoPrivate#toByteArray":
+            return FfiRistrettoPrivate.ToByteArray()
+
         case "PublicAddress#fromBytes":
             return FfiPublicAddress.FromBytes()
         case "PublicAddress#toByteArray":
@@ -145,3 +156,4 @@ public class SwiftMobileCoinPlugin: NSObject, FlutterPlugin {
         }
     }
 }
+

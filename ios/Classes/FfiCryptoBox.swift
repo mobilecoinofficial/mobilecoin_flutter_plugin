@@ -5,13 +5,13 @@ struct FfiCryptoBox {
     struct encrypt: Command {
         func execute(args: [String: Any], result: @escaping FlutterResult) throws {
             guard let data = args["data"] as? FlutterStandardTypedData,
-                  let publicAddressId = args["publicAddressId"] as? Int else {
+                  let publicKeyId = args["publicKeyId"] as? Int else {
                       throw PluginError.invalidArguments
                   }
-            let publicAddress: PublicAddress = ObjectStorage.objectForKey(publicAddressId) as! PublicAddress
+            let publicKey: WrappedRistrettoPublic = ObjectStorage.objectForKey(publicKeyId) as! WrappedRistrettoPublic
             let ciphertextResult = DefaultCryptoBox.encrypt(
                 plaintext: data.data,
-                publicAddress: publicAddress
+                publicKey: publicKey
             )
             switch ciphertextResult {
                 case .success(let ciphertext):
@@ -25,13 +25,13 @@ struct FfiCryptoBox {
     struct decrypt: Command {
         func execute(args: [String : Any], result: @escaping FlutterResult) throws {
             guard let ciphertext = args["data"] as? FlutterStandardTypedData,
-                  let accountKeyId = args["accountKeyId"] as? Int else {
+                  let privateKeyId = args["privateKeyId"] as? Int else {
                       throw PluginError.invalidArguments
                   }
-            let accountKey: AccountKey = ObjectStorage.objectForKey(accountKeyId) as! AccountKey
+            let privateKey: WrappedRistrettoPrivate = ObjectStorage.objectForKey(privateKeyId) as! WrappedRistrettoPrivate
             let plaintextResult = try DefaultCryptoBox.decrypt(
                 ciphertext: ciphertext.data,
-                accountKey: accountKey
+                privateKey: privateKey
             )
             switch plaintextResult {
                 case .success(let plaintext):

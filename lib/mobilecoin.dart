@@ -5,6 +5,8 @@ import 'package:flutter/services.dart';
 import 'package:mobilecoin_flutter/attestation/client_config.dart';
 import 'package:mobilecoin_flutter/attestation/service_config.dart';
 import 'package:mobilecoin_flutter/public_address.dart';
+import 'package:mobilecoin_flutter/ristretto_public.dart';
+import 'package:mobilecoin_flutter/ristretto_private.dart';
 
 import 'public_address.dart';
 import 'account_key.dart';
@@ -434,11 +436,11 @@ class MobileCoinFlutterPluginChannelApi {
   }
 
   Future<Uint8List> cryptoBoxEncrypt({
-    required PublicAddress recipient,
+    required RistrettoPublic publicKey,
     required Uint8List data,
   }) async {
     final Map<String, dynamic> params = <String, dynamic>{
-      'publicAddressId': recipient.id,
+      'publicKeyId': publicKey.id,
       'data': data,
     };
     return await _channel.invokeMethod(
@@ -448,11 +450,11 @@ class MobileCoinFlutterPluginChannelApi {
   }
 
   Future<Uint8List> cryptoBoxDecrypt({
-    required AccountKey accountKey,
+    required RistrettoPrivate privateKey,
     required Uint8List data,
   }) async {
     final Map<String, dynamic> params = <String, dynamic>{
-      'accountKeyId': accountKey.id,
+      'privateKeyId': privateKey.id,
       'data': data,
     };
     return await _channel.invokeMethod(
@@ -533,5 +535,45 @@ class MobileCoinFlutterPluginChannelApi {
         params,
       ),
     );
+  }
+
+  Future<int> ristrettoPublicFromBytes({
+    required Uint8List publicKeyBytes,
+  }) async {
+    final Map<String, dynamic> params = <String, dynamic>{
+      'serializedBytes': publicKeyBytes,
+    };
+    return await _channel.invokeMethod("RistrettoPublic#fromBytes", params);
+  }
+
+  Future<Uint8List> ristrettoPublicToByteArray({
+    required int ristrettoPublicId,
+  }) async {
+    final Map<String, dynamic> params = <String, dynamic>{
+      'id': ristrettoPublicId,
+    };
+    final List<int> serializedBytes =
+        await _channel.invokeMethod("RistrettoPublic#toByteArray", params);
+    return Uint8List.fromList(serializedBytes);
+  }
+
+  Future<int> ristrettoPrivateFromBytes({
+    required Uint8List privateKeyBytes,
+  }) async {
+    final Map<String, dynamic> params = <String, dynamic>{
+      'serializedBytes': privateKeyBytes,
+    };
+    return await _channel.invokeMethod("RistrettoPrivate#fromBytes", params);
+  }
+
+  Future<Uint8List> ristrettoPrivateToByteArray({
+    required int ristrettoPrivateId,
+  }) async {
+    final Map<String, dynamic> params = <String, dynamic>{
+      'id': ristrettoPrivateId,
+    };
+    final List<int> serializedBytes =
+        await _channel.invokeMethod("RistrettoPrivate#toByteArray", params);
+    return Uint8List.fromList(serializedBytes);
   }
 }

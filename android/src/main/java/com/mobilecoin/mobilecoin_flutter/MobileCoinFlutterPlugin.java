@@ -251,10 +251,10 @@ public class MobileCoinFlutterPlugin implements FlutterPlugin, MethodCallHandler
                 return api.mnemonicAllWords();
             case "CryptoBox#encrypt":
                 return api.cryptoBoxEncrypt(getCallArgument(call, "data"), 
-                        getCallArgument(call, "publicAddressId"));
+                        getCallArgument(call, "publicKeyId"));
             case "CryptoBox#decrypt":
                 return api.cryptoBoxDecrypt(getCallArgument(call, "data"), 
-                        getCallArgument(call, "accountKeyId"));
+                        getCallArgument(call, "privateKeyId"));
             case "ClientConfig#create":
                 return api.clientConfigCreate();
             case "ClientConfig#addServiceConfig":
@@ -266,6 +266,14 @@ public class MobileCoinFlutterPlugin implements FlutterPlugin, MethodCallHandler
                         getCallArgument(call, "consensusMrEnclave"),
                         hardeningAdvisories.split(",", 0));
                 return "";
+            case "RistrettoPublic#fromBytes":
+                return api.ristrettoPublicFromBytes(getCallArgument(call, "serializedBytes"));
+            case "RistrettoPublic#toByteArray":
+                return api.ristrettoPublicToByteArray(getCallArgument(call, "id"));
+            case "RistrettoPrivate#fromBytes":
+                return api.ristrettoPrivateFromBytes(getCallArgument(call, "serializedBytes"));
+            case "RistrettoPrivate#toByteArray":
+                return api.ristrettoPrivateToByteArray(getCallArgument(call, "id"));
             default:
                 throw new UnsupportedOperationException();
             }
@@ -559,6 +567,30 @@ public class MobileCoinFlutterPlugin implements FlutterPlugin, MethodCallHandler
             int mobileClientId, 
             @NonNull TokenId tokenId
         ) throws Exception;
+
+        /**
+         * Deserializes the given <code>byte[]</code> into a <code>RistrettoPublic</code>, stores the
+         * address in local object storage, and returns its hash code.
+         */
+        int ristrettoPublicFromBytes(byte[] serializedBytes) throws Exception;
+
+        /**
+         * Looks up the given <code>RistrettoPublic</code> in local object storage, then returns a
+         * serialized version as a <code>byte[]</code>.
+         */
+        byte[] ristrettoPublicToByteArray(int ristrettoPublicId);
+
+        /**
+         * Deserializes the given <code>byte[]</code> into a <code>RistrettoPrivate</code>, stores the
+         * address in local object storage, and returns its hash code.
+         */
+        int ristrettoPrivateFromBytes(byte[] serializedBytes) throws Exception;
+
+        /**
+         * Looks up the given <code>RistrettoPrivate</code> in local object storage, then returns a
+         * serialized version as a <code>byte[]</code>.
+         */
+        byte[] ristrettoPrivateToByteArray(int ristrettoPrivateId);
     }
 
     static class DefaultMobileCoinFlutterPluginChannelApi
@@ -833,5 +865,26 @@ public class MobileCoinFlutterPlugin implements FlutterPlugin, MethodCallHandler
                 tokenId
             );
         }
+
+        @Override
+        public int ristrettoPublicFromBytes(byte[] serializedBytes) throws Exception {
+            return FfiRistrettoPublic.fromBytes(serializedBytes);
+        }
+
+        @Override
+        public byte[] ristrettoPublicToByteArray(int ristrettoPublicId) {
+            return FfiRistrettoPublic.toByteArray(ristrettoPublicId);
+        }
+
+        @Override
+        public int ristrettoPrivateFromBytes(byte[] serializedBytes) throws Exception {
+            return FfiRistrettoPrivate.fromBytes(serializedBytes);
+        }
+
+        @Override
+        public byte[] ristrettoPrivateToByteArray(int ristrettoPrivateId) {
+            return FfiRistrettoPrivate.toByteArray(ristrettoPrivateId);
+        }
     }
 }
+
