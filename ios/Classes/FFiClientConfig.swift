@@ -172,6 +172,7 @@ struct FfiClientConfig {
             )
 
             clientConfig.save()
+            result(clientConfig.hashValue)
         }
     }
 }
