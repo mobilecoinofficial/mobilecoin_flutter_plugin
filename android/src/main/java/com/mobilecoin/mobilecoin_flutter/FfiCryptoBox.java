@@ -2,25 +2,25 @@ package com.mobilecoin.mobilecoin_flutter;
 
 import androidx.annotation.Keep;
 
-import com.mobilecoin.lib.AccountKey;
-import com.mobilecoin.lib.PublicAddress;
 import com.mobilecoin.lib.DefaultVersionedCryptoBox;
+import com.mobilecoin.lib.RistrettoPrivate;
+import com.mobilecoin.lib.RistrettoPublic;
 
 @Keep
 public class FfiCryptoBox {
 
     private FfiCryptoBox() { }
 
-    public static byte[] encrypt(byte[] data, int publicAddressId)
+    public static byte[] encrypt(byte[] data, int ristrettoPublicId)
             throws Exception {
-        PublicAddress publicAddress = (PublicAddress) ObjectStorage.objectForKey(publicAddressId);
+        RistrettoPublic ristrettoPublic = (RistrettoPublic) ObjectStorage.objectForKey(ristrettoPublicId);
         final DefaultVersionedCryptoBox cryptoBox = new DefaultVersionedCryptoBox();
-        return cryptoBox.versionedCryptoBoxEncrypt(publicAddress.getSpendKey(), data);
+        return cryptoBox.versionedCryptoBoxEncrypt(ristrettoPublic, data);
     }
 
-    public static byte[] decrypt(byte[] encrypted, int accountKeyId) throws Exception {
-        AccountKey accountKey = (AccountKey) ObjectStorage.objectForKey(accountKeyId);
+    public static byte[] decrypt(byte[] encrypted, int ristrettoPrivateId) throws Exception {
+        RistrettoPrivate ristrettoPrivate = (RistrettoPrivate) ObjectStorage.objectForKey(ristrettoPrivateId);
         final DefaultVersionedCryptoBox cryptoBox = new DefaultVersionedCryptoBox();
-        return cryptoBox.versionedCryptoBoxDecrypt(accountKey.getDefaultSubAddressSpendKey(), encrypted);
+        return cryptoBox.versionedCryptoBoxDecrypt(ristrettoPrivate, encrypted);
     }
 }
