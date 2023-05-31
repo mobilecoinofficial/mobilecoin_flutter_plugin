@@ -282,7 +282,13 @@ struct FfiMobileCoinClient {
                                         jsonObject["transferableAmount"] = String(amount)
                                         print ("transferableAmount = \(amount)")
                                     case .failure(let error):
-                                        result(FlutterError(code: "NATIVE", message: error.localizedDescription, details: "amountTransferable"))
+                                        switch error {
+                                            case .feeExceedsBalance:
+                                                jsonObject["transferableAmount"] = String("0")
+                                                print ("transferableAmount = \(0)")
+                                            default:
+                                                result(FlutterError(code: "NATIVE", message: error.localizedDescription, details: "amountTransferable"))
+                                        }
                                 }
                                 activityDispatchGroup.leave()
                             }
