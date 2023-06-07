@@ -32,11 +32,13 @@ class MobileCoinFlutterPluginChannelApi {
       required String fogUrl,
       required String consensusUrl,
       required bool useTestNet,
-      required ClientConfig attestClientConfig}) async {
+      required ClientConfig attestClientConfig,
+      String? mistyswapUrl}) async {
     final Map<String, dynamic> params = <String, dynamic>{
       'accountKey': accountKey.id,
       'fogUrl': fogUrl,
       'consensusUrl': consensusUrl,
+      'mistyswapUrl': mistyswapUrl,
       'useTestNet': useTestNet,
       'clientConfigId': attestClientConfig.id
     };
@@ -426,6 +428,7 @@ class MobileCoinFlutterPluginChannelApi {
       ServiceConfig.fogLedgerMrEnclaveKey: serviceConfig.fogLedgerMrEnclave,
       ServiceConfig.fogReportMrEnclaveKey: serviceConfig.fogReportMrEnclave,
       ServiceConfig.consensusMrEnclaveKey: serviceConfig.consensusMrEnclave,
+      ServiceConfig.mistyswapMrEnclaveKey: serviceConfig.mistyswapMrEnclave,
       ServiceConfig.hardeningAdvisoriesKey:
           serviceConfig.hardeningAdvisories.join(','),
     };
@@ -461,6 +464,75 @@ class MobileCoinFlutterPluginChannelApi {
       'CryptoBox#decrypt',
       params,
     );
+  }
+
+  Future<Uint8List> initiateOfframp(
+      {required int mobileCoinClientId,
+      required String mixinCredentialsJSON,
+      required String srcAssetID,
+      required String srcExpectedAmount,
+      required String dstAssetID,
+      required String dstAddress,
+      required String dstAddressTag,
+      required String minDstReceivedAmount,
+      required String maxFeeAmountInDstTokens}) async {
+    /*
+      Example JSON for MixinCredentials.
+      https://github.com/mobilecoinofficial/misty-swap/blob/main/mixin/src/test_utils.rs#L24
+
+      // Sticking the user id in the pin allows us to have different
+      // mixin_credentials_json per user. Hacky, but gets the job done.
+      {
+          "client_id": "5671cf17-86b9-1234-5678-5d2a7d75d536",
+          "session_id": "0ca87413-1234-5678-98b9-74b30fd1b704",
+          "private_key": "eb9SRz09nFOkskOAub8VNoMOeSsDuwVoWLL5bzRpG3kvuAituUQNgEX1LnBC2_6PvvqxEnPm9nmrxdDteXTBvw",
+          "pin_token": "ZcuwqD5IU9/cTj3pBB9jm4PwpGhVu0I/tQ45dTlezgA=",
+          "scope": "",
+          "pin": "{user_id}"
+      }
+     */
+    final Map<String, dynamic> params = <String, dynamic>{
+      'id': mobileCoinClientId,
+      'mixinCredentialsJSON': mixinCredentialsJSON,
+      'srcAssetID': srcAssetID,
+      'srcExpectedAmount': srcExpectedAmount,
+      'dstAssetID': dstAssetID,
+      'dstAddress': dstAddress,
+      'dstAddressTag': dstAddressTag,
+      'minDstReceivedAmount': minDstReceivedAmount,
+      'maxFeeAmountInDstTokens': maxFeeAmountInDstTokens
+    };
+    final List<int> serializedBytes = await _channel.invokeMethod(
+      "Mistyswap#initiateOfframp",
+      params,
+    );
+    return Uint8List.fromList(serializedBytes);
+  }
+
+  Future<Uint8List> getOfframpStatus(
+      {required int mobileCoinClientId, required Uint8List offrampID}) async {
+    final Map<String, dynamic> params = <String, dynamic>{
+      'id': mobileCoinClientId,
+      'offrampID': offrampID
+    };
+    final List<int> serializedBytes = await _channel.invokeMethod(
+      "Mistyswap#getOfframpStatus",
+      params,
+    );
+    return Uint8List.fromList(serializedBytes);
+  }
+
+  Future<Uint8List> forgetOfframp(
+      {required int mobileCoinClientId, required Uint8List offrampID}) async {
+    final Map<String, dynamic> params = <String, dynamic>{
+      'id': mobileCoinClientId,
+      'offrampID': offrampID
+    };
+    final List<int> serializedBytes = await _channel.invokeMethod(
+      "Mistyswap#forgetOfframp",
+      params,
+    );
+    return Uint8List.fromList(serializedBytes);
   }
 
   Future<bool> accountRequiresDefragmentation({

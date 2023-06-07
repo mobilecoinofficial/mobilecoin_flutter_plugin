@@ -14,20 +14,17 @@ class MobileCoinClient extends PlatformObject {
 
   MobileCoinClient(this.accountKey, int objectId) : super(id: objectId);
 
-  static Future<MobileCoinClient> create(
-    AccountKey accountKey,
-    String fogUrl,
-    String consensusUrl,
-    bool useTestNet,
-    ClientConfig attestClientConfig,
-  ) async {
+  static Future<MobileCoinClient> create(AccountKey accountKey, String fogUrl,
+      String consensusUrl, bool useTestNet, ClientConfig attestClientConfig,
+      [String? mistyswapUrl]) async {
     final objectId = await MobileCoinFlutterPluginChannelApi.instance
         .createMobileCoinClient(
             accountKey: accountKey,
             fogUrl: fogUrl,
             consensusUrl: consensusUrl,
             useTestNet: useTestNet,
-            attestClientConfig: attestClientConfig);
+            attestClientConfig: attestClientConfig,
+            mistyswapUrl: mistyswapUrl);
     return MobileCoinClient(accountKey, objectId);
   }
 
@@ -156,5 +153,42 @@ class MobileCoinClient extends PlatformObject {
   Future<BigInt> getTransferableAmount({required BigInt tokenId}) {
     return MobileCoinFlutterPluginChannelApi.instance
         .getTransferableAmount(mobileCoinClientId: id, tokenId: tokenId);
+  }
+
+  /// Initiates a Mistyswap offramp request
+  ///
+  Future<Uint8List> initiateOfframp(
+      {required String mixinCredentialsJSON,
+      required String srcAssetID,
+      required String srcExpectedAmount,
+      required String dstAssetID,
+      required String dstAddress,
+      required String dstAddressTag,
+      required String minDstReceivedAmount,
+      required String maxFeeAmountInDstTokens}) async {
+    return await MobileCoinFlutterPluginChannelApi.instance.initiateOfframp(
+        mixinCredentialsJSON: mixinCredentialsJSON,
+        srcAssetID: srcAssetID,
+        srcExpectedAmount: srcExpectedAmount,
+        dstAssetID: dstAssetID,
+        dstAddress: dstAddress,
+        dstAddressTag: dstAddressTag,
+        minDstReceivedAmount: minDstReceivedAmount,
+        maxFeeAmountInDstTokens: maxFeeAmountInDstTokens,
+        mobileCoinClientId: id);
+  }
+
+  /// Gets status for a Mistyswap offramp request
+  ///
+  Future<Uint8List> getOfframpStatus({required Uint8List offrampID}) async {
+    return await MobileCoinFlutterPluginChannelApi.instance
+        .getOfframpStatus(offrampID: offrampID, mobileCoinClientId: id);
+  }
+
+  /// Forgets a Mistyswap offramp request
+  ///
+  Future<Uint8List> forgetOfframp({required Uint8List offrampID}) async {
+    return await MobileCoinFlutterPluginChannelApi.instance
+        .forgetOfframp(offrampID: offrampID, mobileCoinClientId: id);
   }
 }

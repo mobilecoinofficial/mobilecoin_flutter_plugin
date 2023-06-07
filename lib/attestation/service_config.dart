@@ -9,17 +9,20 @@ class ServiceConfig extends Equatable {
     required this.fogReportMrEnclave,
     required this.consensusMrEnclave,
     required this.hardeningAdvisories,
+    this.mistyswapMrEnclave,
   });
   final String fogViewMrEnclave;
   final String fogLedgerMrEnclave;
   final String fogReportMrEnclave;
   final String consensusMrEnclave;
+  final String? mistyswapMrEnclave;
   final List<String> hardeningAdvisories;
 
   static const String fogViewMrEnclaveKey = 'fogViewMrEnclave';
   static const String fogLedgerMrEnclaveKey = 'fogLedgerMrEnclave';
   static const String fogReportMrEnclaveKey = 'fogReportMrEnclave';
   static const String consensusMrEnclaveKey = 'consensusMrEnclave';
+  static const String mistyswapMrEnclaveKey = 'mistyswapMrEnclave';
   static const String hardeningAdvisoriesKey = 'hardeningAdvisories';
 
   static ServiceConfig fromJson(Map<String, dynamic> json) {
@@ -29,17 +32,29 @@ class ServiceConfig extends Equatable {
       fogReportMrEnclave: json[fogReportMrEnclaveKey] as String,
       consensusMrEnclave: json[consensusMrEnclaveKey] as String,
       hardeningAdvisories: json[hardeningAdvisoriesKey] as List<String>,
+      mistyswapMrEnclave: json[mistyswapMrEnclaveKey] as String?,
     );
   }
 
   Map<String, Object?> get toJson {
-    return {
-      fogViewMrEnclaveKey: fogViewMrEnclave,
-      fogLedgerMrEnclaveKey: fogLedgerMrEnclave,
-      fogReportMrEnclaveKey: fogReportMrEnclave,
-      consensusMrEnclaveKey: consensusMrEnclave,
-      hardeningAdvisoriesKey: hardeningAdvisories,
-    };
+    if (mistyswapMrEnclave != null) {
+      return {
+        fogViewMrEnclaveKey: fogViewMrEnclave,
+        fogLedgerMrEnclaveKey: fogLedgerMrEnclave,
+        fogReportMrEnclaveKey: fogReportMrEnclave,
+        consensusMrEnclaveKey: consensusMrEnclave,
+        hardeningAdvisoriesKey: hardeningAdvisories,
+        mistyswapMrEnclaveKey: mistyswapMrEnclave,
+      };
+    } else {
+      return {
+        fogViewMrEnclaveKey: fogViewMrEnclave,
+        fogLedgerMrEnclaveKey: fogLedgerMrEnclave,
+        fogReportMrEnclaveKey: fogReportMrEnclave,
+        consensusMrEnclaveKey: consensusMrEnclave,
+        hardeningAdvisoriesKey: hardeningAdvisories,
+      };
+    }
   }
 
   @override
@@ -48,5 +63,6 @@ class ServiceConfig extends Equatable {
         fogLedgerMrEnclave,
         fogReportMrEnclave,
         consensusMrEnclave,
+        mistyswapMrEnclave,
       ];
 }
