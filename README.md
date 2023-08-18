@@ -11,4 +11,11 @@ The mobilecoin_flutter plugin makes the iOS and Android MobileCoin SDKs availabl
 
 ```bash
 $ cd example; flutter build ios-framework
+```
+
+### Generating Protobufs
+
+```bash
+$ ./bin/update_protobufs.sh
+```
 

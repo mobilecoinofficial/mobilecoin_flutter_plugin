@@ -59,7 +59,7 @@ jobs:
         run: flutter pub get;
 
       - name: 'Format'
-        run: flutter format --set-exit-if-changed lib test example/lib example/test
+        run: flutter format $(find . -name "*.dart" -not -wholename "*/generated/*") --set-exit-if-changed
 
       - uses: invertase/github-action-dart-analyzer@v1
         with:
