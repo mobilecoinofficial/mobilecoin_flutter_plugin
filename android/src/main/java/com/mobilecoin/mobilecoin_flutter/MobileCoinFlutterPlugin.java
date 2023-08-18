@@ -4,6 +4,8 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.VisibleForTesting;
 
+import com.mobilecoin.lib.ClientConfig;
+import com.mobilecoin.lib.LoadBalancer;
 import com.mobilecoin.lib.TokenId;
 import com.mobilecoin.lib.UnsignedLong;
 import com.mobilecoin.lib.exceptions.AttestationException;
@@ -20,12 +22,13 @@ import com.mobilecoin.lib.exceptions.InvalidUriException;
 import com.mobilecoin.lib.exceptions.NetworkException;
 import com.mobilecoin.lib.exceptions.SerializationException;
 import com.mobilecoin.lib.exceptions.TransactionBuilderException;
+import com.mobilecoin.lib.network.TransportProtocol;
 
 import org.json.JSONException;
 
 import java.math.BigInteger;
+import java.util.Arrays;
 import java.util.HashMap;
-import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -34,6 +37,7 @@ import io.flutter.plugin.common.MethodCall;
 import io.flutter.plugin.common.MethodChannel;
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler;
 import io.flutter.plugin.common.MethodChannel.Result;
+import mistyswap.AttestedMistySwapClient;
 
 /**
  * MobileCoinFlutterPlugin
@@ -274,6 +278,47 @@ public class MobileCoinFlutterPlugin implements FlutterPlugin, MethodCallHandler
                 return api.ristrettoPrivateFromBytes(getCallArgument(call, "serializedBytes"));
             case "RistrettoPrivate#toByteArray":
                 return api.ristrettoPrivateToByteArray(getCallArgument(call, "id"));
+            case "OnetimeKeys#createTxOutPublicKey":
+                return api.createTxOutPublicKey(getCallArgument(call, "txOutPrivateKeyId"), getCallArgument(call, "recipientSpendPublicKeyId"));
+            case "AttestedMistySwapClient#create":
+                return api.createAttestedMistySwapClient(
+                    getCallArgument(call, "loadBalancerId"),
+                    getCallArgument(call, "serviceConfigId"));
+            case "AttestedMistySwapClient#initiateOfframp":
+                return api.attestedMistySwapClientInitiateOfframp(
+                    getCallArgument(call, "attestedMistySwapClientId"),
+                    getCallArgument(call, "initiateOfframpRequestBytesId"));
+            case "AttestedMistySwapClient#forgetOfframpRequestId":
+                return api.attestedMistySwapClientForgetOfframp(
+                    getCallArgument(call, "attestedMistySwapClientId"),
+                    getCallArgument(call, "forgetOfframpRequestBytesId"));
+            case "AttestedMistySwapClient#getOfframpStatus":
+                return api.attestedMistySwapClientGetOfframpStatus(
+                    getCallArgument(call, "attestedMistySwapClientId"),
+                    getCallArgument(call, "getOfframpStatusRequestBytesId"));
+            case "AttestedMistySwapClient#getOfframpDebugStatus":
+                return api.attestedMistySwapClientGetOfframpDebugInfo(
+                    getCallArgument(call, "attestedMistySwapClientId"),
+                    getCallArgument(call, "getOfframpDebugInfoRequestBytesId"));
+            case "AttestedMistySwapClient#setupOnramp":
+                return api.attestedMistySwapClientSetupOnramp(
+                    getCallArgument(call, "attestedMistySwapClientId"),
+                    getCallArgument(call, "setupOnrampRequestBytesId"));
+            case "AttestedMistySwapClient#forgetOnramp":
+                return api.attestedMistySwapClientForgetOnramp(
+                    getCallArgument(call, "attestedMistySwapClientId"),
+                    getCallArgument(call, "forgetOnrampRequestBytesId"));
+            case "AttestedMistySwapClient#getOnrampStatus":
+                return api.attestedMistySwapClientGetOnrampStatus(
+                    getCallArgument(call, "attestedMistySwapClientId"),
+                    getCallArgument(call, "getOnrampStatusRequestBytesId"));
+            case "AttestedMistySwapClient#getOnrampDebugInfo":
+                return api.attestedMistySwapClientGetOnrampDebugInfo(
+                    getCallArgument(call, "attestedMistySwapClientId"),
+                    getCallArgument(call, "getOnrampDebugInfoRequestBytesId"));
+            case "AttestedMistySwapClient#getInfo":
+                return api.attestedMistySwapClientGetInfo(
+                    getCallArgument(call, "attestedMistySwapClientId"));
             default:
                 throw new UnsupportedOperationException();
             }
@@ -591,6 +636,35 @@ public class MobileCoinFlutterPlugin implements FlutterPlugin, MethodCallHandler
          * serialized version as a <code>byte[]</code>.
          */
         byte[] ristrettoPrivateToByteArray(int ristrettoPrivateId);
+
+        /**
+         * Creates the TxOut public key from the TxOut private key and the recipient spend public key
+         */
+        int createTxOutPublicKey(int txOutPrivateKeyId , int recipientSpendPublicKeyId) throws Exception;
+
+        /**
+         * Creates a new AttestedMistySwapClient
+         */
+        int createAttestedMistySwapClient(int loadBalancerId, int serviceConfigId);
+
+        int attestedMistySwapClientInitiateOfframp(int attestedMistySwapClientId, int initiateOfframpRequestBytesId) throws AttestationException, NetworkException;
+
+        int attestedMistySwapClientForgetOfframp(int attestedMistySwapClientId, int forgetOfframpRequestBytesId) throws AttestationException, NetworkException;
+
+        int attestedMistySwapClientGetOfframpStatus(int attestedMistySwapClientId, int getOfframpStatusRequestBytesId) throws AttestationException, NetworkException;
+
+        int attestedMistySwapClientGetOfframpDebugInfo(int attestedMistySwapClientId, int getOfframpDebugInfoRequestBytesId) throws AttestationException, NetworkException;
+
+        int attestedMistySwapClientSetupOnramp(int attestedMistySwapClientId, int setupOnrampRequestBytesId) throws AttestationException, NetworkException;
+
+        int attestedMistySwapClientForgetOnramp(int attestedMistySwapClientId, int forgetOnrampRequestBytesId) throws AttestationException, NetworkException;
+
+        int attestedMistySwapClientGetOnrampStatus(int attestedMistySwapClientId, int getOnrampStatusRequestBytesId) throws AttestationException, NetworkException;
+
+        int attestedMistySwapClientGetOnrampDebugInfo(int attestedMistySwapClientId, int getOnrampDebugInfoRequestBytesId) throws AttestationException, NetworkException;
+
+        int attestedMistySwapClientGetInfo(int attestedMistySwapClientId) throws AttestationException, NetworkException;
+
     }
 
     static class DefaultMobileCoinFlutterPluginChannelApi
@@ -885,6 +959,124 @@ public class MobileCoinFlutterPlugin implements FlutterPlugin, MethodCallHandler
         public byte[] ristrettoPrivateToByteArray(int ristrettoPrivateId) {
             return FfiRistrettoPrivate.toByteArray(ristrettoPrivateId);
         }
-    }
-}
 
+        @Override
+        public int createTxOutPublicKey(int txOutPrivateKeyId, int recipientSpendPublicKeyId) {
+            return FfiOnetimeKeys.createTxOutPublicKey(txOutPrivateKeyId, recipientSpendPublicKeyId);
+        }
+
+        @Override
+        public int createAttestedMistySwapClient(int loadBalancerId, int serviceConfigId) {
+            final LoadBalancer loadBalancer = (LoadBalancer)ObjectStorage.objectForKey(loadBalancerId);
+            final ClientConfig.Service serviceConfig = (ClientConfig.Service)ObjectStorage.objectForKey(serviceConfigId);
+            final AttestedMistySwapClient mistySwapClient = new AttestedMistySwapClient(
+                    loadBalancer,
+                    serviceConfig,
+                    TransportProtocol.forGRPC()
+            );
+            final int hashCode = mistySwapClient.hashCode();
+            ObjectStorage.addObject(hashCode, mistySwapClient);
+            return hashCode;
+        }
+
+        @Override
+        public int attestedMistySwapClientInitiateOfframp(int attestedMistySwapClientId, int initiateOfframpRequestBytesId) throws AttestationException, NetworkException {
+            final byte[] requestBytes = (byte[])ObjectStorage.objectForKey(initiateOfframpRequestBytesId);
+            final AttestedMistySwapClient mistySwapClient =
+                    (AttestedMistySwapClient)ObjectStorage.objectForKey(attestedMistySwapClientId);
+            final byte[] initiateOfframpResponseBytes = mistySwapClient.initiateOfframp(requestBytes);
+            final int hashCode = Arrays.hashCode(initiateOfframpResponseBytes);
+            ObjectStorage.addObject(hashCode, initiateOfframpResponseBytes);
+            return hashCode;
+        }
+
+        @Override
+        public int attestedMistySwapClientForgetOfframp(int attestedMistySwapClientId, int forgetOfframpRequestBytesId) throws AttestationException, NetworkException {
+            final byte[] requestBytes = (byte[])ObjectStorage.objectForKey(forgetOfframpRequestBytesId);
+            final AttestedMistySwapClient mistySwapClient =
+                    (AttestedMistySwapClient)ObjectStorage.objectForKey(attestedMistySwapClientId);
+            final byte[] forgetOfframpResponseBytes = mistySwapClient.forgetOfframp(requestBytes);
+            final int hashCode = Arrays.hashCode(forgetOfframpResponseBytes);
+            ObjectStorage.addObject(hashCode, forgetOfframpResponseBytes);
+            return hashCode;
+        }
+
+        @Override
+        public int attestedMistySwapClientGetOfframpStatus(int attestedMistySwapClientId, int getOfframpStatusRequestBytesId) throws AttestationException, NetworkException {
+            final byte[] requestBytes = (byte[])ObjectStorage.objectForKey(getOfframpStatusRequestBytesId);
+            final AttestedMistySwapClient mistySwapClient =
+                    (AttestedMistySwapClient)ObjectStorage.objectForKey(attestedMistySwapClientId);
+            final byte[] getOfframpStatusResponseBytes = mistySwapClient.getOfframpStatus(requestBytes);
+            final int hashCode = Arrays.hashCode(getOfframpStatusResponseBytes);
+            ObjectStorage.addObject(hashCode, getOfframpStatusResponseBytes);
+            return hashCode;
+        }
+
+        @Override
+        public int attestedMistySwapClientGetOfframpDebugInfo(int attestedMistySwapClientId, int getOfframpDebugInfoRequestBytesId) throws AttestationException, NetworkException {
+            final byte[] requestBytes = (byte[])ObjectStorage.objectForKey(getOfframpDebugInfoRequestBytesId);
+            final AttestedMistySwapClient mistySwapClient =
+                    (AttestedMistySwapClient)ObjectStorage.objectForKey(attestedMistySwapClientId);
+            final byte[] getOfframpDebugInfoResponseBytes = mistySwapClient.getOfframpStatus(requestBytes);
+            final int hashCode = Arrays.hashCode(getOfframpDebugInfoResponseBytes);
+            ObjectStorage.addObject(hashCode, getOfframpDebugInfoResponseBytes);
+            return hashCode;
+        }
+
+        @Override
+        public int attestedMistySwapClientSetupOnramp(int attestedMistySwapClientId, int setupOnrampRequestBytesId) throws AttestationException, NetworkException {
+            final byte[] requestBytes = (byte[])ObjectStorage.objectForKey(setupOnrampRequestBytesId);
+            final AttestedMistySwapClient mistySwapClient =
+                    (AttestedMistySwapClient)ObjectStorage.objectForKey(attestedMistySwapClientId);
+            final byte[] setupOnrampResponseBytes = mistySwapClient.setupOnramp(requestBytes);
+            final int hashCode = Arrays.hashCode(setupOnrampResponseBytes);
+            ObjectStorage.addObject(hashCode, setupOnrampResponseBytes);
+            return hashCode;
+        }
+
+        @Override
+        public int attestedMistySwapClientForgetOnramp(int attestedMistySwapClientId, int forgetOnrampRequestBytesId) throws AttestationException, NetworkException {
+            final byte[] requestBytes = (byte[])ObjectStorage.objectForKey(forgetOnrampRequestBytesId);
+            final AttestedMistySwapClient mistySwapClient =
+                    (AttestedMistySwapClient)ObjectStorage.objectForKey(attestedMistySwapClientId);
+            final byte[] forgetOnrampResponseBytes = mistySwapClient.forgetOnramp(requestBytes);
+            final int hashCode = Arrays.hashCode(forgetOnrampResponseBytes);
+            ObjectStorage.addObject(hashCode, forgetOnrampResponseBytes);
+            return hashCode;
+        }
+
+        @Override
+        public int attestedMistySwapClientGetOnrampStatus(int attestedMistySwapClientId, int getOnrampStatusRequestBytesId) throws AttestationException, NetworkException {
+            final byte[] requestBytes = (byte[])ObjectStorage.objectForKey(getOnrampStatusRequestBytesId);
+            final AttestedMistySwapClient mistySwapClient =
+                    (AttestedMistySwapClient)ObjectStorage.objectForKey(attestedMistySwapClientId);
+            final byte[] getOnrampStatusResponseBytes = mistySwapClient.getOnrampStatus(requestBytes);
+            final int hashCode = Arrays.hashCode(getOnrampStatusResponseBytes);
+            ObjectStorage.addObject(hashCode, getOnrampStatusResponseBytes);
+            return hashCode;
+        }
+
+        @Override
+        public int attestedMistySwapClientGetOnrampDebugInfo(int attestedMistySwapClientId, int getOnrampDebugInfoRequestBytesId) throws AttestationException, NetworkException {
+            final byte[] requestBytes = (byte[])ObjectStorage.objectForKey(getOnrampDebugInfoRequestBytesId);
+            final AttestedMistySwapClient mistySwapClient =
+                    (AttestedMistySwapClient)ObjectStorage.objectForKey(attestedMistySwapClientId);
+            final byte[] getOnrampDebugInfoResponseBytes = mistySwapClient.getOnrampDebugInfo(requestBytes);
+            final int hashCode = Arrays.hashCode(getOnrampDebugInfoResponseBytes);
+            ObjectStorage.addObject(hashCode, getOnrampDebugInfoResponseBytes);
+            return hashCode;
+        }
+
+        @Override
+        public int attestedMistySwapClientGetInfo(int attestedMistySwapClientId) throws AttestationException, NetworkException {
+            final AttestedMistySwapClient mistySwapClient =
+                    (AttestedMistySwapClient)ObjectStorage.objectForKey(attestedMistySwapClientId);
+            final byte[] getInfoResponseBytes = mistySwapClient.getInfo();
+            final int hashCode = Arrays.hashCode(getInfoResponseBytes);
+            ObjectStorage.addObject(hashCode, getInfoResponseBytes);
+            return hashCode;
+        }
+
+    }
+
+}

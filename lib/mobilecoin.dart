@@ -10,6 +10,8 @@ import 'package:mobilecoin_flutter/ristretto_private.dart';
 
 import 'public_address.dart';
 import 'account_key.dart';
+import 'ristretto_private.dart';
+import 'ristretto_public.dart';
 
 class MobileCoinFlutterPluginChannelApi {
   static const MethodChannel _methodChannel =
@@ -647,5 +649,123 @@ class MobileCoinFlutterPluginChannelApi {
     final List<int> serializedBytes =
         await _channel.invokeMethod("RistrettoPrivate#toByteArray", params);
     return Uint8List.fromList(serializedBytes);
+  }
+
+  Future<int> createTxOutPublicKey(
+      {required int txOutPrivateKeyId,
+      required int recipientSpendPublicKeyId}) async {
+    final Map<String, dynamic> params = <String, dynamic>{
+      'txOutPrivateKeyId': txOutPrivateKeyId,
+      'recipientSpendPublicKeyId': recipientSpendPublicKeyId,
+    };
+    return await _channel.invokeMethod(
+        "OnetimeKeys#createTxOutPublicKey", params);
+  }
+
+  Future<int> createAttestedMistySwapClient(
+      {required int loadBalancerId, required int serviceConfigId}) async {
+    final Map<String, dynamic> params = <String, dynamic>{
+      'loadBalancerId': loadBalancerId,
+      'serviceConfigId': serviceConfigId,
+    };
+    return await _channel.invokeMethod(
+        "AttestedMistySwapClient#create", params);
+  }
+
+  Future<int> attestedMistySwapClientInitiateOfframp(
+      {required int attestedMistySwapClientId,
+      required int initiateOfframpRequestId}) async {
+    final Map<String, dynamic> params = <String, dynamic>{
+      'attestedMistySwapClientId': attestedMistySwapClientId,
+      'initiateOfframpRequestId': initiateOfframpRequestId,
+    };
+    return await _channel.invokeMethod(
+        "AttestedMistySwapClient#initiateOfframp", params);
+  }
+
+  Future<int> attestedMistySwapClientForgetOfframp(
+      {required int attestedMistySwapClientId,
+      required int forgetOfframpRequestId}) async {
+    final Map<String, dynamic> params = <String, dynamic>{
+      'attestedMistySwapClientId': attestedMistySwapClientId,
+      'forgetOfframpRequestId': forgetOfframpRequestId,
+    };
+    return await _channel.invokeMethod(
+        "AttestedMistySwapClient#forgetOfframp", params);
+  }
+
+  Future<int> attestedMistySwapClientGetOfframpStatus(
+      {required int attestedMistySwapClientId,
+      required int getOfframpStatusRequestId}) async {
+    final Map<String, dynamic> params = <String, dynamic>{
+      'attestedMistySwapClientId': attestedMistySwapClientId,
+      'getOfframpStatusRequestId': getOfframpStatusRequestId,
+    };
+    return await _channel.invokeMethod(
+        "AttestedMistySwapClient#getOfframpStatus", params);
+  }
+
+  Future<int> attestedMistySwapClientGetOfframpDebugInfo(
+      {required int attestedMistySwapClientId,
+      required int getOfframpDebugInfoRequestId}) async {
+    final Map<String, dynamic> params = <String, dynamic>{
+      'attestedMistySwapClientId': attestedMistySwapClientId,
+      'getOfframpDebugInfoRequestId': getOfframpDebugInfoRequestId,
+    };
+    return await _channel.invokeMethod(
+        "AttestedMistySwapClient#getOfframpDebugInfo", params);
+  }
+
+  Future<int> attestedMistySwapClientSetupOnramp(
+      {required int attestedMistySwapClientId,
+      required int setupOnrampRequestId}) async {
+    final Map<String, dynamic> params = <String, dynamic>{
+      'attestedMistySwapClientId': attestedMistySwapClientId,
+      'getOfframpDebugInfoRequestId': setupOnrampRequestId,
+    };
+    return await _channel.invokeMethod(
+        "AttestedMistySwapClient#setupOnramp", params);
+  }
+
+  Future<int> attestedMistySwapClientForgetOnramp(
+      {required int attestedMistySwapClientId,
+      required int forgetOnrampRequestId}) async {
+    final Map<String, dynamic> params = <String, dynamic>{
+      'attestedMistySwapClientId': attestedMistySwapClientId,
+      'getOfframpDebugInfoRequestId': forgetOnrampRequestId,
+    };
+    return await _channel.invokeMethod(
+        "AttestedMistySwapClient#forgetOnramp", params);
+  }
+
+  Future<int> attestedMistySwapClientGetOnrampStatus(
+      {required int attestedMistySwapClientId,
+      required int getOnrampStatusRequestId}) async {
+    final Map<String, dynamic> params = <String, dynamic>{
+      'attestedMistySwapClientId': attestedMistySwapClientId,
+      'getOfframpDebugInfoRequestId': getOnrampStatusRequestId,
+    };
+    return await _channel.invokeMethod(
+        "AttestedMistySwapClient#getOnrampStatus", params);
+  }
+
+  Future<int> attestedMistySwapClientGetOnrampDebugInfo(
+      {required int attestedMistySwapClientId,
+      required int getOnrampDebugInfoRequestId}) async {
+    final Map<String, dynamic> params = <String, dynamic>{
+      'attestedMistySwapClientId': attestedMistySwapClientId,
+      'getOfframpDebugInfoRequestId': getOnrampDebugInfoRequestId,
+    };
+    return await _channel.invokeMethod(
+        "AttestedMistySwapClient#getOnrampDebugInfo", params);
+  }
+
+  Future<int> attestedMistySwapClientGetInfo(
+      {required int attestedMistySwapClientId}) async {
+    final Map<String, dynamic> params = <String, dynamic>{
+      'attestedMistySwapClientId': attestedMistySwapClientId,
+    };
+    return await _channel.invokeMethod(
+        "AttestedMistySwapClient#getInfoResponse", params);
   }
 }
