@@ -674,10 +674,10 @@ class MobileCoinFlutterPluginChannelApi {
 
   Future<int> attestedMistySwapClientInitiateOfframp(
       {required int attestedMistySwapClientId,
-      required int initiateOfframpRequestId}) async {
+      required int initiateOfframpRequestBytesId}) async {
     final Map<String, dynamic> params = <String, dynamic>{
       'attestedMistySwapClientId': attestedMistySwapClientId,
-      'initiateOfframpRequestId': initiateOfframpRequestId,
+      'initiateOfframpRequestId': initiateOfframpRequestBytesId,
     };
     return await _channel.invokeMethod(
         "AttestedMistySwapClient#initiateOfframp", params);
@@ -685,10 +685,10 @@ class MobileCoinFlutterPluginChannelApi {
 
   Future<int> attestedMistySwapClientForgetOfframp(
       {required int attestedMistySwapClientId,
-      required int forgetOfframpRequestId}) async {
+      required int forgetOfframpRequestBytesId}) async {
     final Map<String, dynamic> params = <String, dynamic>{
       'attestedMistySwapClientId': attestedMistySwapClientId,
-      'forgetOfframpRequestId': forgetOfframpRequestId,
+      'forgetOfframpRequestId': forgetOfframpRequestBytesId,
     };
     return await _channel.invokeMethod(
         "AttestedMistySwapClient#forgetOfframp", params);
@@ -696,10 +696,10 @@ class MobileCoinFlutterPluginChannelApi {
 
   Future<int> attestedMistySwapClientGetOfframpStatus(
       {required int attestedMistySwapClientId,
-      required int getOfframpStatusRequestId}) async {
+      required int getOfframpStatusRequestBytesId}) async {
     final Map<String, dynamic> params = <String, dynamic>{
       'attestedMistySwapClientId': attestedMistySwapClientId,
-      'getOfframpStatusRequestId': getOfframpStatusRequestId,
+      'getOfframpStatusRequestId': getOfframpStatusRequestBytesId,
     };
     return await _channel.invokeMethod(
         "AttestedMistySwapClient#getOfframpStatus", params);
@@ -707,10 +707,10 @@ class MobileCoinFlutterPluginChannelApi {
 
   Future<int> attestedMistySwapClientGetOfframpDebugInfo(
       {required int attestedMistySwapClientId,
-      required int getOfframpDebugInfoRequestId}) async {
+      required int getOfframpDebugInfoRequestBytesId}) async {
     final Map<String, dynamic> params = <String, dynamic>{
       'attestedMistySwapClientId': attestedMistySwapClientId,
-      'getOfframpDebugInfoRequestId': getOfframpDebugInfoRequestId,
+      'getOfframpDebugInfoRequestId': getOfframpDebugInfoRequestBytesId,
     };
     return await _channel.invokeMethod(
         "AttestedMistySwapClient#getOfframpDebugInfo", params);
@@ -718,10 +718,10 @@ class MobileCoinFlutterPluginChannelApi {
 
   Future<int> attestedMistySwapClientSetupOnramp(
       {required int attestedMistySwapClientId,
-      required int setupOnrampRequestId}) async {
+      required int setupOnrampRequestBytesId}) async {
     final Map<String, dynamic> params = <String, dynamic>{
       'attestedMistySwapClientId': attestedMistySwapClientId,
-      'getOfframpDebugInfoRequestId': setupOnrampRequestId,
+      'getOfframpDebugInfoRequestId': setupOnrampRequestBytesId,
     };
     return await _channel.invokeMethod(
         "AttestedMistySwapClient#setupOnramp", params);
@@ -729,10 +729,10 @@ class MobileCoinFlutterPluginChannelApi {
 
   Future<int> attestedMistySwapClientForgetOnramp(
       {required int attestedMistySwapClientId,
-      required int forgetOnrampRequestId}) async {
+      required int forgetOnrampRequestBytesId}) async {
     final Map<String, dynamic> params = <String, dynamic>{
       'attestedMistySwapClientId': attestedMistySwapClientId,
-      'getOfframpDebugInfoRequestId': forgetOnrampRequestId,
+      'getOfframpDebugInfoRequestId': forgetOnrampRequestBytesId,
     };
     return await _channel.invokeMethod(
         "AttestedMistySwapClient#forgetOnramp", params);
@@ -740,10 +740,10 @@ class MobileCoinFlutterPluginChannelApi {
 
   Future<int> attestedMistySwapClientGetOnrampStatus(
       {required int attestedMistySwapClientId,
-      required int getOnrampStatusRequestId}) async {
+      required int getOnrampStatusRequestBytesId}) async {
     final Map<String, dynamic> params = <String, dynamic>{
       'attestedMistySwapClientId': attestedMistySwapClientId,
-      'getOfframpDebugInfoRequestId': getOnrampStatusRequestId,
+      'getOfframpDebugInfoRequestId': getOnrampStatusRequestBytesId,
     };
     return await _channel.invokeMethod(
         "AttestedMistySwapClient#getOnrampStatus", params);
@@ -751,10 +751,10 @@ class MobileCoinFlutterPluginChannelApi {
 
   Future<int> attestedMistySwapClientGetOnrampDebugInfo(
       {required int attestedMistySwapClientId,
-      required int getOnrampDebugInfoRequestId}) async {
+      required int getOnrampDebugInfoRequestBytesId}) async {
     final Map<String, dynamic> params = <String, dynamic>{
       'attestedMistySwapClientId': attestedMistySwapClientId,
-      'getOfframpDebugInfoRequestId': getOnrampDebugInfoRequestId,
+      'getOfframpDebugInfoRequestId': getOnrampDebugInfoRequestBytesId,
     };
     return await _channel.invokeMethod(
         "AttestedMistySwapClient#getOnrampDebugInfo", params);
