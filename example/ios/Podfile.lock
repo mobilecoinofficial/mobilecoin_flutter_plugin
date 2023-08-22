@@ -19,13 +19,13 @@ PODS:
     - SwiftNIOSSL (< 3.0.0, >= 2.8.0)
     - SwiftNIOTransportServices (< 2.0.0, >= 1.6.0)
     - SwiftProtobuf (< 2.0.0, >= 1.9.0)
-  - LibMobileCoin/Core (5.0.0):
+  - LibMobileCoin/Core (5.0.5):
     - gRPC-Swift
     - SwiftProtobuf (~> 1.5)
   - Logging (1.4.0)
-  - MobileCoin/Core (5.0.1):
+  - MobileCoin/Core (5.0.5):
     - gRPC-Swift (= 1.0.0)
-    - LibMobileCoin/Core (~> 5.0.0)
+    - LibMobileCoin/Core (~> 5.0.5)
     - Logging (~> 1.4)
     - SwiftNIO (~> 2.40.0)
     - SwiftNIOHPACK (~> 1.16.3)
@@ -33,7 +33,7 @@ PODS:
     - SwiftProtobuf
   - mobilecoin_flutter (0.2.1):
     - Flutter
-    - MobileCoin/Core (~> 5.0.1)
+    - MobileCoin/Core (~> 5.0.5)
   - SwiftNIO (2.40.0):
     - _NIODataStructures (= 2.40.0)
     - CNIOAtomics (= 2.40.0)
@@ -146,7 +146,7 @@ PODS:
     - SwiftNIOFoundationCompat (< 3, >= 2.32.0)
     - SwiftNIOPosix (< 3, >= 2.32.0)
     - SwiftNIOTLS (< 3, >= 2.32.0)
-  - SwiftProtobuf (1.22.0)
+  - SwiftProtobuf (1.22.1)
 
 DEPENDENCIES:
   - Flutter (from `Flutter`)
@@ -200,10 +200,10 @@ SPEC CHECKSUMS:
   CNIOWindows: 3047f2d8165848a3936a0a755fee27c6b5ee479b
   Flutter: f04841e97a9d0b0a8025694d0796dd46242b2854
   gRPC-Swift: 77154009a019e97f8c4bd8f2bb75fe9726801157
-  LibMobileCoin: b1a473933091536cb87fc92a7ca35c63855451f3
+  LibMobileCoin: fd9f9e7d90fd3097c23271351384566cac3525cb
   Logging: beeb016c9c80cf77042d62e83495816847ef108b
-  MobileCoin: 6ee4525ced646daa35cefcae610bf23001649acf
-  mobilecoin_flutter: 45732eeac33217784d8dbf3e9c904e0a5a17b8cc
+  MobileCoin: cba7a0c5d87d35781b4a810b3fac89ff14553dc8
+  mobilecoin_flutter: 676fd4a00ab77c02c199beb6dbaa9273c7f58f3d
   SwiftNIO: 829958aab300642625091f82fc2f49cb7cf4ef24
   SwiftNIOConcurrencyHelpers: 697370136789b1074e4535eaae75cbd7f900370e
   SwiftNIOCore: 473fdfe746534d7aa25766916459eeaf6f92ef49
@@ -217,7 +217,7 @@ SPEC CHECKSUMS:
   SwiftNIOSSL: d153c5a6fc5b2301b0519b4c4d037a9414212da6
   SwiftNIOTLS: 598af547490133e9aac52aed0c23c4a90c31dcfc
   SwiftNIOTransportServices: 0b2b407819d82eb63af558c5396e33c945759503
-  SwiftProtobuf: 40bd808372cb8706108f22d28f8ab4a6b9bc6989
+  SwiftProtobuf: 7773c4e96a99d7b8ab7cda0fc30a883732ff93b1
 
 PODFILE CHECKSUM: 7368163408c647b7eb699d0d788ba6718e18fb8d
 
