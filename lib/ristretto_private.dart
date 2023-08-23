@@ -1,6 +1,7 @@
 import 'dart:typed_data';
-import 'mobilecoin.dart';
-import 'platform_object.dart';
+
+import 'package:mobilecoin_flutter/mobilecoin.dart';
+import 'package:mobilecoin_flutter/platform_object.dart';
 
 class RistrettoPrivate extends PlatformObject {
   RistrettoPrivate(int objectId) : super(id: objectId);

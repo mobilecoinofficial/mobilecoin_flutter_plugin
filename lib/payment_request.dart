@@ -1,7 +1,6 @@
-import 'mobilecoin.dart';
-import 'public_address.dart';
-
-import 'platform_object.dart';
+import 'package:mobilecoin_flutter/mobilecoin.dart';
+import 'package:mobilecoin_flutter/platform_object.dart';
+import 'package:mobilecoin_flutter/public_address.dart';
 
 class PaymentRequest extends PlatformObject {
   PaymentRequest(int objectId) : super(id: objectId);

@@ -10,7 +10,8 @@ class PicoMob {
   /// [PicoMob] from a coin fraction as a [String], e.g., "243.1543"
   PicoMob.fromMobFractionString(String coins)
       : _picoMobs = BigInt.parse(
-            (Decimal.parse(coins) * Decimal.parse('1e12')).toString());
+          (Decimal.parse(coins) * Decimal.parse('1e12')).toString(),
+        );
 
   /// [PicoMob] from a pico count value, i.e., the smallest unit of MOB.
   ///

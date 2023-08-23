@@ -1,30 +1,34 @@
 import 'dart:async';
 import 'dart:typed_data';
 
+import 'package:mobilecoin_flutter/account_key.dart';
 import 'package:mobilecoin_flutter/attestation/client_config.dart';
 import 'package:mobilecoin_flutter/mobilecoin.dart';
-
-import 'mobilecoin.dart';
-import 'account_key.dart';
-import 'platform_object.dart';
-import 'public_address.dart';
+import 'package:mobilecoin_flutter/platform_object.dart';
+import 'package:mobilecoin_flutter/public_address.dart';
 
 class MobileCoinClient extends PlatformObject {
   final AccountKey accountKey;
 
   MobileCoinClient(this.accountKey, int objectId) : super(id: objectId);
 
-  static Future<MobileCoinClient> create(AccountKey accountKey, String fogUrl,
-      String consensusUrl, bool useTestNet, ClientConfig attestClientConfig,
-      [String? mistyswapUrl]) async {
-    final objectId = await MobileCoinFlutterPluginChannelApi.instance
-        .createMobileCoinClient(
-            accountKey: accountKey,
-            fogUrl: fogUrl,
-            consensusUrl: consensusUrl,
-            useTestNet: useTestNet,
-            attestClientConfig: attestClientConfig,
-            mistyswapUrl: mistyswapUrl);
+  static Future<MobileCoinClient> create(
+    AccountKey accountKey,
+    String fogUrl,
+    String consensusUrl,
+    bool useTestNet,
+    ClientConfig attestClientConfig, [
+    String? mistyswapUrl,
+  ]) async {
+    final objectId =
+        await MobileCoinFlutterPluginChannelApi.instance.createMobileCoinClient(
+      accountKey: accountKey,
+      fogUrl: fogUrl,
+      consensusUrl: consensusUrl,
+      useTestNet: useTestNet,
+      attestClientConfig: attestClientConfig,
+      mistyswapUrl: mistyswapUrl,
+    );
     return MobileCoinClient(accountKey, objectId);
   }
 
@@ -157,25 +161,27 @@ class MobileCoinClient extends PlatformObject {
 
   /// Initiates a Mistyswap offramp request
   ///
-  Future<Uint8List> initiateOfframp(
-      {required String mixinCredentialsJSON,
-      required String srcAssetID,
-      required String srcExpectedAmount,
-      required String dstAssetID,
-      required String dstAddress,
-      required String dstAddressTag,
-      required String minDstReceivedAmount,
-      required String maxFeeAmountInDstTokens}) async {
+  Future<Uint8List> initiateOfframp({
+    required String mixinCredentialsJSON,
+    required String srcAssetID,
+    required String srcExpectedAmount,
+    required String dstAssetID,
+    required String dstAddress,
+    required String dstAddressTag,
+    required String minDstReceivedAmount,
+    required String maxFeeAmountInDstTokens,
+  }) async {
     return await MobileCoinFlutterPluginChannelApi.instance.initiateOfframp(
-        mixinCredentialsJSON: mixinCredentialsJSON,
-        srcAssetID: srcAssetID,
-        srcExpectedAmount: srcExpectedAmount,
-        dstAssetID: dstAssetID,
-        dstAddress: dstAddress,
-        dstAddressTag: dstAddressTag,
-        minDstReceivedAmount: minDstReceivedAmount,
-        maxFeeAmountInDstTokens: maxFeeAmountInDstTokens,
-        mobileCoinClientId: id);
+      mixinCredentialsJSON: mixinCredentialsJSON,
+      srcAssetID: srcAssetID,
+      srcExpectedAmount: srcExpectedAmount,
+      dstAssetID: dstAssetID,
+      dstAddress: dstAddress,
+      dstAddressTag: dstAddressTag,
+      minDstReceivedAmount: minDstReceivedAmount,
+      maxFeeAmountInDstTokens: maxFeeAmountInDstTokens,
+      mobileCoinClientId: id,
+    );
   }
 
   /// Gets status for a Mistyswap offramp request

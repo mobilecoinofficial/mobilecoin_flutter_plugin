@@ -1,8 +1,8 @@
-import 'mobilecoin.dart';
-import 'payment_request.dart';
-import 'public_address.dart';
-import 'transfer_payload.dart';
-import 'platform_object.dart';
+import 'package:mobilecoin_flutter/mobilecoin.dart';
+import 'package:mobilecoin_flutter/payment_request.dart';
+import 'package:mobilecoin_flutter/platform_object.dart';
+import 'package:mobilecoin_flutter/public_address.dart';
+import 'package:mobilecoin_flutter/transfer_payload.dart';
 
 class PrintableWrapper extends PlatformObject {
   PrintableWrapper(int objectId) : super(id: objectId);
@@ -19,7 +19,8 @@ class PrintableWrapper extends PlatformObject {
   }
 
   static Future<PrintableWrapper> fromPublicAddress(
-      PublicAddress publicAddress) async {
+    PublicAddress publicAddress,
+  ) async {
     final objectId = await MobileCoinFlutterPluginChannelApi.instance
         .printableWrapperFromPublicAddress(publicAddressId: publicAddress.id);
     return PrintableWrapper(objectId);
@@ -37,10 +38,12 @@ class PrintableWrapper extends PlatformObject {
   }
 
   static Future<PrintableWrapper> fromTransferPayload(
-      TransferPayload transferPayload) async {
+    TransferPayload transferPayload,
+  ) async {
     final objectId = await MobileCoinFlutterPluginChannelApi.instance
         .printableWrapperFromTransferPayload(
-            transferPayloadId: transferPayload.id);
+      transferPayloadId: transferPayload.id,
+    );
     return PrintableWrapper(objectId);
   }
 
@@ -56,10 +59,12 @@ class PrintableWrapper extends PlatformObject {
   }
 
   static Future<PrintableWrapper> fromPaymentRequest(
-      PaymentRequest paymentRequest) async {
+    PaymentRequest paymentRequest,
+  ) async {
     final objectId = await MobileCoinFlutterPluginChannelApi.instance
         .printableWrapperFromPaymentRequest(
-            paymentRequestId: paymentRequest.id);
+      paymentRequestId: paymentRequest.id,
+    );
     return PrintableWrapper(objectId);
   }
 

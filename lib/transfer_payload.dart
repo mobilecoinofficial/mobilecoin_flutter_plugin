@@ -1,7 +1,8 @@
 import 'dart:typed_data';
-import 'mobilecoin.dart';
-import 'ristretto_public.dart';
-import 'platform_object.dart';
+
+import 'package:mobilecoin_flutter/mobilecoin.dart';
+import 'package:mobilecoin_flutter/platform_object.dart';
+import 'package:mobilecoin_flutter/ristretto_public.dart';
 
 class TransferPayload extends PlatformObject {
   TransferPayload(int objectId) : super(id: objectId);

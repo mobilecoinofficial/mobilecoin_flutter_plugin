@@ -10,7 +10,7 @@ on:
   workflow_dispatch:
 
 env:
-  FLUTTER_VERSION: 2.10.2
+  FLUTTER_VERSION: 3.10.3
 
 jobs:
   android:
@@ -59,7 +59,7 @@ jobs:
         run: flutter pub get;
 
       - name: 'Format'
-        run: flutter format $(find . -name "*.dart" -not -wholename "*/generated/*") --set-exit-if-changed
+        run: dart format $(find . -name "*.dart" -not -wholename "*/generated/*") --set-exit-if-changed
 
       - uses: invertase/github-action-dart-analyzer@v1
         with:
