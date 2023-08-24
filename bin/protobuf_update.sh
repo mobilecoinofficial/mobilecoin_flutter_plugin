@@ -43,18 +43,18 @@ echo "generating..."
 
 # only remove the files that are in source control to not mess with local env
 if [ -d "lib/protobufs/generated" ]; then
-  git rm -r lib/protobufs/generated &> /dev/null
-  mkdir -p lib/protobufs/generated
+  git rm -r lib/protobufs/src/protobufs/generated &> /dev/null
+  mkdir -p lib/protobufs/src/protobufs/generated
 fi
 
 # generate files from buf.build
 buf generate buf.build/mobilecoin-inc/misty-swap
 
-protoc --proto_path=lib/protobufs/ \
- --dart_out=grpc:lib/protobufs/generated/ \
- lib/protobufs/google/protobuf/empty.proto
+protoc --proto_path=lib/src/protobufs/ \
+ --dart_out=grpc:lib/src/protobufs/generated/ \
+ lib/src/protobufs/google/protobuf/empty.proto
 
 # add the files back to source control
-git add lib/protobufs/generated/
+git add lib/src/protobufs/generated/
 
 echo "done"

@@ -11,8 +11,7 @@ public class FfiCryptoBox {
 
     private FfiCryptoBox() { }
 
-    public static byte[] encrypt(byte[] data, int ristrettoPublicId)
-            throws Exception {
+    public static byte[] encrypt(byte[] data, int ristrettoPublicId) {
         RistrettoPublic ristrettoPublic = (RistrettoPublic) ObjectStorage.objectForKey(ristrettoPublicId);
         final DefaultVersionedCryptoBox cryptoBox = new DefaultVersionedCryptoBox();
         return cryptoBox.versionedCryptoBoxEncrypt(ristrettoPublic, data);

@@ -25,11 +25,11 @@ class CommandFactory {
         case "ClientConfig#addServiceConfig":
             return FfiClientConfig.AddServiceConfig()
 
-        case "Mistyswap#initiateOfframp":
+        case "AttestedMistySwapClient#initiateOfframp":
             return FfiMistyswap.InitiateOfframp();
-        case "Mistyswap#getOfframpStatus":
+        case "AttestedMistySwapClient#getOfframpStatus":
             return FfiMistyswap.GetOfframpStatus();
-        case "Mistyswap#forgetOfframp":
+        case "AttestedMistySwapClient#forgetOfframp":
             return FfiMistyswap.ForgetOfframp();
 
         case "MobileCoinClient#create":

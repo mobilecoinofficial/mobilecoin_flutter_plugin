@@ -14,8 +14,6 @@ import java.util.concurrent.Executors;
 import attest.Attest;
 import io.grpc.ManagedChannel;
 import io.grpc.StatusRuntimeException;
-import mistyswap.MistyswapOfframp;
-import mistyswap.MistyswapOfframpApiGrpc;
 
 public class GRPCMistySwapOfframpClientService
         extends GRPCService<MistyswapOfframpApiGrpc.MistyswapOfframpApiBlockingStub> {

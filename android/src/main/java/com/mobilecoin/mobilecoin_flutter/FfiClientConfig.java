@@ -5,8 +5,6 @@ import com.mobilecoin.lib.ClientConfig;
 import com.mobilecoin.lib.Verifier;
 import com.mobilecoin.lib.util.Hex;
 
-import java.util.List;
-
 public class FfiClientConfig {
     private FfiClientConfig() {}
 

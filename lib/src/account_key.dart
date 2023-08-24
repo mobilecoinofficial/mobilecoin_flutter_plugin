@@ -1,8 +1,8 @@
 import 'dart:typed_data';
 
-import 'package:mobilecoin_flutter/mobilecoin.dart';
-import 'package:mobilecoin_flutter/platform_object.dart';
-import 'package:mobilecoin_flutter/public_address.dart';
+import 'package:mobilecoin_flutter/src/mobilecoin_flutter_plugin_channel_api.dart';
+import 'package:mobilecoin_flutter/src/platform_object.dart';
+import 'package:mobilecoin_flutter/src/public_address.dart';
 
 class AccountKey extends PlatformObject {
   PublicAddress? _publicAddress;

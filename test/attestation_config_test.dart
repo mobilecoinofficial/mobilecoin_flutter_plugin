@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mobilecoin_flutter/attestation/service_config.dart';
+import 'package:mobilecoin_flutter/src/attestation/service_config.dart';
 
 void main() {
   const fogViewMrEnclave = '1';

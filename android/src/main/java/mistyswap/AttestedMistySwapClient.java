@@ -17,7 +17,6 @@ import com.mobilecoin.lib.network.services.transport.grpc.GRPCTransport;
 import com.mobilecoin.lib.util.NetworkingCall;
 
 import attest.Attest;
-import mistyswap.MistyswapCommon;
 
 @Keep
 public class AttestedMistySwapClient extends AttestedClient {
@@ -69,7 +68,7 @@ public class AttestedMistySwapClient extends AttestedClient {
             attestReset();
             throw exception;
         } catch (Exception exception) {
-            throw new IllegalStateException("BUG: unreachable code");
+            throw new IllegalStateException("BUG: unreachable code", exception);
         }
     }
 
@@ -93,7 +92,7 @@ public class AttestedMistySwapClient extends AttestedClient {
             attestReset();
             throw exception;
         } catch (Exception exception) {
-            throw new IllegalStateException("BUG: unreachable code");
+            throw new IllegalStateException("BUG: unreachable code", exception);
         }
     }
 
@@ -117,7 +116,7 @@ public class AttestedMistySwapClient extends AttestedClient {
             attestReset();
             throw exception;
         } catch (Exception exception) {
-            throw new IllegalStateException("BUG: unreachable code");
+            throw new IllegalStateException("BUG: unreachable code", exception);
         }
     }
 
@@ -141,7 +140,7 @@ public class AttestedMistySwapClient extends AttestedClient {
             attestReset();
             throw exception;
         } catch (Exception exception) {
-            throw new IllegalStateException("BUG: unreachable code");
+            throw new IllegalStateException("BUG: unreachable code", exception);
         }
     }
 
@@ -166,7 +165,7 @@ public class AttestedMistySwapClient extends AttestedClient {
             attestReset();
             throw exception;
         } catch (Exception exception) {
-            throw new IllegalStateException("BUG: unreachable code");
+            throw new IllegalStateException("BUG: unreachable code", exception);
         }
     }
 
@@ -190,7 +189,7 @@ public class AttestedMistySwapClient extends AttestedClient {
             attestReset();
             throw exception;
         } catch (Exception exception) {
-            throw new IllegalStateException("BUG: unreachable code");
+            throw new IllegalStateException("BUG: unreachable code", exception);
         }
     }
 
@@ -214,7 +213,7 @@ public class AttestedMistySwapClient extends AttestedClient {
             attestReset();
             throw exception;
         } catch (Exception exception) {
-            throw new IllegalStateException("BUG: unreachable code");
+            throw new IllegalStateException("BUG: unreachable code", exception);
         }
     }
 
@@ -238,7 +237,7 @@ public class AttestedMistySwapClient extends AttestedClient {
             attestReset();
             throw exception;
         } catch (Exception exception) {
-            throw new IllegalStateException("BUG: unreachable code");
+            throw new IllegalStateException("BUG: unreachable code", exception);
         }
     }
 
@@ -259,7 +258,7 @@ public class AttestedMistySwapClient extends AttestedClient {
             attestReset();
             throw exception;
         } catch (Exception exception) {
-            throw new IllegalStateException("BUG: unreachable code");
+            throw new IllegalStateException("BUG: unreachable code", exception);
         }
     }
 

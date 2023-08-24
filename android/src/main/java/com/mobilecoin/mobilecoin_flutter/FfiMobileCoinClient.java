@@ -27,6 +27,7 @@ import com.mobilecoin.lib.MobileCoinClient;
 import com.mobilecoin.lib.OwnedTxOut;
 import com.mobilecoin.lib.PendingTransaction;
 import com.mobilecoin.lib.PublicAddress;
+import com.mobilecoin.lib.RandomLoadBalancer;
 import com.mobilecoin.lib.RistrettoPublic;
 import com.mobilecoin.lib.SenderMemo;
 import com.mobilecoin.lib.SenderWithPaymentIntentMemo;
@@ -37,6 +38,7 @@ import com.mobilecoin.lib.TxOutMemo;
 import com.mobilecoin.lib.TxOutMemoBuilder;
 import com.mobilecoin.lib.TxOutMemoType;
 import com.mobilecoin.lib.UnsignedLong;
+import com.mobilecoin.lib.Verifier;
 import com.mobilecoin.lib.exceptions.AttestationException;
 import com.mobilecoin.lib.exceptions.FeeRejectedException;
 import com.mobilecoin.lib.exceptions.FogReportException;
@@ -63,6 +65,8 @@ import java.util.Set;
 import java.math.BigInteger;
 
 import consensus_common.ConsensusCommon;
+import mistyswap.AttestedMistySwapClient;
+import mistyswap.MistySwapUri;
 
 @Keep
 public class FfiMobileCoinClient {
@@ -70,15 +74,25 @@ public class FfiMobileCoinClient {
     private FfiMobileCoinClient() {}
 
     public static int create(int accountKeyId, String fogUrl, String consensusUrl,
-            boolean useTestNet, Integer clientConfigId) throws InvalidUriException {
+            String mistySwapUrl, boolean useTestNet, Integer clientConfigId) throws InvalidUriException, AttestationException {
         AccountKey accountKey = (AccountKey) ObjectStorage.objectForKey(accountKeyId);
         ClientConfig clientConfig = (ClientConfig) ObjectStorage.objectForKey(clientConfigId);
         MobileCoinClient mobileCoinClient = new MobileCoinClient(accountKey, Uri.parse(fogUrl),
                 Uri.parse(consensusUrl), clientConfig, TransportProtocol.forGRPC());
+        AttestedMistySwapClient mistySwapClient = new AttestedMistySwapClient(
+                RandomLoadBalancer.create(new MistySwapUri(mistySwapUrl)),
+                new ClientConfig.Service().withVerifier((new Verifier())),
+                TransportProtocol.forGRPC());
 
-        final int hashCode = mobileCoinClient.hashCode();
-        ObjectStorage.addObject(hashCode, mobileCoinClient);
-        return hashCode;
+        final int mobileCoinClientHashCode = mobileCoinClient.hashCode();
+        ObjectStorage.addObject(mobileCoinClientHashCode, mobileCoinClient);
+        ObjectStorage.addObject(mistySwapClientHashCode(mobileCoinClientHashCode), mistySwapClient);
+        return mobileCoinClientHashCode;
+    }
+
+    static int mistySwapClientHashCode(int mobileCoinClientHashCode) {
+        // TODO: will this work?
+        return mobileCoinClientHashCode + 1;
     }
 
     public static String getBalance(int mobileClientId) throws InvalidFogResponse, NetworkException,
@@ -373,8 +387,8 @@ public class FfiMobileCoinClient {
         );
     }
 
-    public static void defragmentAccount(int mobileClientId, 
-        @NonNull BigInteger amount, @NonNull TokenId tokenId, 
+    public static void defragmentAccount(int mobileClientId,
+        @NonNull BigInteger amount, @NonNull TokenId tokenId,
     boolean shouldWriteRTHMemos, @Nullable byte[] rngSeed
     ) throws Exception {
         MobileCoinClient mobileCoinClient =
@@ -407,8 +421,8 @@ public class FfiMobileCoinClient {
             mobileCoinClient.defragmentAccount(tokenAmount, defragDelegate, shouldWriteRTHMemos, rng);
         }
     }
-    
-    public static String estimateTotalFee(int mobileClientId, 
+
+    public static String estimateTotalFee(int mobileClientId,
         @NonNull BigInteger amount, @NonNull TokenId tokenId
     ) throws Exception {
         MobileCoinClient mobileCoinClient =
@@ -418,9 +432,9 @@ public class FfiMobileCoinClient {
         Amount fee = mobileCoinClient.estimateTotalFee(tokenAmount);
         return fee.getValue().toString();
     }
-    
+
     public static String getTransferableAmount(
-            int mobileClientId, 
+            int mobileClientId,
             @NonNull TokenId tokenId
     ) throws Exception {
         MobileCoinClient mobileCoinClient =

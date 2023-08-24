@@ -1,7 +1,7 @@
-import 'package:mobilecoin_flutter/mobilecoin.dart';
-import 'package:mobilecoin_flutter/platform_object.dart';
-import 'package:mobilecoin_flutter/ristretto_private.dart';
-import 'package:mobilecoin_flutter/ristretto_public.dart';
+import 'package:mobilecoin_flutter/src/mobilecoin_flutter_plugin_channel_api.dart';
+import 'package:mobilecoin_flutter/src/platform_object.dart';
+import 'package:mobilecoin_flutter/src/ristretto_private.dart';
+import 'package:mobilecoin_flutter/src/ristretto_public.dart';
 
 class OnetimeKeys extends PlatformObject {
   OnetimeKeys(int objectId) : super(id: objectId);

@@ -11,11 +11,8 @@ import com.mobilecoin.lib.network.services.grpc.GRPCService;
 
 import java.util.concurrent.Executors;
 
-import attest.Attest;
 import io.grpc.ManagedChannel;
 import io.grpc.StatusRuntimeException;
-import mistyswap.MistyswapCommon;
-import mistyswap.MistyswapCommonApiGrpc;
 
 public class GRPCMistySwapCommonClientService
         extends GRPCService<MistyswapCommonApiGrpc.MistyswapCommonApiBlockingStub> {

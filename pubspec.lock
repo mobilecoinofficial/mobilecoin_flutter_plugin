@@ -132,7 +132,7 @@ packages:
     source: hosted
     version: "1.4.1"
   grpc:
-    dependency: "direct dev"
+    dependency: "direct main"
     description:
       name: grpc
       sha256: "220ffb2218288f4e7dea487242e08b9c6277596d9b6f3f10ba50be96771a032d"
@@ -220,7 +220,7 @@ packages:
     source: hosted
     version: "3.7.3"
   protobuf:
-    dependency: "direct dev"
+    dependency: "direct main"
     description:
       name: protobuf
       sha256: "68645b24e0716782e58948f8467fd42a880f255096a821f9e7d0ec625b00c84d"

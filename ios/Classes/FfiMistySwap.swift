@@ -13,20 +13,23 @@ struct FfiMistyswap {
     struct InitiateOfframp: Command {
         func execute(args: [String: Any], result: @escaping FlutterResult) throws {
             guard 
-                let mixinCredentialsJSON = args["mixinCredentialsJSON"] as? String,
-                let srcAssetID = args["srcAssetID"] as? String,
-                let srcExpectedAmount = args["srcExpectedAmount"] as? String,
-                let dstAssetID = args["dstAssetID"] as? String,
-                let dstAddress = args["dstAddress"] as? String,
-                let dstAddressTag = args["dstAddressTag"] as? String,
-                let minDstReceivedAmount = args["minDstReceivedAmount"] as? String,
-                let maxFeeAmountInDstTokens = args["maxFeeAmountInDstTokens"] as? String,
-                let clientId: Int = args["id"] as? Int,
+                let bytes = args["initiateOfframpRequestBytes"] as? FlutterStandardTypedData,
+                let proto = try? MistyswapOfframp_InitiateOfframpRequest.init(serializedData: bytes.data),
+                let clientId: Int = args["mobileCoinClientId"] as? Int,
                 let client = ObjectStorage.objectForKey(clientId) as? MobileCoinClient
             else {
                 result(FlutterError(code: "NATIVE", message: "InitiateOfframp", details: "parsing arguments"))
                 throw PluginError.invalidArguments
             }
+
+            let mixinCredentialsJSON = proto.mixinCredentialsJson
+            let srcAssetID = proto.params.srcAssetID
+            let srcExpectedAmount = proto.params.srcExpectedAmount
+            let dstAssetID = proto.params.dstAssetID
+            let dstAddress = proto.params.dstAddress
+            let dstAddressTag = proto.params.dstAddressTag
+            let minDstReceivedAmount = proto.params.minDstReceivedAmount
+            let maxFeeAmountInDstTokens = proto.params.maxFeeAmountInDstTokens
 
             client.initiateOfframp(
                 mixinCredentialsJSON: mixinCredentialsJSON,
@@ -54,16 +57,19 @@ struct FfiMistyswap {
     struct GetOfframpStatus: Command {
         func execute(args: [String: Any], result: @escaping FlutterResult) throws {
             guard 
-                let offrampID = args["offrampID"] as? FlutterStandardTypedData,
-                let clientId: Int = args["id"] as? Int,
+                let bytes = args["getOfframpStatusRequestBytes"] as? FlutterStandardTypedData,
+                let proto = try? MistyswapOfframp_GetOfframpStatusRequest.init(serializedData: bytes.data),
+                let clientId: Int = args["mobileCoinClientId"] as? Int,
                 let client = ObjectStorage.objectForKey(clientId) as? MobileCoinClient
             else {
                 result(FlutterError(code: "NATIVE", message: "GetOfframpID", details: "parsing arguments"))
                 throw PluginError.invalidArguments
             }
 
+            let offrampID = proto.offrampID
+
             client.getOfframpStatus(
-                offrampID: offrampID.data
+                offrampID: offrampID
             ) { (clientResult: Result<Data, MistyswapError>) in
 
                 switch clientResult {
@@ -81,16 +87,19 @@ struct FfiMistyswap {
     struct ForgetOfframp: Command {
         func execute(args: [String: Any], result: @escaping FlutterResult) throws {
             guard 
-                let offrampID = args["offrampID"] as? FlutterStandardTypedData,
-                let clientId: Int = args["id"] as? Int,
+                let bytes = args["forgetOfframpRequestBytes"] as? FlutterStandardTypedData,
+                let proto = try? MistyswapOfframp_ForgetOfframpRequest.init(serializedData: bytes.data),
+                let clientId: Int = args["mobileCoinClientId"] as? Int,
                 let client = ObjectStorage.objectForKey(clientId) as? MobileCoinClient
             else {
                 result(FlutterError(code: "NATIVE", message: "ForgetOfframp", details: "parsing arguments"))
                 throw PluginError.invalidArguments
             }
 
+            let offrampID = proto.offrampID
+            
             client.forgetOfframp(
-                offrampID: offrampID.data
+                offrampID: offrampID
             ) { (clientResult: Result<Data, MistyswapError>) in
 
                 switch clientResult {

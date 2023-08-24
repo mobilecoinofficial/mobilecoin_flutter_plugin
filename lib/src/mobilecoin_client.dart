@@ -1,18 +1,19 @@
 import 'dart:async';
 import 'dart:typed_data';
 
-import 'package:mobilecoin_flutter/account_key.dart';
-import 'package:mobilecoin_flutter/attestation/client_config.dart';
-import 'package:mobilecoin_flutter/mobilecoin.dart';
-import 'package:mobilecoin_flutter/platform_object.dart';
-import 'package:mobilecoin_flutter/public_address.dart';
+import 'package:mobilecoin_flutter/src/account_key.dart';
+import 'package:mobilecoin_flutter/src/attestation/client_config.dart';
+import 'package:mobilecoin_flutter/src/mobilecoin_flutter_plugin_channel_api.dart';
+import 'package:mobilecoin_flutter/src/platform_object.dart';
+import 'package:mobilecoin_flutter/src/public_address.dart';
+import 'package:mobilecoin_flutter/src/protobufs/generated/mistyswap_offramp.pb.dart';
 
-class MobileCoinClient extends PlatformObject {
+class MobileCoinFlutterClient extends PlatformObject {
   final AccountKey accountKey;
 
-  MobileCoinClient(this.accountKey, int objectId) : super(id: objectId);
+  MobileCoinFlutterClient(this.accountKey, int objectId) : super(id: objectId);
 
-  static Future<MobileCoinClient> create(
+  static Future<MobileCoinFlutterClient> create(
     AccountKey accountKey,
     String fogUrl,
     String consensusUrl,
@@ -29,7 +30,7 @@ class MobileCoinClient extends PlatformObject {
       attestClientConfig: attestClientConfig,
       mistyswapUrl: mistyswapUrl,
     );
-    return MobileCoinClient(accountKey, objectId);
+    return MobileCoinFlutterClient(accountKey, objectId);
   }
 
   Future<Map<String, Object?>> createPendingTransaction(
@@ -161,40 +162,37 @@ class MobileCoinClient extends PlatformObject {
 
   /// Initiates a Mistyswap offramp request
   ///
-  Future<Uint8List> initiateOfframp({
-    required String mixinCredentialsJSON,
-    required String srcAssetID,
-    required String srcExpectedAmount,
-    required String dstAssetID,
-    required String dstAddress,
-    required String dstAddressTag,
-    required String minDstReceivedAmount,
-    required String maxFeeAmountInDstTokens,
+  Future<InitiateOfframpResponse> attestedMistySwapClientInitiateOfframp({
+    required InitiateOfframpRequest request,
   }) async {
-    return await MobileCoinFlutterPluginChannelApi.instance.initiateOfframp(
-      mixinCredentialsJSON: mixinCredentialsJSON,
-      srcAssetID: srcAssetID,
-      srcExpectedAmount: srcExpectedAmount,
-      dstAssetID: dstAssetID,
-      dstAddress: dstAddress,
-      dstAddressTag: dstAddressTag,
-      minDstReceivedAmount: minDstReceivedAmount,
-      maxFeeAmountInDstTokens: maxFeeAmountInDstTokens,
+    return await MobileCoinFlutterPluginChannelApi.instance
+        .attestedMistySwapClientInitiateOfframp(
       mobileCoinClientId: id,
+      initiateOfframpRequest: request,
     );
   }
 
   /// Gets status for a Mistyswap offramp request
   ///
-  Future<Uint8List> getOfframpStatus({required Uint8List offrampID}) async {
+  Future<GetOfframpStatusResponse> attestedMistySwapClientGetOfframpStatus({
+    required GetOfframpStatusRequest request,
+  }) async {
     return await MobileCoinFlutterPluginChannelApi.instance
-        .getOfframpStatus(offrampID: offrampID, mobileCoinClientId: id);
+        .attestedMistySwapClientGetOfframpStatus(
+      mobileCoinClientId: id,
+      getOfframpStatusRequest: request,
+    );
   }
 
   /// Forgets a Mistyswap offramp request
   ///
-  Future<Uint8List> forgetOfframp({required Uint8List offrampID}) async {
+  Future<ForgetOfframpResponse> attestedMistySwapClientForgetOfframp({
+    required ForgetOfframpRequest forgetOfframpRequest,
+  }) async {
     return await MobileCoinFlutterPluginChannelApi.instance
-        .forgetOfframp(offrampID: offrampID, mobileCoinClientId: id);
+        .attestedMistySwapClientForgetOfframp(
+      mobileCoinClientId: id,
+      forgetOfframpRequest: forgetOfframpRequest,
+    );
   }
 }

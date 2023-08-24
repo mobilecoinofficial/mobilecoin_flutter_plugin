@@ -1,5 +1,5 @@
 version: v1
 plugins:
   - name: dart
-    out: lib/protobufs/generated
+    out: lib/src/protobufs/generated
     opt: grpc

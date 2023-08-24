@@ -1,7 +1,7 @@
 import 'dart:typed_data';
 
-import 'package:mobilecoin_flutter/mobilecoin.dart';
-import 'package:mobilecoin_flutter/platform_object.dart';
+import 'package:mobilecoin_flutter/src/mobilecoin_flutter_plugin_channel_api.dart';
+import 'package:mobilecoin_flutter/src/platform_object.dart';
 
 class RistrettoPublic extends PlatformObject {
   RistrettoPublic(int objectId) : super(id: objectId);
