@@ -324,7 +324,7 @@ public class MobileCoinFlutterPlugin implements FlutterPlugin, MethodCallHandler
          * instance.
          */
         Integer createMobileCoinClient(Integer accountKey, String fogUrl, String consensusUrl,
-                String mistySwapUrl, boolean useTestNet, Integer clientConfigId) throws InvalidUriException, AttestationException;
+                @Nullable String mistySwapUrl, boolean useTestNet, Integer clientConfigId) throws InvalidUriException, AttestationException;
 
         /**
          * Retrieves and returns the current balance of all coins of the given
@@ -660,7 +660,7 @@ public class MobileCoinFlutterPlugin implements FlutterPlugin, MethodCallHandler
 
         @Override
         public Integer createMobileCoinClient(Integer accountKey, String fogUrl,
-                String consensusUrl, String mistySwapUrl, boolean useTestNet, Integer clientConfigId)
+                String consensusUrl, @Nullable String mistySwapUrl, boolean useTestNet, Integer clientConfigId)
                 throws InvalidUriException, AttestationException {
             return FfiMobileCoinClient.create(accountKey, fogUrl, consensusUrl, mistySwapUrl, useTestNet,
                     clientConfigId);

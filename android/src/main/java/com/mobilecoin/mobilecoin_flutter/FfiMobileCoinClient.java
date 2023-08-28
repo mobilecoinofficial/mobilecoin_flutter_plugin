@@ -74,19 +74,22 @@ public class FfiMobileCoinClient {
     private FfiMobileCoinClient() {}
 
     public static int create(int accountKeyId, String fogUrl, String consensusUrl,
-            String mistySwapUrl, boolean useTestNet, Integer clientConfigId) throws InvalidUriException, AttestationException {
+            @Nullable String mistySwapUrl, boolean useTestNet, Integer clientConfigId) throws InvalidUriException, AttestationException {
         AccountKey accountKey = (AccountKey) ObjectStorage.objectForKey(accountKeyId);
         ClientConfig clientConfig = (ClientConfig) ObjectStorage.objectForKey(clientConfigId);
         MobileCoinClient mobileCoinClient = new MobileCoinClient(accountKey, Uri.parse(fogUrl),
                 Uri.parse(consensusUrl), clientConfig, TransportProtocol.forGRPC());
-        AttestedMistySwapClient mistySwapClient = new AttestedMistySwapClient(
-                RandomLoadBalancer.create(new MistySwapUri(mistySwapUrl)),
-                new ClientConfig.Service().withVerifier((new Verifier())),
-                TransportProtocol.forGRPC());
 
         final int mobileCoinClientHashCode = mobileCoinClient.hashCode();
         ObjectStorage.addObject(mobileCoinClientHashCode, mobileCoinClient);
-        ObjectStorage.addObject(mistySwapClientHashCode(mobileCoinClientHashCode), mistySwapClient);
+
+        if (!useTestNet && mistySwapUrl != null && !mistySwapUrl.isEmpty()) {
+            AttestedMistySwapClient mistySwapClient = new AttestedMistySwapClient(
+                    RandomLoadBalancer.create(new MistySwapUri(mistySwapUrl)),
+                    new ClientConfig.Service().withVerifier((new Verifier())),
+                    TransportProtocol.forGRPC());
+            ObjectStorage.addObject(mistySwapClientHashCode(mobileCoinClientHashCode), mistySwapClient);
+        }
         return mobileCoinClientHashCode;
     }
 
