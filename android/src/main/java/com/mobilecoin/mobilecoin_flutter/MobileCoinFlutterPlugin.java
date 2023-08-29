@@ -98,7 +98,7 @@ public class MobileCoinFlutterPlugin implements FlutterPlugin, MethodCallHandler
     /**
      * Interprets an incoming plugin channel message and then invokes the appropriate
      * <code>MobileCoinFlutterPluginChannelApi</code>.
-     *
+     * <p>
      * The dispatching of channel messages is handled by a dedicated object so that we can test this
      * object without worrying about threading concerns. The channel's <code>onMethodCall</code>
      * method includes a <code>post()</code> to a background thread to do work, followed by another
@@ -127,7 +127,7 @@ public class MobileCoinFlutterPlugin implements FlutterPlugin, MethodCallHandler
                     return api.createMobileCoinClient(getCallArgument(call, "accountKey"),
                             getCallArgument(call, "fogUrl"),
                             getCallArgument(call, "consensusUrl"),
-                            getCallArgument(call, "mistyswapUrl"),
+                            call.argument("mistyswapUrl"), // can be null
                             getCallArgument(call, "useTestNet"),
                             getCallArgument(call, "clientConfigId"));
                 case "MobileCoinClient#getAccountActivity":
@@ -564,7 +564,7 @@ public class MobileCoinFlutterPlugin implements FlutterPlugin, MethodCallHandler
         ) throws Exception;
 
         /** Defragments the user's account.
-        *
+        * <p>
         * An account needs to be defragmented when an account balance consists
         * of multiple coins and there are no big enough coins to successfully
         * send the transaction.
@@ -572,7 +572,7 @@ public class MobileCoinFlutterPlugin implements FlutterPlugin, MethodCallHandler
         * the account more than once. However, wallet fragmentation is a
         * rare occurrence since there is an internal mechanism to defragment
         * the account during other operations.
-        *
+        * <p>
         * `shouldWriteRTHMemos` writes sender and destination memos for a defrag
         * transactions if true.
         */
