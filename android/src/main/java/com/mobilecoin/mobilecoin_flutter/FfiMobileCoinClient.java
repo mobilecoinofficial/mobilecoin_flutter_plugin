@@ -38,7 +38,7 @@ import com.mobilecoin.lib.TxOutMemo;
 import com.mobilecoin.lib.TxOutMemoBuilder;
 import com.mobilecoin.lib.TxOutMemoType;
 import com.mobilecoin.lib.UnsignedLong;
-import com.mobilecoin.lib.Verifier;
+import com.mobilecoin.lib.TrustedIdentities;
 import com.mobilecoin.lib.exceptions.AttestationException;
 import com.mobilecoin.lib.exceptions.FeeRejectedException;
 import com.mobilecoin.lib.exceptions.FogReportException;
@@ -86,7 +86,7 @@ public class FfiMobileCoinClient {
         if (!useTestNet && mistySwapUrl != null && !mistySwapUrl.isEmpty()) {
             AttestedMistySwapClient mistySwapClient = new AttestedMistySwapClient(
                     RandomLoadBalancer.create(new MistySwapUri(mistySwapUrl)),
-                    new ClientConfig.Service().withVerifier((new Verifier())),
+                    new ClientConfig.Service().withTrustedIdentities((new TrustedIdentities())),
                     TransportProtocol.forGRPC());
             ObjectStorage.addObject(mistySwapClientHashCode(mobileCoinClientHashCode), mistySwapClient);
         }

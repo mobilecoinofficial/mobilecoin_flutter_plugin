@@ -2,7 +2,7 @@ package com.mobilecoin.mobilecoin_flutter;
 
 import com.mobilecoin.lib.exceptions.AttestationException;
 import com.mobilecoin.lib.ClientConfig;
-import com.mobilecoin.lib.Verifier;
+import com.mobilecoin.lib.TrustedIdentities;
 import com.mobilecoin.lib.util.Hex;
 
 public class FfiClientConfig {
@@ -24,30 +24,30 @@ public class FfiClientConfig {
         ClientConfig.Service fogReportService = clientConfig.report;
         ClientConfig.Service consensusService = clientConfig.consensus;
         if (fogViewService == null) {
-            fogViewService = new ClientConfig.Service().withVerifier(new Verifier());
+            fogViewService = new ClientConfig.Service().withTrustedIdentities(new TrustedIdentities());
         }
         if (fogLedgerService == null) {
-            fogLedgerService = new ClientConfig.Service().withVerifier(new Verifier());
+            fogLedgerService = new ClientConfig.Service().withTrustedIdentities(new TrustedIdentities());
         }
         if (fogReportService == null) {
-            fogReportService = new ClientConfig.Service().withVerifier(new Verifier());
+            fogReportService = new ClientConfig.Service().withTrustedIdentities(new TrustedIdentities());
         }
         if (consensusService == null) {
-            consensusService = new ClientConfig.Service().withVerifier(new Verifier());
+            consensusService = new ClientConfig.Service().withTrustedIdentities(new TrustedIdentities());
         }
-        Verifier fogViewVerifier = fogViewService.getVerifier();
-        fogViewVerifier.withMrEnclave(Hex.toByteArray(fogViewMrEnclave), null, hardeningAdvisories);
+        TrustedIdentities fogViewIdentities = fogViewService.getTrustedIdentities();
+        fogViewIdentities.addMrEnclaveIdentity(Hex.toByteArray(fogViewMrEnclave), null, hardeningAdvisories);
 
-        Verifier fogLedgerVerifier = fogLedgerService.getVerifier();
-        fogLedgerVerifier.withMrEnclave(Hex.toByteArray(fogLedgerMrEnclave), null,
+        TrustedIdentities fogLedgerIdentities = fogLedgerService.getTrustedIdentities();
+        fogLedgerIdentities.addMrEnclaveIdentity(Hex.toByteArray(fogLedgerMrEnclave), null,
                 hardeningAdvisories);
 
-        Verifier fogReportVerifier = fogReportService.getVerifier();
-        fogReportVerifier.withMrEnclave(Hex.toByteArray(fogReportMrEnclave), null,
+                TrustedIdentities fogReportIdentities = fogReportService.getTrustedIdentities();
+        fogReportIdentities.addMrEnclaveIdentity(Hex.toByteArray(fogReportMrEnclave), null,
                 hardeningAdvisories);
 
-        Verifier consensusVerifier = consensusService.getVerifier();
-        consensusVerifier.withMrEnclave(Hex.toByteArray(consensusMrEnclave), null,
+                TrustedIdentities consensusIdentities = consensusService.getTrustedIdentities();
+        consensusIdentities.addMrEnclaveIdentity(Hex.toByteArray(consensusMrEnclave), null,
                 hardeningAdvisories);
 
         clientConfig.fogView = fogViewService;

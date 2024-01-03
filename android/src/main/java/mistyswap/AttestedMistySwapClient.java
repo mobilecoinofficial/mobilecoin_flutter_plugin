@@ -33,7 +33,7 @@ public class AttestedMistySwapClient extends AttestedClient {
             final ByteString bytes = ByteString.copyFrom(requestBytes);
             final Attest.AuthMessage authMessage = Attest.AuthMessage.newBuilder().setData(bytes).build();
             final Attest.AuthMessage response = attestedService.auth(authMessage);
-            attestFinish(response.getData().toByteArray(), getServiceConfig().getVerifier());
+            attestFinish(response.getData().toByteArray(), getServiceConfig().getTrustedIdentities());
         } catch(NetworkException e) {
             attestReset();
             if(e.getResult().getResultCode() == NetworkResult.ResultCode.INTERNAL) {
