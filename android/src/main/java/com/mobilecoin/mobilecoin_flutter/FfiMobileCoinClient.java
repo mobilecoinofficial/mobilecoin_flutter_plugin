@@ -291,17 +291,30 @@ public class FfiMobileCoinClient {
         }
     }
 
+    @Nullable
+    static UnsignedLong tryParseLong(String value) {
+        try {
+            return UnsignedLong.fromBigInteger(new BigInteger(value));
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
     public static HashMap<String, Object> createPendingTransaction(int mobileClientId,
             int recipientId, @NonNull PicoMob fee, @NonNull PicoMob amount,
-            @NonNull TokenId tokenId, byte[] rngSeed) throws InvalidFogResponse,
+            @NonNull TokenId tokenId, byte[] rngSeed, String paymentRequestIdString) throws InvalidFogResponse,
             AttestationException, FeeRejectedException, InsufficientFundsException,
             FragmentedAccountException, NetworkException, TransactionBuilderException,
             FogReportException, FogSyncException, SerializationException {
         PublicAddress recipient = (PublicAddress) ObjectStorage.objectForKey(recipientId);
         MobileCoinClient mobileCoinClient =
                 (MobileCoinClient) ObjectStorage.objectForKey(mobileClientId);
-        TxOutMemoBuilder txOutMemoBuilder = TxOutMemoBuilder
-                .createSenderAndDestinationRTHMemoBuilder(mobileCoinClient.getAccountKey());
+        final UnsignedLong paymentRequestId = tryParseLong(paymentRequestIdString);
+        TxOutMemoBuilder txOutMemoBuilder = paymentRequestId == null ?
+                TxOutMemoBuilder
+                        .createSenderAndDestinationRTHMemoBuilder(mobileCoinClient.getAccountKey()) :
+                TxOutMemoBuilder
+                        .createSenderPaymentRequestAndDestinationRTHMemoBuilder(mobileCoinClient.getAccountKey(), paymentRequestId);
 
         // Reusing an rngSeed makes it so the public key is always the same, ensuring
         // idempotence

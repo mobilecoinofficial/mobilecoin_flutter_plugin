@@ -145,7 +145,8 @@ public class MobileCoinFlutterPlugin implements FlutterPlugin, MethodCallHandler
                         PicoMob.parsePico(getCallArgument(call, "fee")),
                         PicoMob.parsePico(getCallArgument(call, "amount")),
                         tokenId,
-                        getCallArgument(call, "rngSeed"));
+                        getCallArgument(call, "rngSeed"),
+                        call.argument("paymentRequestId")); // can be null
             }
             case "MobileCoinClient#sendFunds":
                 return api.sendFunds(getCallArgument(call, "id"), getCallArgument(call, "transaction"));
@@ -351,7 +352,7 @@ public class MobileCoinFlutterPlugin implements FlutterPlugin, MethodCallHandler
          */
         HashMap<String, Object> createPendingTransaction(int mobileClientId, int recipientId,
                 @NonNull PicoMob fee, @NonNull PicoMob amount, @NonNull TokenId tokenId,
-                @NonNull byte[] rngSeed)
+                @NonNull byte[] rngSeed, String paymentRequestId)
                 throws InvalidFogResponse, InterruptedException, InvalidTransactionException,
                 AttestationException, FeeRejectedException, InsufficientFundsException,
                 FragmentedAccountException, NetworkException, TransactionBuilderException,
@@ -689,12 +690,12 @@ public class MobileCoinFlutterPlugin implements FlutterPlugin, MethodCallHandler
         @Override
         public HashMap<String, Object> createPendingTransaction(int mobileClientId, int recipientId,
                 @NonNull PicoMob fee, @NonNull PicoMob amount, @NonNull TokenId tokenId,
-                @NonNull byte[] rngSeed) throws InvalidFogResponse, AttestationException,
+                @NonNull byte[] rngSeed, String paymentRequestIdString) throws InvalidFogResponse, AttestationException,
                 FeeRejectedException, InsufficientFundsException, FragmentedAccountException,
                 NetworkException, TransactionBuilderException, FogReportException, FogSyncException,
                 SerializationException {
             return FfiMobileCoinClient.createPendingTransaction(mobileClientId, recipientId, fee,
-                    amount, tokenId, rngSeed);
+                    amount, tokenId, rngSeed, paymentRequestIdString);
         }
 
         @Override

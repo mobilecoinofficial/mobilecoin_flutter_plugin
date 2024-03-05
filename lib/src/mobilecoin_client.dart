@@ -39,6 +39,7 @@ class MobileCoinFlutterClient extends PlatformObject {
     BigInt fee,
     BigInt tokenId,
     String rngSeed,
+    BigInt paymentRequestId,
   ) async {
     return await MobileCoinFlutterPluginChannelApi.instance
         .createPendingTransaction(
@@ -48,6 +49,7 @@ class MobileCoinFlutterClient extends PlatformObject {
       amount: amount,
       tokenId: tokenId,
       rngSeed: rngSeed,
+      paymentRequestId: paymentRequestId,
     );
   }
 
@@ -102,7 +104,7 @@ class MobileCoinFlutterClient extends PlatformObject {
     );
   }
 
-  /// Returns wether or not MobileCoin client can send a specified amount
+  /// Returns whether or not MobileCoin client can send a specified amount
   /// without account defragmentation
   Future<bool> requiresDefragmentation(BigInt tokenId, BigInt amount) async {
     return await MobileCoinFlutterPluginChannelApi.instance

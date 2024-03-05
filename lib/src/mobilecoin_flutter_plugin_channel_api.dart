@@ -76,6 +76,7 @@ class MobileCoinFlutterPluginChannelApi {
     required BigInt amount,
     required BigInt tokenId,
     required String rngSeed,
+    BigInt? paymentRequestId,
   }) async {
     if (rngSeed.codeUnits.length != 32) {
       throw Exception(
@@ -90,6 +91,7 @@ class MobileCoinFlutterPluginChannelApi {
       'amount': amount.toString(),
       'tokenId': tokenId.toString(),
       'rngSeed': Uint8List.fromList(rngSeed.codeUnits),
+      'paymentRequestId': paymentRequestId?.toString(),
     };
     final result = await _channel.invokeMethod(
       "MobileCoinClient#createPendingTransaction",

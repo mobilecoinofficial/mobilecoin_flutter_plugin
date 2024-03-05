@@ -423,19 +423,25 @@ struct FfiMobileCoinClient {
                   let tokenIdString = args["tokenId"] as? String,
                   let tokenId = UInt64(tokenIdString),
                   let amountString: String = args["amount"] as? String,
+                  let paymentRequestIdString = args["paymentRequestId"] as? String,
                   let parsedAmount = UInt64(amountString) else {
                       result(FlutterError(code: "NATIVE", message: "CreatePendingTransaction", details: "parsing arguments"))
                       throw PluginError.invalidArguments
                   }
+            let paymentRequest = UInt64(paymentRequestIdString)
             let amount = Amount(parsedAmount, in: TokenId(tokenId))
             let rng = MobileCoinChaCha20Rng(seed: rngSeed.data)
+            let memoType: MemoType = { 
+                guard let paymentRequest = paymentRequest else { return MemoType.recoverable } 
+                return MemoType.recoverablePaymentRequest(id: paymentRequest)
+            }()
 
             guard let recipient: PublicAddress = ObjectStorage.objectForKey(recipientId) as? PublicAddress,
                   let mobileCoinClient: MobileCoinClient = ObjectStorage.objectForKey(mobileClientId) as? MobileCoinClient else {
                       result(FlutterError(code: "NATIVE", message: "CreatePendingTransaction", details: "retrieve client"))
                       throw PluginError.invalidArguments
                   }
-            mobileCoinClient.prepareTransaction(to: recipient, memoType: .recoverable, amount: amount, fee: fee, rng: rng) {
+            mobileCoinClient.prepareTransaction(to: recipient, memoType: memoType, amount: amount, fee: fee, rng: rng) {
                 (pendingTx: Result<PendingSinglePayloadTransaction, TransactionPreparationError>) in
                 switch pendingTx {
                 case .success(let (pending)):
