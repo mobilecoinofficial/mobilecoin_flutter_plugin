@@ -7,18 +7,19 @@ import 'package:mobilecoin_flutter/src/platform_object.dart';
 import 'package:mobilecoin_flutter/src/public_address.dart';
 
 class AccountKey extends PlatformObject {
-  PublicAddress? _publicAddress;
-  Uint8List bip39Entropy;
-  Uint8List fogAuthoritySpki;
-  String fogReportUri;
-  String reportId;
+  final PublicAddress publicAddress;
+  final Uint8List bip39Entropy;
+  final Uint8List fogAuthoritySpki;
+  final String fogReportUri;
+  final String reportId;
 
-  AccountKey(
+  const AccountKey(
     int objectId,
     this.bip39Entropy,
     this.fogReportUri,
     this.fogAuthoritySpki,
     this.reportId,
+    this.publicAddress,
   ) : super(id: objectId);
 
   static Future<AccountKey> fromBip39Entropy(
@@ -27,28 +28,23 @@ class AccountKey extends PlatformObject {
     required Uint8List fogAuthoritySpki,
     required String reportId,
   }) async {
-    final objectId = await MobileCoinFlutterPluginChannelApi.instance
+    final accountObjectId = await MobileCoinFlutterPluginChannelApi.instance
         .getAccountKeyFromBip39Entropy(
       entropy: entropy,
       fogReportUri: fogReportUri,
       fogAuthoritySpki: fogAuthoritySpki,
       reportId: reportId,
     );
+    final publicKeyObjectId = await MobileCoinFlutterPluginChannelApi.instance
+        .getAccountKeyPublicAddress(accountKeyId: accountObjectId);
+
     return AccountKey(
-      objectId,
+      accountObjectId,
       entropy,
       fogReportUri,
       fogAuthoritySpki,
       reportId,
+      PublicAddress(publicKeyObjectId),
     );
-  }
-
-  Future<PublicAddress> getPublicAddress() async {
-    if (null == _publicAddress) {
-      final objectId = await MobileCoinFlutterPluginChannelApi.instance
-          .getAccountKeyPublicAddress(accountKeyId: id);
-      _publicAddress = PublicAddress(objectId);
-    }
-    return _publicAddress!;
   }
 }
