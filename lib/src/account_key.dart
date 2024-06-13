@@ -2,12 +2,11 @@
 
 import 'dart:typed_data';
 
-import 'package:mobilecoin_flutter/src/mobilecoin_flutter_plugin_channel_api.dart';
+import 'package:mobilecoin_flutter/mobilecoin_flutter.dart';
 import 'package:mobilecoin_flutter/src/platform_object.dart';
-import 'package:mobilecoin_flutter/src/public_address.dart';
 
 class AccountKey extends PlatformObject {
-  final PublicAddress publicAddress;
+  final String publicAddress;
   final Uint8List bip39Entropy;
   final Uint8List fogAuthoritySpki;
   final String fogReportUri;
@@ -38,13 +37,17 @@ class AccountKey extends PlatformObject {
     final publicKeyObjectId = await MobileCoinFlutterPluginChannelApi.instance
         .getAccountKeyPublicAddress(accountKeyId: accountObjectId);
 
+    final printableWrapper = await PrintableWrapper.fromPublicAddress(
+      PublicAddress(publicKeyObjectId),
+    );
+
     return AccountKey(
       accountObjectId,
       entropy,
       fogReportUri,
       fogAuthoritySpki,
       reportId,
-      PublicAddress(publicKeyObjectId),
+      await printableWrapper.toB58String(),
     );
   }
 }
