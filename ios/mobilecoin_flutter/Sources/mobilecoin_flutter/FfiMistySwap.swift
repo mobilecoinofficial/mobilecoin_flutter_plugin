@@ -10,6 +10,11 @@ import Foundation
 import MobileCoin
 import LibMobileCoin
 
+#if canImport(LibMobileCoinCommon)
+import LibMobileCoinCommon
+#endif
+
+
 struct FfiMistyswap {
     struct InitiateOfframp: Command {
         func execute(args: [String: Any], result: @escaping FlutterResult) throws {
