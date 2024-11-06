@@ -5,6 +5,7 @@
 //  Created by Alexander Voloshyn on 9/29/20.
 //
 
+import Flutter
 import Foundation
 import MobileCoin
 

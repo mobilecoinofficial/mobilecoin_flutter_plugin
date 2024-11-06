@@ -5,6 +5,7 @@
 //  Created by Adam Mork on 2/20/23.
 //
 
+import Flutter
 import Foundation
 import MobileCoin
 

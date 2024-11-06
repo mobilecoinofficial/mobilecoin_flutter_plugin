@@ -13,7 +13,7 @@ A new flutter plugin project.
   s.license          = { :file => '../LICENSE' }
   s.author           = { 'MobileCoin' => 'hello@mobilecoin.com' }
   s.source           = { :path => '.' }
-  s.source_files = 'Classes/**/*'
+  s.source_files = ['mobilecoin_flutter/Sources/mobilecoin_flutter/**/*', 'cocoapods_only/**/*']
   s.dependency 'Flutter'
 
   s.dependency 'MobileCoin/Core', '~> 6.0.0'

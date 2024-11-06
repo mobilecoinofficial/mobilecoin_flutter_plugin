@@ -8,3 +8,9 @@
 
 build/
 example/ios/Gemfile.lock
+
+ios/mobilecoin_flutter/.swiftpm
+ios/mobilecoin_flutter/.build
+
+example/ios/Runner.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/
+example/ios/Runner.xcworkspace/xcshareddata/swiftpm/
