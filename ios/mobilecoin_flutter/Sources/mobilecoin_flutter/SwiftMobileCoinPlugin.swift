@@ -146,7 +146,7 @@ public class MobileCoinFlutterPlugin: NSObject, FlutterPlugin {
 
     public static func register(with registrar: FlutterPluginRegistrar) {
         let channel = FlutterMethodChannel(name: "mobilecoin_flutter", binaryMessenger: registrar.messenger())
-        let instance = SwiftMobileCoinPlugin()
+        let instance = MobileCoinFlutterPlugin()
         registrar.addMethodCallDelegate(instance, channel: channel)
     }
 
