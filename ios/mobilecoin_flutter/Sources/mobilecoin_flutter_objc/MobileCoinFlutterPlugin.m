@@ -10,6 +10,6 @@
 
 @implementation MobileCoinFlutterPlugin
 + (void)registerWithRegistrar:(NSObject<FlutterPluginRegistrar>*)registrar {
-  [SwiftMobileCoinPlugin registerWithRegistrar:registrar];
+  [MobileCoinFlutterPlugin registerWithRegistrar:registrar];
 }
 @end

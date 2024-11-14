@@ -142,7 +142,7 @@ struct ObjectStorage {
     }
 }
 
-public class SwiftMobileCoinPlugin: NSObject, FlutterPlugin {
+public class MobileCoinFlutterPlugin: NSObject, FlutterPlugin {
 
     public static func register(with registrar: FlutterPluginRegistrar) {
         let channel = FlutterMethodChannel(name: "mobilecoin_flutter", binaryMessenger: registrar.messenger())
