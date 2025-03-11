@@ -5,7 +5,6 @@ buildscript {
     repositories {
         google()
         mavenCentral()
-        mavenLocal()
     }
 
     dependencies {
@@ -19,13 +18,14 @@ rootProject.allprojects {
         maven {
             url "https://dl.cloudsmith.io/qxAgwaeEE1vN8aLU/mobilecoin/mobilecoin/maven/"
         }
+        mavenLocal()
     }
 }
 
 apply plugin: 'com.android.library'
 
 dependencies {
-    implementation 'android-sdk:6.0.2'
+    implementation 'com.mobilecoin:android-sdk:6.0.2'
 }
 
 android {
