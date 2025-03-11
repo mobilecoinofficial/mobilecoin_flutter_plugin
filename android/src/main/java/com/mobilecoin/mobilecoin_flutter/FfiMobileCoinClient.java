@@ -468,7 +468,6 @@ public class FfiMobileCoinClient {
                 (MobileCoinClient) ObjectStorage.objectForKey(mobileClientId);
 
         SignedContingentInput sci =  mobileCoinClient.createProofOfReserveSCI(txOutPublicKeyBytes);
-        inspect(sci);
         return "hehehe";
     }
 }
