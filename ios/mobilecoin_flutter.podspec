@@ -17,7 +17,7 @@ A new flutter plugin project.
   s.source_files = 'Classes/**/*'
   s.dependency 'Flutter'
 
-  s.dependency 'MobileCoin/CoreHTTP', '~> 6.0.3'
+  s.dependency 'MobileCoin/CoreHTTP', '~> 6.0.5'
   s.platform = :ios, '12.0'
 
   # Flutter.framework does not contain a i386 slice.

@@ -34,6 +34,7 @@ import com.mobilecoin.lib.RistrettoPublic;
 import com.mobilecoin.lib.SenderMemo;
 import com.mobilecoin.lib.SenderWithPaymentIntentMemo;
 import com.mobilecoin.lib.SenderWithPaymentRequestMemo;
+import com.mobilecoin.lib.SignedContingentInput;
 import com.mobilecoin.lib.TokenId;
 import com.mobilecoin.lib.Transaction;
 import com.mobilecoin.lib.TxOutMemo;
@@ -460,5 +461,17 @@ public class FfiMobileCoinClient {
 
         Amount amount = mobileCoinClient.getTransferableAmount(tokenId);
         return amount.getValue().toString();
+    }
+
+    public static HashMap<String, Object> createProofOfReserveSignedContingentInput(int mobileClientId, byte[] txOutPublicKeyBytes) throws Exception {
+        MobileCoinClient mobileCoinClient =
+                (MobileCoinClient) ObjectStorage.objectForKey(mobileClientId);
+
+        SignedContingentInput sci =  mobileCoinClient.createProofOfReserveSignedContingentInput(txOutPublicKeyBytes);
+
+        HashMap<String, Object> returnPayload = new HashMap<>();
+        returnPayload.put("sciProtobufBytes", sci.toByteArray());
+
+        return returnPayload;
     }
 }
