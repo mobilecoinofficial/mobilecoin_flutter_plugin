@@ -461,4 +461,6 @@ public class FfiMobileCoinClient {
         Amount amount = mobileCoinClient.getTransferableAmount(tokenId);
         return amount.getValue().toString();
     }
+
+    sux
 }
