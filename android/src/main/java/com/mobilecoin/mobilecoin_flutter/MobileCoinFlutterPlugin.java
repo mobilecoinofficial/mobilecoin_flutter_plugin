@@ -197,6 +197,12 @@ public class MobileCoinFlutterPlugin implements FlutterPlugin, MethodCallHandler
                     tokenId
                 );
             }
+            case "MobileCoinClient#createProofOfReserveSignedContingentInput": {
+                return api.createProofOfReserveSignedContingentInput(
+                    getCallArgument(call, "id"),
+                    getCallArgument(call, "txOutPublicKeyBytes")
+                );
+            }
             case "AccountKey#getPublicAddress":
                 return api.getAccountKeyPublicAddress(getCallArgument(call, "id"));
             case "PrintableWrapper#fromB58String":
@@ -610,6 +616,14 @@ public class MobileCoinFlutterPlugin implements FlutterPlugin, MethodCallHandler
         ) throws Exception;
 
         /**
+         * Creates a proof of reserve signed contingent input for the given txOutPublicKeyBytes
+         */
+        HashMap<String, Object> createProofOfReserveSignedContingentInput(
+            int mobileClientId,
+            @NonNull byte[] txOutPublicKeyBytes
+        ) throws Exception;
+
+        /**
          * Deserializes the given <code>byte[]</code> into a <code>RistrettoPublic</code>, stores the
          * address in local object storage, and returns its hash code.
          */
@@ -929,6 +943,14 @@ public class MobileCoinFlutterPlugin implements FlutterPlugin, MethodCallHandler
                 mobileClientId,
                 tokenId
             );
+        }
+
+        @Override
+        public HashMap<String, Object> createProofOfReserveSignedContingentInput(
+            int mobileClientId,
+            @NonNull byte[] txOutPublicKeyBytes
+        ) throws Exception {
+            return FfiMobileCoinClient.createProofOfReserveSignedContingentInput(mobileClientId, txOutPublicKeyBytes);
         }
 
         @Override

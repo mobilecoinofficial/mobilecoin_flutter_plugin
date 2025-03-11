@@ -463,11 +463,15 @@ public class FfiMobileCoinClient {
         return amount.getValue().toString();
     }
 
-    public static String createProofOfReserveSCI(int mobileClientId, byte[] txOutPublicKeyBytes) throws Exception {
+    public static HashMap<String, Object> createProofOfReserveSignedContingentInput(int mobileClientId, byte[] txOutPublicKeyBytes) throws Exception {
         MobileCoinClient mobileCoinClient =
                 (MobileCoinClient) ObjectStorage.objectForKey(mobileClientId);
 
-        SignedContingentInput sci =  mobileCoinClient.createProofOfReserveSCI(txOutPublicKeyBytes);
-        return "hehehe";
+        SignedContingentInput sci =  mobileCoinClient.createProofOfReserveSignedContingentInput(txOutPublicKeyBytes);
+
+        HashMap<String, Object> returnPayload = new HashMap<>();
+        returnPayload.put("sciProtobufBytes", sci.toByteArray());
+
+        return returnPayload;
     }
 }
