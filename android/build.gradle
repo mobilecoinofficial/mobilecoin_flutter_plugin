@@ -13,12 +13,12 @@ buildscript {
 }
 rootProject.allprojects {
     repositories {
+        mavenLocal()
         google()
         mavenCentral()
         maven {
             url "https://dl.cloudsmith.io/qxAgwaeEE1vN8aLU/mobilecoin/mobilecoin/maven/"
         }
-        mavenLocal()
     }
 }
 
