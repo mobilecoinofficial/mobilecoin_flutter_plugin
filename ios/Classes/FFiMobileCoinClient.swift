@@ -43,7 +43,7 @@ struct FfiMobileCoinClient {
             let mistyswapAttestation = Attestation(mrEnclaves: mistyswapMrEnclave)
 
             let client: MobileCoinClient = try {
-                let transportProtocol = TransportProtocol.grpc
+                let transportProtocol = TransportProtocol.http
 
                 guard let mistyswapUrl = args["mistyswapUrl"] as? String 
                 else {
