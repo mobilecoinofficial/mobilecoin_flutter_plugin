@@ -4,45 +4,76 @@ import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:mobilecoin_flutter/src/account_key.dart';
-import 'package:mobilecoin_flutter/src/attestation/client_config.dart';
 import 'package:mobilecoin_flutter/src/mobilecoin_flutter_plugin_channel_api.dart';
 import 'package:mobilecoin_flutter/src/platform_object.dart';
 import 'package:mobilecoin_flutter/src/public_address.dart';
 import 'package:mobilecoin_flutter/src/protobufs/generated/mistyswap_offramp.pb.dart';
 
 class MobileCoinFlutterClient extends PlatformObject {
-  final AccountKey accountKey;
+  MobileCoinFlutterClient(int objectId) : super(id: objectId);
 
-  MobileCoinFlutterClient(this.accountKey, int objectId) : super(id: objectId);
+  static Future<MobileCoinFlutterClient> create(AccountKey accountKey) async {
+    final objectId = await MobileCoinFlutterPluginChannelApi.instance
+        .createMobileCoinClient(accountKey);
 
-  static Future<MobileCoinFlutterClient> create(
-    AccountKey accountKey,
-    String fogUrl,
-    String consensusUrl,
-    bool useTestNet,
-    ClientConfig attestClientConfig, [
-    String? mistyswapUrl,
-  ]) async {
-    final objectId =
-        await MobileCoinFlutterPluginChannelApi.instance.createMobileCoinClient(
-      accountKey: accountKey,
-      fogUrl: fogUrl,
-      consensusUrl: consensusUrl,
-      useTestNet: useTestNet,
-      attestClientConfig: attestClientConfig,
-      mistyswapUrl: mistyswapUrl,
-    );
-    return MobileCoinFlutterClient(accountKey, objectId);
+    return MobileCoinFlutterClient(objectId);
   }
 
-  Future<Map<String, Object?>> createPendingTransaction(
-    PublicAddress recipient,
-    BigInt amount,
-    BigInt fee,
-    BigInt tokenId,
-    String rngSeed,
-    BigInt paymentRequestId,
-  ) async {
+  static Future<Uint8List> mnemonicToBip39Entropy(String mnemonicPhrase) =>
+      MobileCoinFlutterPluginChannelApi.instance
+          .mnemonicToBip39Entropy(mnemonicPhrase);
+
+  static Future<String> mnemonicAllWords() =>
+      MobileCoinFlutterPluginChannelApi.instance.mnemonicAllWords();
+
+  static Future<Uint8List> publicAddressGetAddressHash({
+    required int publicAddressId,
+  }) =>
+      MobileCoinFlutterPluginChannelApi.instance
+          .publicAddressGetAddressHash(publicAddressId: publicAddressId);
+
+  static Future<int> printableWrapperFromB58String({
+    required String b58String,
+  }) =>
+      MobileCoinFlutterPluginChannelApi.instance
+          .printableWrapperFromB58String(b58String: b58String);
+
+  static Future<int> paymentRequestCreate({
+    required PublicAddress publicAddress,
+    required BigInt tokenId,
+    String? memo,
+    BigInt? amount,
+  }) =>
+      MobileCoinFlutterPluginChannelApi.instance.paymentRequestCreate(
+        publicAddress: publicAddress,
+        tokenId: tokenId,
+        memo: memo,
+        amount: amount,
+      );
+
+  static Future<int> printableWrapperFromPaymentRequest({
+    required int paymentRequestId,
+  }) =>
+      MobileCoinFlutterPluginChannelApi.instance
+          .printableWrapperFromPaymentRequest(
+        paymentRequestId: paymentRequestId,
+      );
+
+  static Future<String> printableWrapperToB58String({
+    required int printableWrapperId,
+  }) =>
+      MobileCoinFlutterPluginChannelApi.instance.printableWrapperToB58String(
+        printableWrapperId: printableWrapperId,
+      );
+
+  Future<Map<String, Object?>> createPendingTransaction({
+    required PublicAddress recipient,
+    required BigInt amount,
+    required BigInt fee,
+    required BigInt tokenId,
+    required String rngSeed,
+    BigInt? paymentRequestId,
+  }) async {
     return await MobileCoinFlutterPluginChannelApi.instance
         .createPendingTransaction(
       mobileClientId: id,
