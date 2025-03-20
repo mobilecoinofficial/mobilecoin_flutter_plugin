@@ -3,7 +3,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:mobilecoin_flutter/src/account_key.dart';
-import 'package:mobilecoin_flutter/src/attestation/client_config.dart';
 import 'package:mobilecoin_flutter/src/attestation/service_config.dart';
 import 'package:mobilecoin_flutter/src/protobufs/generated/mistyswap_common.pb.dart';
 import 'package:mobilecoin_flutter/src/protobufs/generated/mistyswap_offramp.pb.dart';
@@ -28,22 +27,16 @@ class MobileCoinFlutterPluginChannelApi {
 
   final MethodChannel _channel;
 
-  Future<int> createMobileCoinClient({
-    required AccountKey accountKey,
-    required String fogUrl,
-    required String consensusUrl,
-    required bool useTestNet,
-    required ClientConfig attestClientConfig,
-    String? mistyswapUrl,
-  }) async {
+  Future<int> createMobileCoinClient(AccountKey key) async {
     final Map<String, dynamic> params = <String, dynamic>{
-      'accountKey': accountKey.id,
-      'fogUrl': fogUrl,
-      'consensusUrl': consensusUrl,
-      'mistyswapUrl': mistyswapUrl,
-      'useTestNet': useTestNet,
-      'clientConfigId': attestClientConfig.id,
+      'accountKey': key.id,
+      'fogUrl': key.config.fogUrl,
+      'consensusUrl': key.config.consensusUrl,
+      'mistyswapUrl': key.config.mistyswapUrl,
+      'useTestNet': key.config.useTestNet,
+      'clientConfigId': key.config.attestClientConfig.id,
     };
+
     return await _channel.invokeMethod("MobileCoinClient#create", params);
   }
 
@@ -150,14 +143,14 @@ class MobileCoinFlutterPluginChannelApi {
   Future<int> getAccountKeyFromBip39Entropy({
     required Uint8List entropy,
     required String fogReportUri,
-    required String reportId,
+    required String fogReportId,
     required Uint8List fogAuthoritySpki,
   }) async {
     final Map<String, dynamic> params = <String, dynamic>{
       'bip39Entropy': entropy,
       'fogReportUri': fogReportUri,
       'fogAuthoritySpki': fogAuthoritySpki,
-      'reportId': reportId,
+      'reportId': fogReportId,
     };
     return await _channel.invokeMethod("AccountKey#fromBip39Entropy", params);
   }
