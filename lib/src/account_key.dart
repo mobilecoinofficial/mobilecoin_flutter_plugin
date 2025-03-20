@@ -3,36 +3,35 @@
 import 'dart:typed_data';
 
 import 'package:mobilecoin_flutter/mobilecoin_flutter.dart';
+import 'package:mobilecoin_flutter/src/mobilecoin_flutter_plugin_channel_api.dart';
 import 'package:mobilecoin_flutter/src/platform_object.dart';
 
 class AccountKey extends PlatformObject {
   final String publicAddress;
+  final Uint8List publicAddressHash;
   final Uint8List bip39Entropy;
-  final Uint8List fogAuthoritySpki;
-  final String fogReportUri;
-  final String reportId;
+  final List<String> mnemonicPhrase;
+  final MobileCoinConfig config;
 
   const AccountKey(
-    int objectId,
-    this.bip39Entropy,
-    this.fogReportUri,
-    this.fogAuthoritySpki,
-    this.reportId,
-    this.publicAddress,
-  ) : super(id: objectId);
+    int objectId, {
+    required this.bip39Entropy,
+    required this.mnemonicPhrase,
+    required this.publicAddress,
+    required this.publicAddressHash,
+    required this.config,
+  }) : super(id: objectId);
 
   static Future<AccountKey> fromBip39Entropy(
     Uint8List entropy,
-    String fogReportUri, {
-    required Uint8List fogAuthoritySpki,
-    required String reportId,
-  }) async {
+    MobileCoinConfig config,
+  ) async {
     final accountObjectId = await MobileCoinFlutterPluginChannelApi.instance
         .getAccountKeyFromBip39Entropy(
       entropy: entropy,
-      fogReportUri: fogReportUri,
-      fogAuthoritySpki: fogAuthoritySpki,
-      reportId: reportId,
+      fogReportUri: config.fogUrl,
+      fogAuthoritySpki: config.fogAuthoritySpki,
+      fogReportId: config.fogReportId,
     );
     final publicKeyObjectId = await MobileCoinFlutterPluginChannelApi.instance
         .getAccountKeyPublicAddress(accountKeyId: accountObjectId);
@@ -43,11 +42,14 @@ class AccountKey extends PlatformObject {
 
     return AccountKey(
       accountObjectId,
-      entropy,
-      fogReportUri,
-      fogAuthoritySpki,
-      reportId,
-      await printableWrapper.toB58String(),
+      bip39Entropy: entropy,
+      publicAddress: await printableWrapper.toB58String(),
+      publicAddressHash:
+          await (await printableWrapper.getPublicAddress()).getAddressHash(),
+      config: config,
+      mnemonicPhrase: (await MobileCoinFlutterPluginChannelApi.instance
+              .mnemonicFromBip39Entropy(entropy))
+          .split(' '),
     );
   }
 }
