@@ -1,0 +1,3 @@
+# Denotes that a PR created on any file in the repo will be reviewed by Flutter devs
+# (Auto review settings set in the team's settings)
+* @mobilecoinofficial/flutter-devs
