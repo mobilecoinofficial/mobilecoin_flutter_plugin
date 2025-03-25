@@ -8,7 +8,7 @@ buildscript {
     }
 
     dependencies {
-        classpath 'com.android.tools.build:gradle:7.4.2'
+        classpath 'com.android.tools.build:gradle:8.5.2'
     }
 }
 rootProject.allprojects {
@@ -29,7 +29,9 @@ dependencies {
 }
 
 android {
-    compileSdkVersion 31
+    compileSdkVersion 35
+    namespace "com.mobilecoin.mobilecoin_flutter_example"
+
 
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_17
@@ -37,6 +39,6 @@ android {
     }
 
     defaultConfig {
-        minSdkVersion 19
+        minSdkVersion 21
     }
 }
