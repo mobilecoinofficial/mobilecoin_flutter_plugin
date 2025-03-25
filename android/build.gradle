@@ -8,11 +8,12 @@ buildscript {
     }
 
     dependencies {
-        classpath 'com.android.tools.build:gradle:4.2.2'
+        classpath 'com.android.tools.build:gradle:8.5.2'
     }
 }
 rootProject.allprojects {
     repositories {
+        mavenLocal()
         google()
         mavenCentral()
         maven {
@@ -24,18 +25,20 @@ rootProject.allprojects {
 apply plugin: 'com.android.library'
 
 dependencies {
-    implementation 'com.mobilecoin:android-sdk:6.0.0'
+    implementation 'com.mobilecoin:android-sdk:6.1.0'
 }
 
 android {
-    compileSdkVersion 30
+    compileSdkVersion 35
+    namespace "com.mobilecoin.mobilecoin_flutter_example"
+
 
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
     }
 
     defaultConfig {
-        minSdkVersion 19
+        minSdkVersion 21
     }
 }

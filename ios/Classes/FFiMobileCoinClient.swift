@@ -7,7 +7,7 @@ struct FfiMobileCoinClient {
 
     struct Create: Command {
         func execute(args: [String : Any], result: @escaping FlutterResult) throws {
-            guard 
+            guard
                 let accountKeyId = args["accountKey"] as? Int,
                 let fogUrl = args["fogUrl"] as? String,
                 let consensusUrl = args["consensusUrl"] as? String,
@@ -26,7 +26,7 @@ struct FfiMobileCoinClient {
             let mistyswapMrEnclave = clientConfig.mistyswapMrEnclaves
 
             // Ensure one or more valid MrEnclaves for each service thats required
-            guard 
+            guard
                 consensusMrEnclave.count > 0,
                 fogViewMrEnclave.count > 0,
                 fogReportMrEnclave.count > 0,
@@ -45,10 +45,10 @@ struct FfiMobileCoinClient {
             let client: MobileCoinClient = try {
                 let transportProtocol = TransportProtocol.http
 
-                guard let mistyswapUrl = args["mistyswapUrl"] as? String 
+                guard let mistyswapUrl = args["mistyswapUrl"] as? String
                 else {
                     return try MobileCoinClient.make(
-                        accountKey: accountKey, 
+                        accountKey: accountKey,
                         config: MobileCoinClient.Config.make(
                             consensusUrl: consensusUrl,
                             consensusAttestation: consensusAttestation,
@@ -62,7 +62,7 @@ struct FfiMobileCoinClient {
                     ).get()
                 }
                 return try MobileCoinClient.make(
-                    accountKey: accountKey, 
+                    accountKey: accountKey,
                     config: MobileCoinClient.Config.make(
                         consensusUrl: consensusUrl,
                         consensusAttestation: consensusAttestation,
@@ -98,7 +98,7 @@ struct FfiMobileCoinClient {
             result(0)
         }
     };
-    
+
     struct RequiresDefragmentation: Command {
         func execute(args: [String : Any], result: @escaping FlutterResult) throws {
             guard let clientId: Int = args["id"] as? Int,
@@ -155,6 +155,37 @@ struct FfiMobileCoinClient {
         }
     }
 
+    struct CreateProofOfReserveSignedContingentInput: Command {
+        func execute(args: [String : Any], result: @escaping FlutterResult) throws {
+            guard let mobileClientId: Int = args["id"] as? Int,
+                  let txOutPublicKeyBytes: FlutterStandardTypedData = args["txOutPublicKeyBytes"] as? FlutterStandardTypedData else {
+                      result(FlutterError(code: "NATIVE", message: "CreateProofOfReserveSignedContingentInput", details: "parsing arguments"))
+                      throw PluginError.invalidArguments
+                  }
+
+            guard let mobileCoinClient: MobileCoinClient = ObjectStorage.objectForKey(mobileClientId) as? MobileCoinClient else {
+                    result(FlutterError(code: "NATIVE", message: "CreateProofOfReserveSignedContingentInput", details: "retrieve client"))
+                    throw PluginError.invalidArguments
+                }
+
+            mobileCoinClient.createProofOfReserveSignedContingentInput(txOutPubKeyBytes: txOutPublicKeyBytes.data) { (sciResult: Result<SignedContingentInput, SignedContingentInputCreationError>) in
+                do {
+                    switch sciResult {
+                    case .success(let sci):
+                        let data = sci.serializedData
+                        var jsonObject: [String: Any] = [:]
+                        jsonObject["sciProtobufBytes"] = data
+                        result(jsonObject)
+                    case .failure(let error):
+                        result(FlutterError(code: "NATIVE", message: error.localizedDescription, details: "CreateProofOfReserveSignedContingentInput"))
+                    }
+                } catch let error {
+                    result(FlutterError(code: "NATIVE", message: error.localizedDescription, details: "CreateProofOfReserveSignedContingentInput.Exception"))
+                }
+            }
+        }
+    }
+
     struct GetTransferableAmount: Command {
         func execute(args: [String : Any], result: @escaping FlutterResult) throws {
             guard let clientId: Int = args["id"] as? Int,
@@ -200,7 +231,7 @@ struct FfiMobileCoinClient {
             client.prepareDefragmentationStepTransactions(
                     toSendAmount: amount,
                     recoverableMemo: shouldWriteRTHMemos,
-                    rngSeed: rngSeed) 
+                    rngSeed: rngSeed)
             { (preperationResult: Result<[Transaction], DefragTransactionPreparationError>) in
                 switch preperationResult {
                 case .success(let stepTransactions):
@@ -332,7 +363,7 @@ struct FfiMobileCoinClient {
                                     }
                                 }
 
-                                // Unauthenticated memo's can be used w/o a matching contact/public-address 
+                                // Unauthenticated memo's can be used w/o a matching contact/public-address
                                 if let unauthenticatedMemo = transaction.unauthenticatedMemo,
                                    let encoded = unauthenticatedMemo.toDictionary() {
                                     // Encode memo as JSON == [String:Any]
@@ -407,7 +438,7 @@ struct FfiMobileCoinClient {
             }
         }
     }
-    
+
     struct CreatePendingTransaction: Command {
         func execute(args: [String : Any], result: @escaping FlutterResult) throws {
             guard let mobileClientId: Int = args["id"] as? Int,
@@ -563,17 +594,17 @@ extension RecoveredMemo {
         let dictionary: Any = {
             switch self {
             case .sender(let memo):
-                return try? encoder.encode(memo) 
+                return try? encoder.encode(memo)
             case .senderWithPaymentRequest(let memo):
-                return try? encoder.encode(memo) 
+                return try? encoder.encode(memo)
             case .senderWithPaymentIntent(let memo):
-                return try? encoder.encode(memo) 
+                return try? encoder.encode(memo)
             case .destination(let memo):
-                return try? encoder.encode(memo) 
+                return try? encoder.encode(memo)
             case .destinationWithPaymentRequest(let memo):
-                return try? encoder.encode(memo) 
+                return try? encoder.encode(memo)
             case .destinationWithPaymentIntent(let memo):
-                return try? encoder.encode(memo) 
+                return try? encoder.encode(memo)
             }
         }()
 
@@ -587,11 +618,11 @@ extension UnauthenticatedSenderMemo {
         let dictionary: Any = {
             switch self {
             case .sender(let memo):
-                return try? encoder.encode(memo) 
+                return try? encoder.encode(memo)
             case .senderWithPaymentRequest(let memo):
-                return try? encoder.encode(memo) 
+                return try? encoder.encode(memo)
             case .senderWithPaymentIntent(let memo):
-                return try? encoder.encode(memo) 
+                return try? encoder.encode(memo)
             }
         }()
 

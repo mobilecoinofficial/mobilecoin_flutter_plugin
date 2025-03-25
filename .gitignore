@@ -8,3 +8,6 @@
 
 build/
 example/ios/Gemfile.lock
+
+# FVM Version Cache
+.fvm/

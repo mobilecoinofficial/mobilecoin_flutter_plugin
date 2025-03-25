@@ -56,6 +56,8 @@ class CommandFactory {
             return FfiMobileCoinClient.CheckTransactionStatus()
         case "MobileCoinClient#getTransferableAmount":
             return FfiMobileCoinClient.GetTransferableAmount();
+        case "MobileCoinClient#createProofOfReserveSignedContingentInput":
+            return FfiMobileCoinClient.CreateProofOfReserveSignedContingentInput();
 
         case "RistrettoPublic#fromBytes":
             return FfiRistrettoPublic.FromBytes()
@@ -166,4 +168,3 @@ public class SwiftMobileCoinPlugin: NSObject, FlutterPlugin {
         }
     }
 }
-

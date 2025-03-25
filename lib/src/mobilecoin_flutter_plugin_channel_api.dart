@@ -568,6 +568,21 @@ class MobileCoinFlutterPluginChannelApi {
     );
   }
 
+  Future<Map<String, Object?>> createProofOfReserveSignedContingentInput({
+    required int mobileCoinClientId,
+    required Uint8List txOutPublicKeyBytes,
+  }) async {
+    final Map<String, dynamic> params = <String, dynamic>{
+      'id': mobileCoinClientId,
+      'txOutPublicKeyBytes': txOutPublicKeyBytes,
+    };
+    final result = await _channel.invokeMethod(
+      "MobileCoinClient#createProofOfReserveSignedContingentInput",
+      params,
+    );
+    return Map<String, Object?>.from(result as Map);
+  }
+
   Future<int> ristrettoPublicFromBytes({
     required Uint8List publicKeyBytes,
   }) async {
