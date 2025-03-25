@@ -10,7 +10,7 @@ on:
   workflow_dispatch:
 
 env:
-  FLUTTER_VERSION: 3.10.3
+  FLUTTER_VERSION: 3.27.2
 
 jobs:
   android:
