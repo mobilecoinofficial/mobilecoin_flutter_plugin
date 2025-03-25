@@ -2,53 +2,54 @@
 
 import 'dart:typed_data';
 
+import 'package:mobilecoin_flutter/mobilecoin_flutter.dart';
 import 'package:mobilecoin_flutter/src/mobilecoin_flutter_plugin_channel_api.dart';
 import 'package:mobilecoin_flutter/src/platform_object.dart';
-import 'package:mobilecoin_flutter/src/public_address.dart';
 
 class AccountKey extends PlatformObject {
-  PublicAddress? _publicAddress;
-  Uint8List bip39Entropy;
-  Uint8List fogAuthoritySpki;
-  String fogReportUri;
-  String reportId;
+  final String publicAddress;
+  final Uint8List publicAddressHash;
+  final Uint8List bip39Entropy;
+  final List<String> mnemonicPhrase;
+  final MobileCoinConfig config;
 
-  AccountKey(
-    int objectId,
-    this.bip39Entropy,
-    this.fogReportUri,
-    this.fogAuthoritySpki,
-    this.reportId,
-  ) : super(id: objectId);
+  const AccountKey(
+    int objectId, {
+    required this.bip39Entropy,
+    required this.mnemonicPhrase,
+    required this.publicAddress,
+    required this.publicAddressHash,
+    required this.config,
+  }) : super(id: objectId);
 
   static Future<AccountKey> fromBip39Entropy(
     Uint8List entropy,
-    String fogReportUri, {
-    required Uint8List fogAuthoritySpki,
-    required String reportId,
-  }) async {
-    final objectId = await MobileCoinFlutterPluginChannelApi.instance
+    MobileCoinConfig config,
+  ) async {
+    final accountObjectId = await MobileCoinFlutterPluginChannelApi.instance
         .getAccountKeyFromBip39Entropy(
       entropy: entropy,
-      fogReportUri: fogReportUri,
-      fogAuthoritySpki: fogAuthoritySpki,
-      reportId: reportId,
+      fogReportUri: config.fogUrl,
+      fogAuthoritySpki: config.fogAuthoritySpki,
+      fogReportId: config.fogReportId,
     );
-    return AccountKey(
-      objectId,
-      entropy,
-      fogReportUri,
-      fogAuthoritySpki,
-      reportId,
-    );
-  }
+    final publicKeyObjectId = await MobileCoinFlutterPluginChannelApi.instance
+        .getAccountKeyPublicAddress(accountKeyId: accountObjectId);
 
-  Future<PublicAddress> getPublicAddress() async {
-    if (null == _publicAddress) {
-      final objectId = await MobileCoinFlutterPluginChannelApi.instance
-          .getAccountKeyPublicAddress(accountKeyId: id);
-      _publicAddress = PublicAddress(objectId);
-    }
-    return _publicAddress!;
+    final printableWrapper = await PrintableWrapper.fromPublicAddress(
+      PublicAddress(publicKeyObjectId),
+    );
+
+    return AccountKey(
+      accountObjectId,
+      bip39Entropy: entropy,
+      publicAddress: await printableWrapper.toB58String(),
+      publicAddressHash:
+          await (await printableWrapper.getPublicAddress()).getAddressHash(),
+      config: config,
+      mnemonicPhrase: (await MobileCoinFlutterPluginChannelApi.instance
+              .mnemonicFromBip39Entropy(entropy))
+          .split(' '),
+    );
   }
 }

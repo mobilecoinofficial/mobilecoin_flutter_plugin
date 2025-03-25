@@ -4,7 +4,7 @@ export 'package:mobilecoin_flutter/src/account_key.dart';
 export 'package:mobilecoin_flutter/src/attestation/client_config.dart';
 export 'package:mobilecoin_flutter/src/attestation/service_config.dart';
 export 'package:mobilecoin_flutter/src/mobilecoin_client.dart';
-export 'package:mobilecoin_flutter/src/mobilecoin_flutter_plugin_channel_api.dart';
+export 'package:mobilecoin_flutter/src/mobilecoin_config.dart';
 export 'package:mobilecoin_flutter/src/printable_wrapper.dart';
 export 'package:mobilecoin_flutter/src/protobufs/generated/mistyswap_common.pb.dart'
     show GetInfoResponse;
