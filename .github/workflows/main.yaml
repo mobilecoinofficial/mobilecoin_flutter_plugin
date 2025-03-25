@@ -31,14 +31,14 @@ jobs:
 
       - name: 'Cache Flutter'
         id: flutter-cache
-        uses: actions/cache@v2
+        uses: actions/cache@v4
         with:
           key: ${{ runner.OS }}-flutter-install-cache-${{ env.FLUTTER_VERSION }}
           path: /opt/hostedtoolcache/flutter
 
       - name: 'Cache Flutter dependencies'
         id: pub-cache
-        uses: actions/cache@v2
+        uses: actions/cache@v4
         with:
           key: ${{ runner.os }}-pub-${{ hashFiles('**/pubspec.lock') }}
           path: |
@@ -87,14 +87,14 @@ jobs:
 
       - name: 'Cache Flutter'
         id: flutter-cache
-        uses: actions/cache@v2
+        uses: actions/cache@v4
         with:
           key: ${{ runner.OS }}-flutter-install-cache-${{ env.FLUTTER_VERSION }}
           path: /Users/runner/hostedtoolcache/flutter
 
       - name: 'Cache Flutter dependencies'
         id: pub-cache
-        uses: actions/cache@v2
+        uses: actions/cache@v4
         with:
           key: ${{ runner.os }}-pub-${{ hashFiles('**/pubspec.lock') }}
           path: |
@@ -106,14 +106,14 @@ jobs:
 
       - name: 'Cache Ruby dependencies'
         id: ruby-cache
-        uses: actions/cache@v2
+        uses: actions/cache@v4
         with:
           key: ${{ runner.os }}-gems-${{ hashFiles('**/Gemfile') }}
           path: ${{ github.workspace }}/vendor/bundle
 
       - name: 'Cache Pods'
         id: pod-cache
-        uses: actions/cache@v2
+        uses: actions/cache@v4
         with:
           key: ${{ runner.os }}-pods-${{ hashFiles('**/Podfile.lock') }}
           path: ${{ github.workspace }}/example/ios/Pods
