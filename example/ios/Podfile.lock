@@ -3,13 +3,13 @@ PODS:
   - LibMobileCoin/CoreHTTP (6.0.2):
     - SwiftProtobuf (~> 1.5)
   - Logging (1.4.0)
-  - MobileCoin/CoreHTTP (6.0.3):
+  - MobileCoin/CoreHTTP (6.0.5):
     - LibMobileCoin/CoreHTTP (~> 6.0.0-pre1)
     - Logging (~> 1.4)
   - mobilecoin_flutter (0.2.1):
     - Flutter
-    - MobileCoin/CoreHTTP (~> 6.0.3)
-  - SwiftProtobuf (1.25.2)
+    - MobileCoin/CoreHTTP (~> 6.0.5)
+  - SwiftProtobuf (1.29.0)
 
 DEPENDENCIES:
   - Flutter (from `Flutter`)
@@ -32,10 +32,10 @@ SPEC CHECKSUMS:
   Flutter: e0871f40cf51350855a761d2e70bf5af5b9b5de7
   LibMobileCoin: 8503f567fa32184a5be7bc038fbd727747dd9991
   Logging: beeb016c9c80cf77042d62e83495816847ef108b
-  MobileCoin: cd7f49d6eaa2d362e4c9f8324cae0cc3bc3c53b5
-  mobilecoin_flutter: 79120a53a408aec338b828284d1530598767664f
-  SwiftProtobuf: 407a385e97fd206c4fbe880cc84123989167e0d1
+  MobileCoin: 83110183a7ae9c19300379d081f4d93ebff78867
+  mobilecoin_flutter: 32115688d9a76c70c2b9c3341ff41bbe8ee654b4
+  SwiftProtobuf: b7aa08087e2ab6d162862d143020091254095f69
 
-PODFILE CHECKSUM: 4e8f8b2be68aeea4c0d5beb6ff1e79fface1d048
+PODFILE CHECKSUM: 73c63f6aa998be55f4f1bd036bcf97f898c3b37d
 
 COCOAPODS: 1.16.2
