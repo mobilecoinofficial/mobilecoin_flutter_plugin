@@ -42,7 +42,7 @@ class MobileCoinFlutterPluginChannelApi {
       'consensusUrl': consensusUrl,
       'mistyswapUrl': mistyswapUrl,
       'useTestNet': useTestNet,
-      'clientConfigId': attestClientConfig.id
+      'clientConfigId': attestClientConfig.id,
     };
     return await _channel.invokeMethod("MobileCoinClient#create", params);
   }
