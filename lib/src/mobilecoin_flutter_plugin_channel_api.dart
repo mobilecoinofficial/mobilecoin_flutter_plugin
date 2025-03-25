@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:mobilecoin_flutter/src/account_key.dart';
 import 'package:mobilecoin_flutter/src/attestation/service_config.dart';
+import 'package:mobilecoin_flutter/src/extensions/string_extensions.dart';
 import 'package:mobilecoin_flutter/src/protobufs/generated/mistyswap_common.pb.dart';
 import 'package:mobilecoin_flutter/src/protobufs/generated/mistyswap_offramp.pb.dart';
 import 'package:mobilecoin_flutter/src/protobufs/generated/mistyswap_onramp.pb.dart';
@@ -32,7 +33,8 @@ class MobileCoinFlutterPluginChannelApi {
       'accountKey': key.id,
       'fogUrl': key.config.fogUrl,
       'consensusUrl': key.config.consensusUrl,
-      'mistyswapUrl': key.config.mistyswapUrl,
+      // mistyswapUrl can be null, but must not be an empty string
+      'mistyswapUrl': key.config.mistyswapUrl.presence,
       'useTestNet': key.config.useTestNet,
       'clientConfigId': key.config.attestClientConfig.id,
     };
