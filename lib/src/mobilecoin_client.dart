@@ -165,10 +165,13 @@ class MobileCoinFlutterClient extends PlatformObject {
   }
 
   Future<Map<String, Object?>> createProofOfReserveSignedContingentInput(
-      Uint8List txOutPublicKeyBytes) {
+    Uint8List txOutPublicKeyBytes,
+  ) {
     return MobileCoinFlutterPluginChannelApi.instance
         .createProofOfReserveSignedContingentInput(
-            mobileCoinClientId: id, txOutPublicKeyBytes: txOutPublicKeyBytes);
+      mobileCoinClientId: id,
+      txOutPublicKeyBytes: txOutPublicKeyBytes,
+    );
   }
 
   /// Initiates a Mistyswap offramp request
