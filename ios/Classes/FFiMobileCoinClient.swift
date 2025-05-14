@@ -305,6 +305,8 @@ struct FfiMobileCoinClient {
         func execute(args: [String : Any], result: @escaping FlutterResult) throws {
             guard let clientId: Int = args["id"] as? Int,
                   let publicAddresses = args["serializedPublicAddresses"] as? [FlutterStandardTypedData],
+                  let minTxOutBlockIndexString = args["minTxOutBlockIndex"] as? String,
+                  let minTxOutBlockIndex = UInt64(minTxOutBlockIndexString),
                   let client = ObjectStorage.objectForKey(clientId) as? MobileCoinClient else {
                       result(FlutterError(code: "NATIVE", message: "GetAccountActivity", details: "parsing arguments"))
                       throw PluginError.invalidArguments
@@ -318,7 +320,10 @@ struct FfiMobileCoinClient {
                         let activityDispatchGroup = DispatchGroup()
                         for tokenId in balances.tokenIds {
                             let activity = client.accountActivity(for: tokenId)
-                            let txOuts = activity.txOuts
+                            let txOuts = activity.txOuts.filter {
+                                $0.receivedBlock.index >= minTxOutBlockIndex ||
+                                ($0.spentBlock != nil && $0.spentBlock!.index >= minTxOutBlockIndex)
+                            }
                             var jsonObject: [String: Any] = [:]
 
                             let balance: UInt64 = balances.balances[tokenId]?.amount() ?? 0

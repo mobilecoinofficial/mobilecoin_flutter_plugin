@@ -61,11 +61,12 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
-import java.math.BigInteger;
+import java.util.stream.Collectors;
 
 import consensus_common.ConsensusCommon;
 import mistyswap.AttestedMistySwapClient;
@@ -114,7 +115,17 @@ public class FfiMobileCoinClient {
         return result.toString();
     }
 
-    public static String getAccountActivity(int mobileClientId)
+    /**
+     * Get the account activity for the given mobile client.
+     *
+     * @param mobileClientId The ID of the mobile client.
+     * @param minTxOutBlockIndex The minimum block index of the TxOuts to include in the activity.
+     * IMPORTANT NOTE: This referrs to either the received block index or the spent block index!
+     * The purpose of this argument is to allow users to not receive TxOuts they have already seen,
+     * and for which nothing has changed.
+     * @return A JSON string representing the account activity.
+     */
+    public static String getAccountActivity(int mobileClientId, UnsignedLong minTxOutBlockIndex)
             throws NetworkException, InvalidFogResponse, AttestationException, JSONException,
             FogSyncException, TransactionBuilderException {
         MobileCoinClient mobileCoinClient =
@@ -132,7 +143,12 @@ public class FfiMobileCoinClient {
             activity.put("balance", balance);
             activity.put("transferableAmount", transferableAmount.getValue().toString());
             activity.put("blockCount", accountActivity.getBlockCount());
-            Set<OwnedTxOut> ownedTxOuts = accountActivity.getAllTokenTxOuts(tokenId);
+            Set<OwnedTxOut> ownedTxOuts = accountActivity.getAllTokenTxOuts(tokenId).stream()
+                .filter(txOut ->
+                    txOut.getReceivedBlockIndex().compareTo(minTxOutBlockIndex) >= 0 ||
+                    (txOut.getSpentBlockIndex() != null && txOut.getSpentBlockIndex().compareTo(minTxOutBlockIndex) >= 0)
+                )
+                .collect(Collectors.toSet());
             JSONArray txOuts = new JSONArray();
             for (OwnedTxOut txOut : ownedTxOuts) {
                 JSONObject jsonTxOut = new JSONObject();

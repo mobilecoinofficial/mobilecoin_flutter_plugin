@@ -133,7 +133,8 @@ public class MobileCoinFlutterPlugin implements FlutterPlugin, MethodCallHandler
                             getCallArgument(call, "useTestNet"),
                             getCallArgument(call, "clientConfigId"));
                 case "MobileCoinClient#getAccountActivity":
-                    return api.getAccountActivity(getCallArgument(call, "id"));
+                    BigInteger minTxOutBlockIndex = new BigInteger((String) getCallArgument(call, "minTxOutBlockIndex"));
+                    return api.getAccountActivity(getCallArgument(call, "id"), UnsignedLong.fromBigInteger(minTxOutBlockIndex));
 
             case "MobileCoinClient#getBalance":
                 return api.getBalance(getCallArgument(call, "id"));
@@ -343,7 +344,7 @@ public class MobileCoinFlutterPlugin implements FlutterPlugin, MethodCallHandler
         String getBalance(Integer mobileCoinClientId) throws InvalidFogResponse, NetworkException,
                 AttestationException, FogSyncException, JSONException;
 
-        String getAccountActivity(Integer mobileCoinClientId)
+        String getAccountActivity(Integer mobileCoinClientId, UnsignedLong minTxOutBlockIndex)
                 throws InvalidFogResponse, NetworkException, AttestationException, JSONException,
                 FogSyncException, TransactionBuilderException;
 
@@ -690,10 +691,10 @@ public class MobileCoinFlutterPlugin implements FlutterPlugin, MethodCallHandler
         }
 
         @Override
-        public String getAccountActivity(Integer mobileCoinClientId)
+        public String getAccountActivity(Integer mobileCoinClientId, UnsignedLong minTxOutBlockIndex)
                 throws InvalidFogResponse, NetworkException, AttestationException, JSONException,
                 FogSyncException, TransactionBuilderException {
-            return FfiMobileCoinClient.getAccountActivity(mobileCoinClientId);
+            return FfiMobileCoinClient.getAccountActivity(mobileCoinClientId, minTxOutBlockIndex);
         }
 
         @Override
