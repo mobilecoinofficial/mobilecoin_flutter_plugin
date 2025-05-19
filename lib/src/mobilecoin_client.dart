@@ -116,12 +116,19 @@ class MobileCoinFlutterClient extends PlatformObject {
   /// The best way to supply it is with [PublicAddress.toByteArray].
   /// Because of the async nature of that call, the consumer will likely
   /// want to cache those serialized addresses.
+  ///
+  /// [minTxOutBlockIndex] is used to filter out TxOuts that have already been seen.
+  /// It refers to either the received block index or the spent block index!
+  /// The purpose of this argument is to allow users to not receive TxOuts they have already seen,
+  /// and for which nothing has changed.
   Future<String> getAccountActivity(
     List<Uint8List> serializedKnownPublicAddresses,
+    BigInt minTxOutBlockIndex,
   ) async {
     return await MobileCoinFlutterPluginChannelApi.instance.getAccountActivity(
       mobileCoinClientId: id,
       serializedKnownPublicAddresses: serializedKnownPublicAddresses,
+      minTxOutBlockIndex: minTxOutBlockIndex,
     );
   }
 
