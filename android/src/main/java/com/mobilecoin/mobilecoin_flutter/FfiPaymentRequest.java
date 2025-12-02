@@ -15,11 +15,12 @@ import androidx.annotation.Nullable;
 public class FfiPaymentRequest {
 
     public static int create(int publicAddressId, @Nullable UnsignedLong amount,
-                             @Nullable String memo, @NonNull TokenId tokenId) {
+                             @Nullable String memo, @NonNull TokenId tokenId,
+                             @Nullable String paymentId) {
         PublicAddress publicAddress = (PublicAddress) ObjectStorage.objectForKey(publicAddressId);
         if (memo == null) memo = "";
         if (amount == null) amount = UnsignedLong.ZERO;
-        PaymentRequest paymentRequest = new PaymentRequest(publicAddress, amount, memo, tokenId);
+        PaymentRequest paymentRequest = new PaymentRequest(publicAddress, amount, memo, tokenId, paymentId);
         final int hashCode = paymentRequest.hashCode();
         ObjectStorage.addObject(hashCode, paymentRequest);
         return hashCode;
