@@ -401,6 +401,15 @@ class MobileCoinFlutterPluginChannelApi {
     return BigInt.parse(tokenIdString);
   }
 
+  Future<BigInt?> paymentRequestGetPaymentId({
+    required int objectId,
+  }) async {
+    final Map<String, dynamic> params = <String, dynamic>{
+      'id': objectId,
+    };
+    return await _channel.invokeMethod("PaymentRequest#getPaymentId", params);
+  }
+
   Future<int> paymentRequestGetPublicAddress({
     required int objectId,
   }) async {

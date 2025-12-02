@@ -43,4 +43,9 @@ class PaymentRequest extends PlatformObject {
     return await MobileCoinFlutterPluginChannelApi.instance
         .paymentRequestGetTokenId(objectId: id);
   }
+
+  Future<BigInt?> getPaymentId() async {
+    return await MobileCoinFlutterPluginChannelApi.instance
+        .paymentRequestGetPaymentId(objectId: id);
+  }
 }
