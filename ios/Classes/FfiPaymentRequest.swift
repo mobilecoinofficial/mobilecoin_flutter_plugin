@@ -25,8 +25,8 @@ struct FfiPaymentRequest {
     
     struct GetMemo: Command {
         func execute(args: [String : Any], result: @escaping FlutterResult) throws {
-            guard let paymentRequestId: Int = args["id"] as? Int,
-                  let paymentRequest = ObjectStorage.objectForKey(paymentRequestId) as? PaymentRequest else {
+            guard let objectId: Int = args["id"] as? Int,
+                  let paymentRequest = ObjectStorage.objectForKey(objectId) as? PaymentRequest else {
                       throw PluginError.invalidArguments
                   }
             result(paymentRequest.memo)
@@ -35,8 +35,8 @@ struct FfiPaymentRequest {
     
     struct GetValue: Command {
         func execute(args: [String : Any], result: @escaping FlutterResult) throws {
-            guard let paymentRequestId: Int = args["id"] as? Int,
-                  let paymentRequest = ObjectStorage.objectForKey(paymentRequestId) as? PaymentRequest else {
+            guard let objectId: Int = args["id"] as? Int,
+                  let paymentRequest = ObjectStorage.objectForKey(objectId) as? PaymentRequest else {
                       throw PluginError.invalidArguments
                   }
             result(String(paymentRequest.value ?? 0))
@@ -45,8 +45,8 @@ struct FfiPaymentRequest {
     
     struct GetTokenId: Command {
         func execute(args: [String : Any], result: @escaping FlutterResult) throws {
-            guard let paymentRequestId: Int = args["id"] as? Int,
-                  let paymentRequest = ObjectStorage.objectForKey(paymentRequestId) as? PaymentRequest else {
+            guard let objectId: Int = args["id"] as? Int,
+                  let paymentRequest = ObjectStorage.objectForKey(objectId) as? PaymentRequest else {
                       throw PluginError.invalidArguments
                   }
             result(String(paymentRequest.tokenID))
@@ -55,8 +55,8 @@ struct FfiPaymentRequest {
     
     struct GetPublicAddress: Command {
         func execute(args: [String : Any], result: @escaping FlutterResult) throws {
-            guard let paymentRequestId: Int = args["id"] as? Int,
-                  let paymentRequest = ObjectStorage.objectForKey(paymentRequestId) as? PaymentRequest else {
+            guard let objectId: Int = args["id"] as? Int,
+                  let paymentRequest = ObjectStorage.objectForKey(objectId) as? PaymentRequest else {
                       throw PluginError.invalidArguments
                   }
             let hashCode = paymentRequest.publicAddress.hashValue
