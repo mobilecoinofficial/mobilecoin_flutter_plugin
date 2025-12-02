@@ -12,6 +12,7 @@ class PaymentRequest extends PlatformObject {
     required BigInt tokenId,
     String? memo,
     BigInt? amount,
+    BigInt? paymentId,
   }) async {
     final objectId =
         await MobileCoinFlutterPluginChannelApi.instance.paymentRequestCreate(
@@ -19,6 +20,7 @@ class PaymentRequest extends PlatformObject {
       memo: memo,
       amount: amount,
       tokenId: tokenId,
+      paymentId: paymentId,
     );
     return PaymentRequest(objectId);
   }

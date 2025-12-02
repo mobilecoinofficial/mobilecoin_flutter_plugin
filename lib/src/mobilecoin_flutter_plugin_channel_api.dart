@@ -360,12 +360,14 @@ class MobileCoinFlutterPluginChannelApi {
     required BigInt tokenId,
     String? memo,
     BigInt? amount,
+    BigInt? paymentId,
   }) async {
     final Map<String, dynamic> params = <String, dynamic>{
       'publicAddressId': publicAddress.id,
       'memo': memo,
       'amount': amount?.toString(),
       'tokenId': tokenId.toString(),
+      'paymentId': paymentId?.toString(),
     };
     return await _channel.invokeMethod("PaymentRequest#create", params);
   }
