@@ -49,4 +49,9 @@ public class FfiPaymentRequest {
         ObjectStorage.addObject(hashCode, publicAddress);
         return hashCode;
     }
+
+    public static String getPaymentId(int requestId) {
+        PaymentRequest paymentRequest = (PaymentRequest) ObjectStorage.objectForKey(requestId);
+        return paymentRequest.getPaymentId();
+    }
 }
