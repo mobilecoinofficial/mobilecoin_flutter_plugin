@@ -111,6 +111,8 @@ class CommandFactory {
             return FfiPaymentRequest.GetValue()
         case "PaymentRequest#getTokenId":
             return FfiPaymentRequest.GetTokenId()
+        case "PaymentRequest#getPaymentId":
+            return FfiPaymentRequest.GetPaymentId()
         case "PaymentRequest#getPublicAddress":
             return FfiPaymentRequest.GetPublicAddress()
         case "Mnemonic#fromBip39Entropy":
