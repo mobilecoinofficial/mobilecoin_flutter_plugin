@@ -25,22 +25,22 @@ class PaymentRequest extends PlatformObject {
 
   Future<PublicAddress> getPublicAddress() async {
     final objectId = await MobileCoinFlutterPluginChannelApi.instance
-        .paymentRequestGetPublicAddress(paymentRequestId: id);
+        .paymentRequestGetPublicAddress(objectId: id);
     return PublicAddress(objectId);
   }
 
   Future<BigInt> getValue() async {
     return await MobileCoinFlutterPluginChannelApi.instance
-        .paymentRequestGetValue(paymentRequestId: id);
+        .paymentRequestGetValue(objectId: id);
   }
 
   Future<String?> getMemo() async {
     return await MobileCoinFlutterPluginChannelApi.instance
-        .paymentRequestGetMemo(paymentRequestId: id);
+        .paymentRequestGetMemo(objectId: id);
   }
 
   Future<BigInt> getTokenId() async {
     return await MobileCoinFlutterPluginChannelApi.instance
-        .paymentRequestGetTokenId(paymentRequestId: id);
+        .paymentRequestGetTokenId(objectId: id);
   }
 }

@@ -371,19 +371,19 @@ class MobileCoinFlutterPluginChannelApi {
   }
 
   Future<String?> paymentRequestGetMemo({
-    required int paymentRequestId,
+    required int objectId,
   }) async {
     final Map<String, dynamic> params = <String, dynamic>{
-      'id': paymentRequestId,
+      'id': objectId,
     };
     return await _channel.invokeMethod("PaymentRequest#getMemo", params);
   }
 
   Future<BigInt> paymentRequestGetValue({
-    required int paymentRequestId,
+    required int objectId,
   }) async {
     final Map<String, dynamic> params = <String, dynamic>{
-      'id': paymentRequestId,
+      'id': objectId,
     };
     String valueString =
         await _channel.invokeMethod("PaymentRequest#getValue", params);
@@ -391,10 +391,10 @@ class MobileCoinFlutterPluginChannelApi {
   }
 
   Future<BigInt> paymentRequestGetTokenId({
-    required int paymentRequestId,
+    required int objectId,
   }) async {
     final Map<String, dynamic> params = <String, dynamic>{
-      'id': paymentRequestId,
+      'id': objectId,
     };
     String tokenIdString =
         await _channel.invokeMethod("PaymentRequest#getTokenId", params);
@@ -402,10 +402,10 @@ class MobileCoinFlutterPluginChannelApi {
   }
 
   Future<int> paymentRequestGetPublicAddress({
-    required int paymentRequestId,
+    required int objectId,
   }) async {
     final Map<String, dynamic> params = <String, dynamic>{
-      'id': paymentRequestId,
+      'id': objectId,
     };
     return await _channel.invokeMethod(
       "PaymentRequest#getPublicAddress",
