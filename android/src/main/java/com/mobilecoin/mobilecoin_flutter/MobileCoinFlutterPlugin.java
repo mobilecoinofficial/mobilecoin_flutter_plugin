@@ -501,7 +501,7 @@ public class MobileCoinFlutterPlugin implements FlutterPlugin, MethodCallHandler
          * Creates a new <code>PaymentRequest</code> in local object storage, then returns its id.
          */
         int paymentRequestCreate(int publicAddressId, @Nullable String amount,
-                @Nullable String memo, @NonNull TokenId tokenId);
+                @Nullable String memo, @NonNull TokenId tokenId, @Nullable String paymentId);
 
         /**
          * Looks up the given <code>PaymentRequest</code> in local object storage, then returns its
@@ -832,10 +832,10 @@ public class MobileCoinFlutterPlugin implements FlutterPlugin, MethodCallHandler
 
         @Override
         public int paymentRequestCreate(int publicAddressId, @Nullable String amount,
-                @Nullable String memo, @NonNull TokenId tokenId) {
+                @Nullable String memo, @NonNull TokenId tokenId, @Nullable String paymentId) {
             UnsignedLong unsignedAmount =
                     amount == null ? null : UnsignedLong.fromBigInteger(new BigInteger(amount));
-            return FfiPaymentRequest.create(publicAddressId, unsignedAmount, memo, tokenId);
+            return FfiPaymentRequest.create(publicAddressId, unsignedAmount, memo, tokenId, paymentId);
         }
 
         @Override
