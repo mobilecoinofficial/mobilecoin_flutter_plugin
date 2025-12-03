@@ -14,7 +14,7 @@ struct FfiPaymentRequest {
                       throw PluginError.invalidArguments
                   }
             let paymentIdString = args["paymentId"] as? String
-            let paymentId = UInt64(paymentIdString)
+            let paymentId = paymentIdString != nil ? UInt64(paymentIdString!) : nil
             let memo: String? = args["memo"] as? String
             let amount: String? = args["amount"] as? String
             let value: UInt64? = amount != nil ? UInt64(amount!) : nil
