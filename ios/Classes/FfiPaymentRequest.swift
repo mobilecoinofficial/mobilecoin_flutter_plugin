@@ -68,14 +68,14 @@ struct FfiPaymentRequest {
             result(hashCode)
         }
     }
-    
+
     struct GetPaymentId: Command {
         func execute(args: [String : Any], result: @escaping FlutterResult) throws {
             guard let objectId: Int = args["id"] as? Int,
                   let paymentRequest = ObjectStorage.objectForKey(objectId) as? PaymentRequest else {
                       throw PluginError.invalidArguments
                   }
-            result(paymentRequest.paymentId)
+            result(paymentRequest.paymentID)
         }
     }
 }
