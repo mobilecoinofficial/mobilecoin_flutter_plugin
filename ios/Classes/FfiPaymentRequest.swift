@@ -13,20 +13,22 @@ struct FfiPaymentRequest {
                   let publicAddress = ObjectStorage.objectForKey(publicAddressId) as? PublicAddress else {
                       throw PluginError.invalidArguments
                   }
+            let paymentIDString = args["paymentId"] as? String
+            let paymentID: UInt64 = UInt64(paymentIDString ?? "") ?? 0
             let memo: String? = args["memo"] as? String
             let amount: String? = args["amount"] as? String
             let value: UInt64? = amount != nil ? UInt64(amount!) : nil
-            let paymentRequest = PaymentRequest(publicAddress: publicAddress, value:value, memo: memo, tokenID: tokenID);
+            let paymentRequest = PaymentRequest(publicAddress: publicAddress, value: value, memo: memo, tokenID: tokenID, paymentID: paymentID)
             let hashCode = paymentRequest.hashValue
             ObjectStorage.addObject(paymentRequest, forKey: hashCode)
             result(hashCode)
         }
     }
-    
+
     struct GetMemo: Command {
         func execute(args: [String : Any], result: @escaping FlutterResult) throws {
-            guard let paymentRequestId: Int = args["id"] as? Int,
-                  let paymentRequest = ObjectStorage.objectForKey(paymentRequestId) as? PaymentRequest else {
+            guard let objectId: Int = args["id"] as? Int,
+                  let paymentRequest = ObjectStorage.objectForKey(objectId) as? PaymentRequest else {
                       throw PluginError.invalidArguments
                   }
             result(paymentRequest.memo)
@@ -35,8 +37,8 @@ struct FfiPaymentRequest {
     
     struct GetValue: Command {
         func execute(args: [String : Any], result: @escaping FlutterResult) throws {
-            guard let paymentRequestId: Int = args["id"] as? Int,
-                  let paymentRequest = ObjectStorage.objectForKey(paymentRequestId) as? PaymentRequest else {
+            guard let objectId: Int = args["id"] as? Int,
+                  let paymentRequest = ObjectStorage.objectForKey(objectId) as? PaymentRequest else {
                       throw PluginError.invalidArguments
                   }
             result(String(paymentRequest.value ?? 0))
@@ -45,8 +47,8 @@ struct FfiPaymentRequest {
     
     struct GetTokenId: Command {
         func execute(args: [String : Any], result: @escaping FlutterResult) throws {
-            guard let paymentRequestId: Int = args["id"] as? Int,
-                  let paymentRequest = ObjectStorage.objectForKey(paymentRequestId) as? PaymentRequest else {
+            guard let objectId: Int = args["id"] as? Int,
+                  let paymentRequest = ObjectStorage.objectForKey(objectId) as? PaymentRequest else {
                       throw PluginError.invalidArguments
                   }
             result(String(paymentRequest.tokenID))
@@ -55,8 +57,8 @@ struct FfiPaymentRequest {
     
     struct GetPublicAddress: Command {
         func execute(args: [String : Any], result: @escaping FlutterResult) throws {
-            guard let paymentRequestId: Int = args["id"] as? Int,
-                  let paymentRequest = ObjectStorage.objectForKey(paymentRequestId) as? PaymentRequest else {
+            guard let objectId: Int = args["id"] as? Int,
+                  let paymentRequest = ObjectStorage.objectForKey(objectId) as? PaymentRequest else {
                       throw PluginError.invalidArguments
                   }
             let hashCode = paymentRequest.publicAddress.hashValue
@@ -64,6 +66,16 @@ struct FfiPaymentRequest {
                 ObjectStorage.addObject(paymentRequest.publicAddress, forKey: hashCode)
             }
             result(hashCode)
+        }
+    }
+
+    struct GetPaymentId: Command {
+        func execute(args: [String : Any], result: @escaping FlutterResult) throws {
+            guard let objectId: Int = args["id"] as? Int,
+                  let paymentRequest = ObjectStorage.objectForKey(objectId) as? PaymentRequest else {
+                      throw PluginError.invalidArguments
+                  }
+            result(paymentRequest.paymentID)
         }
     }
 }

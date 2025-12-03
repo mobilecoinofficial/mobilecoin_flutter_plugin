@@ -43,12 +43,14 @@ class MobileCoinFlutterClient extends PlatformObject {
     required BigInt tokenId,
     String? memo,
     BigInt? amount,
+    BigInt? paymentId,
   }) =>
       MobileCoinFlutterPluginChannelApi.instance.paymentRequestCreate(
         publicAddress: publicAddress,
         tokenId: tokenId,
         memo: memo,
         amount: amount,
+        paymentId: paymentId,
       );
 
   static Future<int> printableWrapperFromPaymentRequest({

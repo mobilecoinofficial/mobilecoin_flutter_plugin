@@ -243,8 +243,14 @@ public class MobileCoinFlutterPlugin implements FlutterPlugin, MethodCallHandler
             case "PaymentRequest#create": {
                 BigInteger bigTokenId = new BigInteger((String) getCallArgument(call, "tokenId"));
                 TokenId tokenId = TokenId.from(UnsignedLong.fromBigInteger(bigTokenId));
+                UnsignedLong paymentId = null;
+                if (null != call.argument("paymentId")) {
+                    BigInteger bigPaymentId = new BigInteger((String) getCallArgument(call, "paymentId"));
+                    paymentId = UnsignedLong.fromBigInteger(bigPaymentId);
+                }
                 return api.paymentRequestCreate(getCallArgument(call, "publicAddressId"),
-                        getCallArgument(call, "amount"), getCallArgument(call, "memo"), tokenId);
+                        getCallArgument(call, "amount"), getCallArgument(call, "memo"),
+                        tokenId, paymentId);
             }
             case "PaymentRequest#getMemo":
                 return api.paymentRequestGetMemo(getCallArgument(call, "id"));
@@ -501,7 +507,7 @@ public class MobileCoinFlutterPlugin implements FlutterPlugin, MethodCallHandler
          * Creates a new <code>PaymentRequest</code> in local object storage, then returns its id.
          */
         int paymentRequestCreate(int publicAddressId, @Nullable String amount,
-                @Nullable String memo, @NonNull TokenId tokenId);
+                @Nullable String memo, @NonNull TokenId tokenId, @Nullable UnsignedLong paymentId);
 
         /**
          * Looks up the given <code>PaymentRequest</code> in local object storage, then returns its
@@ -832,10 +838,10 @@ public class MobileCoinFlutterPlugin implements FlutterPlugin, MethodCallHandler
 
         @Override
         public int paymentRequestCreate(int publicAddressId, @Nullable String amount,
-                @Nullable String memo, @NonNull TokenId tokenId) {
+                @Nullable String memo, @NonNull TokenId tokenId, @Nullable UnsignedLong paymentId) {
             UnsignedLong unsignedAmount =
                     amount == null ? null : UnsignedLong.fromBigInteger(new BigInteger(amount));
-            return FfiPaymentRequest.create(publicAddressId, unsignedAmount, memo, tokenId);
+            return FfiPaymentRequest.create(publicAddressId, unsignedAmount, memo, tokenId, paymentId);
         }
 
         @Override

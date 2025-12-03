@@ -15,11 +15,12 @@ import androidx.annotation.Nullable;
 public class FfiPaymentRequest {
 
     public static int create(int publicAddressId, @Nullable UnsignedLong amount,
-                             @Nullable String memo, @NonNull TokenId tokenId) {
+                             @Nullable String memo, @NonNull TokenId tokenId,
+                             @Nullable UnsignedLong paymentId) {
         PublicAddress publicAddress = (PublicAddress) ObjectStorage.objectForKey(publicAddressId);
         if (memo == null) memo = "";
         if (amount == null) amount = UnsignedLong.ZERO;
-        PaymentRequest paymentRequest = new PaymentRequest(publicAddress, amount, memo, tokenId);
+        PaymentRequest paymentRequest = new PaymentRequest(publicAddress, amount, memo, tokenId, paymentId);
         final int hashCode = paymentRequest.hashCode();
         ObjectStorage.addObject(hashCode, paymentRequest);
         return hashCode;
@@ -47,5 +48,10 @@ public class FfiPaymentRequest {
         final int hashCode = publicAddress.hashCode();
         ObjectStorage.addObject(hashCode, publicAddress);
         return hashCode;
+    }
+
+    public static String getPaymentId(int requestId) {
+        PaymentRequest paymentRequest = (PaymentRequest) ObjectStorage.objectForKey(requestId);
+        return paymentRequest.getPaymentId().toString();
     }
 }

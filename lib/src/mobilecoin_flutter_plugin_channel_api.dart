@@ -360,30 +360,32 @@ class MobileCoinFlutterPluginChannelApi {
     required BigInt tokenId,
     String? memo,
     BigInt? amount,
+    BigInt? paymentId,
   }) async {
     final Map<String, dynamic> params = <String, dynamic>{
       'publicAddressId': publicAddress.id,
       'memo': memo,
       'amount': amount?.toString(),
       'tokenId': tokenId.toString(),
+      'paymentId': paymentId?.toString(),
     };
     return await _channel.invokeMethod("PaymentRequest#create", params);
   }
 
   Future<String?> paymentRequestGetMemo({
-    required int paymentRequestId,
+    required int objectId,
   }) async {
     final Map<String, dynamic> params = <String, dynamic>{
-      'id': paymentRequestId,
+      'id': objectId,
     };
     return await _channel.invokeMethod("PaymentRequest#getMemo", params);
   }
 
   Future<BigInt> paymentRequestGetValue({
-    required int paymentRequestId,
+    required int objectId,
   }) async {
     final Map<String, dynamic> params = <String, dynamic>{
-      'id': paymentRequestId,
+      'id': objectId,
     };
     String valueString =
         await _channel.invokeMethod("PaymentRequest#getValue", params);
@@ -391,21 +393,30 @@ class MobileCoinFlutterPluginChannelApi {
   }
 
   Future<BigInt> paymentRequestGetTokenId({
-    required int paymentRequestId,
+    required int objectId,
   }) async {
     final Map<String, dynamic> params = <String, dynamic>{
-      'id': paymentRequestId,
+      'id': objectId,
     };
     String tokenIdString =
         await _channel.invokeMethod("PaymentRequest#getTokenId", params);
     return BigInt.parse(tokenIdString);
   }
 
-  Future<int> paymentRequestGetPublicAddress({
-    required int paymentRequestId,
+  Future<BigInt?> paymentRequestGetPaymentId({
+    required int objectId,
   }) async {
     final Map<String, dynamic> params = <String, dynamic>{
-      'id': paymentRequestId,
+      'id': objectId,
+    };
+    return await _channel.invokeMethod("PaymentRequest#getPaymentId", params);
+  }
+
+  Future<int> paymentRequestGetPublicAddress({
+    required int objectId,
+  }) async {
+    final Map<String, dynamic> params = <String, dynamic>{
+      'id': objectId,
     };
     return await _channel.invokeMethod(
       "PaymentRequest#getPublicAddress",
