@@ -16,7 +16,7 @@ public class FfiPaymentRequest {
 
     public static int create(int publicAddressId, @Nullable UnsignedLong amount,
                              @Nullable String memo, @NonNull TokenId tokenId,
-                             @Nullable String paymentId) {
+                             @Nullable UnsignedLong paymentId) {
         PublicAddress publicAddress = (PublicAddress) ObjectStorage.objectForKey(publicAddressId);
         if (memo == null) memo = "";
         if (amount == null) amount = UnsignedLong.ZERO;
