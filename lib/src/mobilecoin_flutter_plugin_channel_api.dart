@@ -409,7 +409,9 @@ class MobileCoinFlutterPluginChannelApi {
     final Map<String, dynamic> params = <String, dynamic>{
       'id': objectId,
     };
-    return await _channel.invokeMethod("PaymentRequest#getPaymentId", params);
+    final String paymentIdString =
+        await _channel.invokeMethod("PaymentRequest#getPaymentId", params);
+    return BigInt.tryParse(paymentIdString);
   }
 
   Future<int> paymentRequestGetPublicAddress({
