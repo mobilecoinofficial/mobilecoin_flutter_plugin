@@ -243,8 +243,14 @@ public class MobileCoinFlutterPlugin implements FlutterPlugin, MethodCallHandler
             case "PaymentRequest#create": {
                 BigInteger bigTokenId = new BigInteger((String) getCallArgument(call, "tokenId"));
                 TokenId tokenId = TokenId.from(UnsignedLong.fromBigInteger(bigTokenId));
+                UnsignedLong paymentId = null;
+                if (null != call.argument("paymentId")) {
+                    BigInteger bigPaymentId = new BigInteger((String) getCallArgument(call, "paymentId"));
+                    paymentId = UnsignedLong.fromBigInteger(bigPaymentId);
+                }
                 return api.paymentRequestCreate(getCallArgument(call, "publicAddressId"),
-                        getCallArgument(call, "amount"), getCallArgument(call, "memo"), tokenId);
+                        getCallArgument(call, "amount"), getCallArgument(call, "memo"),
+                        tokenId, paymentId);
             }
             case "PaymentRequest#getMemo":
                 return api.paymentRequestGetMemo(getCallArgument(call, "id"));
