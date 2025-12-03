@@ -13,18 +13,18 @@ struct FfiPaymentRequest {
                   let publicAddress = ObjectStorage.objectForKey(publicAddressId) as? PublicAddress else {
                       throw PluginError.invalidArguments
                   }
-            let paymentIdString = args["paymentId"] as? String
-            let paymentId = paymentIdString != nil ? UInt64(paymentIdString!) : nil
+            let paymentIDString = args["paymentId"] as? String
+            let paymentID = paymentIDString != nil ? UInt64(paymentIDString!) : nil
             let memo: String? = args["memo"] as? String
             let amount: String? = args["amount"] as? String
             let value: UInt64? = amount != nil ? UInt64(amount!) : nil
-            let paymentRequest = PaymentRequest(publicAddress: publicAddress, value:value, memo: memo, tokenID: tokenID, paymentId: paymentId);
+            let paymentRequest = PaymentRequest(publicAddress: publicAddress, value: value, memo: memo, tokenID: tokenID, paymentID: paymentID)
             let hashCode = paymentRequest.hashValue
             ObjectStorage.addObject(paymentRequest, forKey: hashCode)
             result(hashCode)
         }
     }
-    
+
     struct GetMemo: Command {
         func execute(args: [String : Any], result: @escaping FlutterResult) throws {
             guard let objectId: Int = args["id"] as? Int,
