@@ -258,6 +258,8 @@ public class MobileCoinFlutterPlugin implements FlutterPlugin, MethodCallHandler
                 return api.paymentRequestGetPublicAddress(getCallArgument(call, "id"));
             case "PaymentRequest#getTokenId":
                 return api.paymentRequestGetTokenId(getCallArgument(call, "id"));
+            case "PaymentRequest#getPaymentId":
+                return api.paymentRequestGetPaymentId(getCallArgument(call, "id"));
             case "PaymentRequest#getValue":
                 return api.paymentRequestGetValue(getCallArgument(call, "id"));
             case "Mnemonic#fromBip39Entropy":
