@@ -528,6 +528,12 @@ public class MobileCoinFlutterPlugin implements FlutterPlugin, MethodCallHandler
         String paymentRequestGetTokenId(int paymentRequestId);
 
         /**
+         * Looks up the given <code>PaymentRequest</code> in local object storage, then returns its
+         * payment id as a <code>String</code>.
+         */
+        String paymentRequestGetPaymentId(int paymentRequestId);
+
+        /**
          * Looks up the given <code>PaymentRequest</code> in local object storage, then retrieves
          * its public address, stores that public address in local object storage, and then returns
          * the public address' hash code.
