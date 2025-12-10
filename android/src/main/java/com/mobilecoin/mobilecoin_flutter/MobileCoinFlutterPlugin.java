@@ -258,6 +258,8 @@ public class MobileCoinFlutterPlugin implements FlutterPlugin, MethodCallHandler
                 return api.paymentRequestGetPublicAddress(getCallArgument(call, "id"));
             case "PaymentRequest#getTokenId":
                 return api.paymentRequestGetTokenId(getCallArgument(call, "id"));
+            case "PaymentRequest#getPaymentId":
+                return api.paymentRequestGetPaymentId(getCallArgument(call, "id"));
             case "PaymentRequest#getValue":
                 return api.paymentRequestGetValue(getCallArgument(call, "id"));
             case "Mnemonic#fromBip39Entropy":
@@ -526,6 +528,12 @@ public class MobileCoinFlutterPlugin implements FlutterPlugin, MethodCallHandler
          * token id 64bit value represented as <code>String</code>.
          */
         String paymentRequestGetTokenId(int paymentRequestId);
+
+        /**
+         * Looks up the given <code>PaymentRequest</code> in local object storage, then returns its
+         * payment id as a <code>String</code>.
+         */
+        String paymentRequestGetPaymentId(int paymentRequestId);
 
         /**
          * Looks up the given <code>PaymentRequest</code> in local object storage, then retrieves
@@ -857,6 +865,11 @@ public class MobileCoinFlutterPlugin implements FlutterPlugin, MethodCallHandler
         @Override
         public String paymentRequestGetTokenId(int paymentRequestId) {
             return FfiPaymentRequest.getTokenId(paymentRequestId);
+        }
+
+        @Override
+        public String paymentRequestGetPaymentId(int paymentRequestId) {
+            return FfiPaymentRequest.getPaymentId(paymentRequestId);
         }
 
         @Override
