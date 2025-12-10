@@ -866,6 +866,11 @@ public class MobileCoinFlutterPlugin implements FlutterPlugin, MethodCallHandler
         }
 
         @Override
+        public String paymentRequestGetPaymentId(int paymentRequestId) {
+            return FfiPaymentRequest.getPaymentId(paymentRequestId);
+        }
+
+        @Override
         public int paymentRequestGetPublicAddress(int paymentRequestId) {
             return FfiPaymentRequest.getPublicAddress(paymentRequestId);
         }
