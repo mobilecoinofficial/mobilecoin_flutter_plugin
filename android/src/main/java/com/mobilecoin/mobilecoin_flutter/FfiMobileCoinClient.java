@@ -342,8 +342,8 @@ public class FfiMobileCoinClient {
         final PendingTransaction pendingTransaction = mobileCoinClient.prepareTransaction(recipient,
                 new Amount(amount.getPicoCountAsBigInt(), tokenId),
                 new Amount(fee.getPicoCountAsBigInt(), tokenId), txOutMemoBuilder, rng);
-        final transaction = pendingTransaction.getTransaction();
-        final receiptId = transaction.hashCode();
+        final Transaction transaction = pendingTransaction.getTransaction();
+        final int receiptId = transaction.hashCode();
         ObjectStorage.addObject(receiptId, transaction);
 
         HashMap<String, Object> returnPayload = new HashMap<>();
