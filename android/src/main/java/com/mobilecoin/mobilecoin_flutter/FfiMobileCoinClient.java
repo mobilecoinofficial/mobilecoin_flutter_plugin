@@ -342,9 +342,13 @@ public class FfiMobileCoinClient {
         final PendingTransaction pendingTransaction = mobileCoinClient.prepareTransaction(recipient,
                 new Amount(amount.getPicoCountAsBigInt(), tokenId),
                 new Amount(fee.getPicoCountAsBigInt(), tokenId), txOutMemoBuilder, rng);
+        final transaction = pendingTransaction.getTransaction();
+        final receiptId = transaction.hashCode();
+        ObjectStorage.addObject(receiptId, transaction);
 
         HashMap<String, Object> returnPayload = new HashMap<>();
-        returnPayload.put("transaction", pendingTransaction.getTransaction().toByteArray());
+        returnPayload.put("transaction", transaction.toByteArray());
+        returnPayload.put("receiptId", receiptId);
 
         final RistrettoPublic payloadTxOutPublicKey =
                 pendingTransaction.getPayloadTxOutContext().getTxOutPublicKey();
@@ -372,9 +376,6 @@ public class FfiMobileCoinClient {
         MobileCoinClient mobileCoinClient =
                 (MobileCoinClient) ObjectStorage.objectForKey(mobileClientId);
         Transaction transaction = Transaction.fromBytes(serializedTransaction);
-        int receiptId = transaction.hashCode();
-
-        ObjectStorage.addObject(receiptId, transaction);
 
         JSONObject resultObject = new JSONObject();
 
@@ -383,7 +384,6 @@ public class FfiMobileCoinClient {
 
             resultObject.put("status", "OK");
             resultObject.put("blockIndex", blockIndex);
-            resultObject.put("receiptId", receiptId);
         } catch (InvalidTransactionException e) {
             final ConsensusCommon.ProposeTxResult result =
                     e.getResult() == null ? ConsensusCommon.ProposeTxResult.UNRECOGNIZED
