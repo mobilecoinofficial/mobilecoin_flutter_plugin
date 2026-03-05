@@ -481,7 +481,12 @@ struct FfiMobileCoinClient {
                 case .success(let (pending)):
                     var returnPayload: [String: Any] = [:]
 
-                    returnPayload["transaction"] = FlutterStandardTypedData(bytes: pending.transaction.serializedData)
+                    let transaction = pending.transaction
+                    let receiptId = transaction.hashValue
+                    ObjectStorage.addObject(transaction, forKey: receiptId);
+
+                    returnPayload["transaction"] = FlutterStandardTypedData(bytes: transaction.serializedData)
+                    returnPayload["receiptId"] = receiptId
 
                     let payloadTxOutPublicKey = pending.payloadTxOutContext.txOutPublicKey
                     let payloadTxOutSharedSecret = pending.payloadTxOutContext.sharedSecretBytes
@@ -519,10 +524,6 @@ struct FfiMobileCoinClient {
                     throw PluginError.invalidArguments
                 }
 
-            let receiptId = transaction.hashValue
-
-            ObjectStorage.addObject(transaction, forKey: receiptId);
-
             mobileCoinClient.submitTransaction(transaction: transaction) { (txResult: Result<(UInt64), SubmitTransactionError>) in
                 var jsonObject: [String: Any] = [:]
                 do {
@@ -530,7 +531,6 @@ struct FfiMobileCoinClient {
                     case .success(let blockIndex):
                         jsonObject["status"] = "OK"
                         jsonObject["blockIndex"] = blockIndex
-                        jsonObject["receiptId"] = receiptId
                     case .failure(let error):
                         switch error.submissionError {
                         case .connectionError:
