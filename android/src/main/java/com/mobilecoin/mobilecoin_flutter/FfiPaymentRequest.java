@@ -52,6 +52,7 @@ public class FfiPaymentRequest {
 
     public static String getPaymentId(int requestId) {
         PaymentRequest paymentRequest = (PaymentRequest) ObjectStorage.objectForKey(requestId);
-        return paymentRequest.getPaymentId().toString();
+        UnsignedLong paymentId = paymentRequest.getPaymentId();
+        return paymentId != null ? paymentId.toString() : "0";
     }
 }
