@@ -28,8 +28,10 @@ private func mistysignMrSigners(from entries: [[String: Any]]) -> [Attestation.M
         guard
             let hex = entry["mrSigner"] as? String,
             let mrSigner = HexEncoding.data(fromHexEncodedString: hex),
-            let productId = entry["productId"] as? Int,
-            let minimumSecurityVersion = entry["minimumSecurityVersion"] as? Int
+            let productIdArg = entry["productId"] as? Int,
+            let minimumSecurityVersionArg = entry["minimumSecurityVersion"] as? Int,
+            let productId = UInt16(exactly: productIdArg),
+            let minimumSecurityVersion = UInt16(exactly: minimumSecurityVersionArg)
         else {
             return nil
         }
@@ -39,8 +41,8 @@ private func mistysignMrSigners(from entries: [[String: Any]]) -> [Attestation.M
             .split(separator: ",").map(String.init) ?? []
         return try? Attestation.MrSigner.make(
             mrSigner: mrSigner,
-            productId: UInt16(productId),
-            minimumSecurityVersion: UInt16(minimumSecurityVersion),
+            productId: productId,
+            minimumSecurityVersion: minimumSecurityVersion,
             allowedConfigAdvisories: config,
             allowedHardeningAdvisories: hardening
         ).get()
@@ -82,7 +84,6 @@ struct FfiMistysignAttestedSession {
                 let session = ObjectStorage.objectForKey(id) as? MistysignAttestedSession,
                 let responderId = args["responderId"] as? String
             else {
-                result(FlutterError(code: "NATIVE", message: "AuthBeginRequestData", details: "parsing arguments"))
                 throw PluginError.invalidArguments
             }
 
@@ -99,7 +100,6 @@ struct FfiMistysignAttestedSession {
                 let mrEnclaveEntries = args["mrEnclaves"] as? [[String: Any]],
                 let mrSignerEntries = args["mrSigners"] as? [[String: Any]]
             else {
-                result(FlutterError(code: "NATIVE", message: "AuthEnd", details: "parsing arguments"))
                 throw PluginError.invalidArguments
             }
 
@@ -124,7 +124,6 @@ struct FfiMistysignAttestedSession {
                 let session = ObjectStorage.objectForKey(id) as? MistysignAttestedSession,
                 let plaintext = args["plaintext"] as? FlutterStandardTypedData
             else {
-                result(FlutterError(code: "NATIVE", message: "Encrypt", details: "parsing arguments"))
                 throw PluginError.invalidArguments
             }
 
@@ -143,7 +142,6 @@ struct FfiMistysignAttestedSession {
                 let session = ObjectStorage.objectForKey(id) as? MistysignAttestedSession,
                 let messageData = args["messageData"] as? FlutterStandardTypedData
             else {
-                result(FlutterError(code: "NATIVE", message: "Decrypt", details: "parsing arguments"))
                 throw PluginError.invalidArguments
             }
 
@@ -161,7 +159,6 @@ struct FfiMistysignAttestedSession {
                 let id = args["id"] as? Int,
                 let session = ObjectStorage.objectForKey(id) as? MistysignAttestedSession
             else {
-                result(FlutterError(code: "NATIVE", message: "Deattest", details: "parsing arguments"))
                 throw PluginError.invalidArguments
             }
 
@@ -176,7 +173,6 @@ struct FfiMistysignAttestedSession {
                 let id = args["id"] as? Int,
                 let session = ObjectStorage.objectForKey(id) as? MistysignAttestedSession
             else {
-                result(FlutterError(code: "NATIVE", message: "IsAttested", details: "parsing arguments"))
                 throw PluginError.invalidArguments
             }
 
@@ -187,7 +183,6 @@ struct FfiMistysignAttestedSession {
     struct Destroy: Command {
         func execute(args: [String: Any], result: @escaping FlutterResult) throws {
             guard let id = args["id"] as? Int else {
-                result(FlutterError(code: "NATIVE", message: "Destroy", details: "parsing arguments"))
                 throw PluginError.invalidArguments
             }
 
