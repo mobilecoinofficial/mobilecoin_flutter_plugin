@@ -14,7 +14,7 @@ A new flutter plugin project.
   s.license          = { :file => '../LICENSE' }
   s.author           = { 'MobileCoin' => 'hello@mobilecoin.com' }
   s.source           = { :path => '.' }
-  s.source_files = 'Classes/**/*'
+  s.source_files = 'mobilecoin_flutter/Sources/mobilecoin_flutter/**/*'
   s.dependency 'Flutter'
 
   s.dependency 'MobileCoin/CoreHTTP', '~> 6.0.6'

@@ -1,5 +1,6 @@
 // Copyright (c) 2021-2026 MobileCoin. All rights reserved.
 
+import Flutter
 import Foundation
 import MobileCoin
 
