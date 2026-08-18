@@ -1,3 +1,7 @@
+## 0.0.3
+
+- Add `MistysignAttestedSession`, an iOS-only bridge to the Mistysign attested channel. Throws `UnsupportedError` on Android.
+
 ## 0.0.2
 
 ## Breaking Changes

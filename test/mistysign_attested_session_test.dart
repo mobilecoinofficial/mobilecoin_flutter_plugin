@@ -72,7 +72,15 @@ void main() {
             'configAdvisories': '',
           }
         ]);
-        expect(call.arguments['mrSigners'], isEmpty);
+        expect(call.arguments['mrSigners'], [
+          {
+            'mrSigner': 'cd',
+            'productId': 1,
+            'minimumSecurityVersion': 2,
+            'hardeningAdvisories': '',
+            'configAdvisories': 'CONFIG-ADVISORY',
+          }
+        ]);
         return null;
       });
 
@@ -83,6 +91,14 @@ void main() {
           MistysignMrEnclave(
             mrEnclave: 'ab',
             hardeningAdvisories: ['INTEL-SA-SOMETHING'],
+          ),
+        ],
+        mrSigners: const [
+          MistysignMrSigner(
+            mrSigner: 'cd',
+            productId: 1,
+            minimumSecurityVersion: 2,
+            configAdvisories: ['CONFIG-ADVISORY'],
           ),
         ],
       );
