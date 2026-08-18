@@ -125,6 +125,23 @@ class CommandFactory {
             return FfiCryptoBox.encrypt()
         case "CryptoBox#decrypt":
             return FfiCryptoBox.decrypt()
+
+        case "MistysignAttestedSession#create":
+            return FfiMistysignAttestedSession.Create()
+        case "MistysignAttestedSession#authBeginRequestData":
+            return FfiMistysignAttestedSession.AuthBeginRequestData()
+        case "MistysignAttestedSession#authEnd":
+            return FfiMistysignAttestedSession.AuthEnd()
+        case "MistysignAttestedSession#encrypt":
+            return FfiMistysignAttestedSession.Encrypt()
+        case "MistysignAttestedSession#decrypt":
+            return FfiMistysignAttestedSession.Decrypt()
+        case "MistysignAttestedSession#deattest":
+            return FfiMistysignAttestedSession.Deattest()
+        case "MistysignAttestedSession#isAttested":
+            return FfiMistysignAttestedSession.IsAttested()
+        case "MistysignAttestedSession#destroy":
+            return FfiMistysignAttestedSession.Destroy()
         default:
             throw PluginError.invalidCall
         }
@@ -144,6 +161,12 @@ struct ObjectStorage {
     static func addObject(_ obj: Any, forKey key: Int) {
         lockQueue.sync(flags: .barrier) {
             managedObjects[key] = obj
+        }
+    }
+
+    static func removeObject(forKey key: Int) {
+        lockQueue.sync(flags: .barrier) {
+            managedObjects.removeValue(forKey: key)
         }
     }
 }
