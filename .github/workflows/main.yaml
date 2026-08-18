@@ -117,6 +117,9 @@ jobs:
         if: steps.pub-cache.cache.outputs.cache-hit != 'true'
         run: flutter pub get;
 
+      - name: 'Setup Android SDK'
+        uses: amyu/setup-android@v5
+
       - name: 'Build example'
         run: |
           cd ${{ github.workspace }}/example;
