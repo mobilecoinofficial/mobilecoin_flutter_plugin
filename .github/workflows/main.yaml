@@ -13,8 +13,8 @@ env:
   FLUTTER_VERSION: 3.27.2
 
 jobs:
-  android:
-    runs-on: ubuntu-latest
+  dart:
+    runs-on: mco-dev-small-x64
     timeout-minutes: 15
     steps:
       - name: 'Checkout Repo'
@@ -22,19 +22,12 @@ jobs:
         with:
           fetch-depth: 0 # to get all branches and tags
 
-      - name: 'Set Java version'
-        uses: actions/setup-java@v3
-        with:
-          distribution: 'zulu'
-          java-version: '17'
-          cache: 'gradle'
-
       - name: 'Cache Flutter'
         id: flutter-cache
         uses: actions/cache@v4
         with:
           key: ${{ runner.OS }}-flutter-install-cache-${{ env.FLUTTER_VERSION }}
-          path: /opt/hostedtoolcache/flutter
+          path: ${{ runner.tool_cache }}/flutter
 
       - name: 'Cache Flutter dependencies'
         id: pub-cache
@@ -71,10 +64,60 @@ jobs:
       - name: 'Run unit tests'
         run: flutter test --no-pub --coverage --test-randomize-ordering-seed random
 
+  android:
+    runs-on: mco-dev-large-x64
+    timeout-minutes: 15
+    steps:
+      - name: 'Checkout Repo'
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0 # to get all branches and tags
+
+      - name: 'Set Java version'
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+          cache: 'gradle'
+
+      - name: 'Cache Flutter'
+        id: flutter-cache
+        uses: actions/cache@v4
+        with:
+          key: ${{ runner.OS }}-flutter-install-cache-${{ env.FLUTTER_VERSION }}
+          path: ${{ runner.tool_cache }}/flutter
+
+      - name: 'Cache Flutter dependencies'
+        id: pub-cache
+        uses: actions/cache@v4
+        with:
+          key: ${{ runner.os }}-pub-${{ hashFiles('**/pubspec.lock') }}
+          path: |
+            ${{ env.FLUTTER_HOME }}/.pub-cache
+            **/.packages
+            **/.flutter-plugins
+            **/.flutter-plugin-dependencies
+            **/.dart_tool/package_config.json
+
+      - name: 'Set Flutter version'
+        if: steps.flutter-cache.cache.outputs.cache-hit != 'true'
+        uses: subosito/flutter-action@v1
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+
+      - name: 'Install Dart dependencies'
+        if: steps.pub-cache.cache.outputs.cache-hit != 'true'
+        run: flutter pub get;
+
       - name: 'Build example'
         run: |
           cd ${{ github.workspace }}/example;
           flutter build apk;
+
+      - name: 'Run native unit tests'
+        run: |
+          cd ${{ github.workspace }}/example/android;
+          ./gradlew :mobilecoin_flutter:testDebugUnitTest;
 
   ios:
     runs-on: macos-14-xlarge
