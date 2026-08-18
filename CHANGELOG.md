@@ -1,3 +1,8 @@
+## 0.0.5
+
+- `MistysignAttestedSession` now works on Android as well as iOS. `create()` throws `UnsupportedError` only on platforms other than those two.
+- Native failures that declare a `ChannelErrorCode` now reach Dart under that code rather than the catch-all `NATIVE`, so Android surfaces the same `MistysignAttestedSessionErrorCode` values as iOS.
+
 ## 0.0.4
 
 - Add `ios/mobilecoin_flutter/Package.swift`. The iOS side now builds through Swift Package Manager or CocoaPods, both from the same source tree.
