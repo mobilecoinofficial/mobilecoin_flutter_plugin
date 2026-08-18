@@ -1,3 +1,7 @@
+## 0.0.4
+
+- Add `ios/mobilecoin_flutter/Package.swift`. The iOS side now builds through Swift Package Manager or CocoaPods, both from the same source tree.
+
 ## 0.0.3
 
 - Add `MistysignAttestedSession`, an iOS-only bridge to the Mistysign attested channel. Throws `UnsupportedError` on Android.
