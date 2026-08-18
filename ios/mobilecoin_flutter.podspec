@@ -5,7 +5,7 @@
 #
 Pod::Spec.new do |s|
   s.name             = 'mobilecoin_flutter'
-  s.version          = '0.2.1'
+  s.version          = '0.2.2'
   s.summary          = 'A new flutter plugin project.'
   s.description      = <<-DESC
 A new flutter plugin project.
@@ -17,7 +17,7 @@ A new flutter plugin project.
   s.source_files = 'Classes/**/*'
   s.dependency 'Flutter'
 
-  s.dependency 'MobileCoin/CoreHTTP', '~> 6.0.5'
+  s.dependency 'MobileCoin/CoreHTTP', '~> 6.0.6'
   s.platform = :ios, '12.2'
 
   # Flutter.framework does not contain a i386 slice.
