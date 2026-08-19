@@ -35,20 +35,28 @@ public final class MistysignUri extends MobileCoinUri {
      * URI's host and port. Mistysign is attested through a responder id that is
      * configured on the service rather than dialed by the client, so the
      * "responder-id" query parameter is used instead, which
-     * <code>attestStart</code> prefers over the derived value. The authority is
-     * only present so the URI parses; nothing connects to it.
+     * <code>attestStart</code> prefers over the derived value.
+     * <p>
+     * The authority is a fixed placeholder rather than the responder id's own
+     * host. Nothing reads it -- the id reaches Rust unaltered through the query
+     * parameter, exactly as it does on iOS -- and deriving one would mean
+     * parsing a value that neither platform otherwise parses, which is how a
+     * bracketed IPv6 literal ends up mangled.
      */
     @NonNull
     public static MistysignUri forResponderId(@NonNull final String responderId)
             throws InvalidUriException {
-        final String host = responderId.split(":", 2)[0];
-        if (host.isEmpty()) {
-            throw new InvalidUriException("Responder id must start with a host: " + responderId);
+        // An empty parameter is the one input that must not reach attestStart:
+        // it fails the parameter's isEmpty check and silently falls back to
+        // deriving the responder id from the placeholder authority below, which
+        // would attest against "mistysign.invalid:443" instead of failing.
+        if (responderId.isEmpty()) {
+            throw new InvalidUriException("Responder id must not be empty");
         }
 
         return new MistysignUri(new Uri.Builder()
                 .scheme(new MistysignScheme().secureScheme())
-                .encodedAuthority(host)
+                .encodedAuthority(UNROUTABLE_HOST)
                 .appendQueryParameter(RESPONDER_ID_PARAMETER, responderId)
                 .build());
     }

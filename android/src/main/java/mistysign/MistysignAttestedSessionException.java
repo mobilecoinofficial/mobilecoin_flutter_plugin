@@ -46,11 +46,26 @@ public final class MistysignAttestedSessionException extends Exception implement
     public MistysignAttestedSessionException(@NonNull final Code code,
                                              @NonNull final String message,
                                              @Nullable final Throwable cause) {
-        // The cause's message is folded into this one because only the message
-        // survives the trip to Dart; wrapping without it makes every failure of
-        // a given kind read identically.
-        super(cause == null ? message : message + ": " + cause.getLocalizedMessage(), cause);
+        super(withCause(message, cause), cause);
         this.code = code;
+    }
+
+    /**
+     * Folds the cause's message into this one, because only the message
+     * survives the trip to Dart and wrapping without it makes every failure of
+     * a given kind read identically.
+     * <p>
+     * A cause with no message of its own contributes nothing, rather than a
+     * ": null" suffix. Wrapped runtime failures often have none.
+     */
+    @NonNull
+    private static String withCause(@NonNull final String message,
+                                    @Nullable final Throwable cause) {
+        final String causeMessage = cause == null ? null : cause.getLocalizedMessage();
+        if (causeMessage == null || causeMessage.isEmpty()) {
+            return message;
+        }
+        return message + ": " + causeMessage;
     }
 
     @NonNull
