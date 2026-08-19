@@ -162,9 +162,9 @@ struct FfiMistysignAttestedSession {
             }
 
             do {
-                let attestation = Attestation(
-                    mrEnclaves: try mistysignMrEnclaves(from: mrEnclaveEntries),
-                    mrSigners: try mistysignMrSigners(from: mrSignerEntries)
+                let attestation = try Attestation(
+                    mrEnclaves: mistysignMrEnclaves(from: mrEnclaveEntries),
+                    mrSigners: mistysignMrSigners(from: mrSignerEntries)
                 )
                 try session.authEnd(authResponseData: authResponseData.data, attestation: attestation)
                 result(nil)
