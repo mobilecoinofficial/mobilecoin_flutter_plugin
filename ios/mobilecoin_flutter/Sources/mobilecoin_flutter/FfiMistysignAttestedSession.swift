@@ -187,7 +187,7 @@ struct FfiMistysignAttestedSession {
                 throw PluginError.invalidArguments
             }
 
-            ObjectStorage.removeObject(forKey: id)
+            try ObjectStorage.removeObject(forKey: id, ofType: MistysignAttestedSession.self)
             result(nil)
         }
     }

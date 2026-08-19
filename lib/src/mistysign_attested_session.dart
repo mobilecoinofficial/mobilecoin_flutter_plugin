@@ -93,7 +93,8 @@ class MistysignAttestedSession extends PlatformObject {
     );
   }
 
-  /// Releases the native session. The instance must not be used afterwards.
+  /// Releases the native session. The instance must not be used afterwards, and a
+  /// second call is a no-op.
   Future<void> destroy() {
     return _wrap(
       () => MobileCoinFlutterPluginChannelApi.instance
