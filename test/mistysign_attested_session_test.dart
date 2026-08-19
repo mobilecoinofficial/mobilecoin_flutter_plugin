@@ -196,6 +196,8 @@ void main() {
       'MISTYSIGN_NOT_ATTESTED': MistysignAttestedSessionErrorCode.notAttested,
       'MISTYSIGN_NO_TRUSTED_IDENTITIES':
           MistysignAttestedSessionErrorCode.noTrustedIdentities,
+      'MISTYSIGN_INVALID_TRUSTED_IDENTITY':
+          MistysignAttestedSessionErrorCode.invalidTrustedIdentity,
       'MISTYSIGN_ATTESTATION_FAILED':
           MistysignAttestedSessionErrorCode.attestationFailed,
       'MISTYSIGN_ENCRYPTION_FAILED':

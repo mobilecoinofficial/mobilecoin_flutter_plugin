@@ -19,7 +19,17 @@ public final class MistysignAttestedSessionException extends Exception implement
 
     public enum Code {
         NOT_ATTESTED("MISTYSIGN_NOT_ATTESTED"),
+
+        /** The call named no trusted identities, so nothing could be accepted. */
         NO_TRUSTED_IDENTITIES("MISTYSIGN_NO_TRUSTED_IDENTITIES"),
+
+        /**
+         * A trusted identity was named but could not be read. A local
+         * configuration fault, as opposed to {@link #ATTESTATION_FAILED},
+         * which is evidence not matching identities that read fine.
+         */
+        INVALID_TRUSTED_IDENTITY("MISTYSIGN_INVALID_TRUSTED_IDENTITY"),
+
         ATTESTATION_FAILED("MISTYSIGN_ATTESTATION_FAILED"),
         ENCRYPTION_FAILED("MISTYSIGN_ENCRYPTION_FAILED"),
         DECRYPTION_FAILED("MISTYSIGN_DECRYPTION_FAILED");

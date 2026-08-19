@@ -94,6 +94,34 @@ final class MistysignAttestedSessionChannelTests: PluginChannelTestCase {
                     code: "MISTYSIGN_ATTESTATION_FAILED")
     }
 
+    func testAnUnreadableIdentityIsNotReportedAsAFailedAttestation() {
+        // A local configuration fault, so it must not arrive under the code an
+        // enclave whose evidence did not match uses. Those two want different
+        // triage and Dart can only tell them apart by the code.
+        //
+        // The handshake is deliberately not begun: reaching this code proves
+        // the identity was rejected before the state check that
+        // testAuthEndBeforeAuthBeginIsRejected pins.
+        for entry in [Self.mrSignerEntry(overriding: "mrSigner", with: "not hex"),
+                      Self.mrSignerEntry(overriding: "productId", with: 70000),
+                      Self.mrSignerEntry(overriding: "minimumSecurityVersion", with: "6"),
+                      Self.mrSignerEntry(overriding: "hardeningAdvisories", with: 7)] {
+            assertFails(authEnd, arguments(for: id, mrSigners: [entry]),
+                        code: "MISTYSIGN_INVALID_TRUSTED_IDENTITY")
+        }
+    }
+
+    func testAnUnreadableEnclaveMeasurementIsRejected() {
+        let arguments: [String: Any] = [
+            "id": id,
+            "authResponseData": bytes([0x00]),
+            "mrEnclaves": [["mrEnclave": "zz", "hardeningAdvisories": "", "configAdvisories": ""]],
+            "mrSigners": [[String: Any]](),
+        ]
+
+        assertFails(authEnd, arguments, code: "MISTYSIGN_INVALID_TRUSTED_IDENTITY")
+    }
+
     func testAuthEndWithUnusableEvidenceIsRejected() {
         _ = invoke(authBeginRequestData, ["id": id, "responderId": "misty.test:443"])
 
@@ -181,5 +209,14 @@ final class MistysignAttestedSessionChannelTests: PluginChannelTestCase {
             "hardeningAdvisories": "INTEL-SA-00334,INTEL-SA-00615",
             "configAdvisories": "",
         ]
+    }
+
+    /// A signer entry with one field replaced by something unreadable, so each
+    /// case differs from the well formed one by exactly the field under test.
+    private static func mrSignerEntry(overriding key: String,
+                                      with value: Any) -> [String: Any] {
+        var entry = mrSignerEntry()
+        entry[key] = value
+        return entry
     }
 }

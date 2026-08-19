@@ -4,14 +4,27 @@ import Flutter
 import Foundation
 import MobileCoin
 
-// Identity parsing rejects a malformed entry rather than dropping it. Dropping
-// one cannot weaken trust -- evidence is only accepted against the identities
-// that survive -- but it makes a misconfiguration invisible, leaving a typo to
-// present as an enclave that never matches. Matches the Android bridge.
-private func malformedIdentity(_ reason: String) -> MistysignAttestedSessionError {
-    // Reuses the SDK's error so the Dart-visible code comes from the one
-    // mapping in `flutterCode` and cannot drift from it.
-    .attestationFailed(reason)
+/// A trusted identity the Dart side sent that could not be read.
+///
+/// Identity parsing rejects a malformed entry rather than dropping it. Dropping
+/// one cannot weaken trust -- evidence is only accepted against the identities
+/// that survive -- but it makes a misconfiguration invisible, leaving a typo to
+/// present as an enclave that never matches.
+///
+/// Its own type rather than the SDK's `attestationFailed`, because a local
+/// configuration fault and an enclave whose evidence does not match are
+/// different triage paths, and sharing one code makes them indistinguishable
+/// from Dart. Matches the Android bridge.
+private struct MistysignInvalidTrustedIdentity: LocalizedError {
+    let reason: String
+
+    var flutterCode: String { "MISTYSIGN_INVALID_TRUSTED_IDENTITY" }
+
+    var errorDescription: String? { "Invalid Mistysign trusted identity: \(reason)" }
+}
+
+private func malformedIdentity(_ reason: String) -> MistysignInvalidTrustedIdentity {
+    MistysignInvalidTrustedIdentity(reason: reason)
 }
 
 /// Splits the comma joined advisories the Dart side sends.
@@ -168,6 +181,8 @@ struct FfiMistysignAttestedSession {
                 )
                 try session.authEnd(authResponseData: authResponseData.data, attestation: attestation)
                 result(nil)
+            } catch let error as MistysignInvalidTrustedIdentity {
+                result(FlutterError(code: error.flutterCode, message: error.localizedDescription, details: nil))
             } catch let error as MistysignAttestedSessionError {
                 result(FlutterError(code: error.flutterCode, message: error.localizedDescription, details: nil))
             }

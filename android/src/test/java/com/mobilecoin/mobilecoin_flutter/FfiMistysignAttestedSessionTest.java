@@ -4,6 +4,7 @@ package com.mobilecoin.mobilecoin_flutter;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
@@ -48,6 +49,22 @@ public class FfiMistysignAttestedSessionTest {
 
         assertEquals(Code.NO_TRUSTED_IDENTITIES, exception.getCode());
         assertEquals("MISTYSIGN_NO_TRUSTED_IDENTITIES", exception.channelErrorCode());
+    }
+
+    @Test
+    public void unreadableIdentity_isNotReportedAsAFailedAttestation() {
+        // An identity that cannot be read is a local configuration fault, so it
+        // must not arrive under the code an enclave whose evidence did not
+        // match uses. The two want different triage, and Dart can only tell
+        // them apart by the code.
+        final MistysignAttestedSessionException exception = assertThrows(
+                MistysignAttestedSessionException.class,
+                () -> FfiMistysignAttestedSession.measurement(
+                        entry("mrSigner", "not hex"), "mrSigner"));
+
+        assertEquals(Code.INVALID_TRUSTED_IDENTITY, exception.getCode());
+        assertEquals("MISTYSIGN_INVALID_TRUSTED_IDENTITY", exception.channelErrorCode());
+        assertNotEquals("MISTYSIGN_ATTESTATION_FAILED", exception.channelErrorCode());
     }
 
     @Test
@@ -254,7 +271,7 @@ public class FfiMistysignAttestedSessionTest {
                 () -> FfiMistysignAttestedSession.advisories(
                         entry("hardeningAdvisories", 7), "hardeningAdvisories"));
 
-        assertEquals(Code.ATTESTATION_FAILED, exception.getCode());
+        assertEquals(Code.INVALID_TRUSTED_IDENTITY, exception.getCode());
         assertEquals("'hardeningAdvisories' is not a comma joined string: java.lang.Integer",
                 exception.getMessage());
     }
@@ -280,7 +297,7 @@ public class FfiMistysignAttestedSessionTest {
                 MistysignAttestedSessionException.class,
                 () -> FfiMistysignAttestedSession.measurement(entry, key));
 
-        assertEquals(Code.ATTESTATION_FAILED, exception.getCode());
+        assertEquals(Code.INVALID_TRUSTED_IDENTITY, exception.getCode());
         assertEquals(expectedMessage, exception.getMessage());
     }
 
@@ -291,7 +308,7 @@ public class FfiMistysignAttestedSessionTest {
                 MistysignAttestedSessionException.class,
                 () -> FfiMistysignAttestedSession.shortValue(entry, key));
 
-        assertEquals(Code.ATTESTATION_FAILED, exception.getCode());
+        assertEquals(Code.INVALID_TRUSTED_IDENTITY, exception.getCode());
         assertEquals(expectedMessage, exception.getMessage());
     }
 

@@ -3,6 +3,7 @@
 - `MistysignAttestedSession` now works on Android as well as iOS. `create()` throws `UnsupportedError` only on platforms other than those two.
 - Native failures that declare a `ChannelErrorCode` now reach Dart under that code rather than the catch-all `NATIVE`, so Android surfaces the same `MistysignAttestedSessionErrorCode` values as iOS.
 - `MistysignAttestedSession.authBeginRequestData` now throws `ArgumentError` on an empty `responderId`, and the iOS plugin rejects one as well. The iOS SDK treats the native handshake as infallible and traps the process on one, where Android reports an invalid uri.
+- Add `MistysignAttestedSessionErrorCode.invalidTrustedIdentity`, raised when a trusted identity cannot be read. Previously this shared `attestationFailed` with an enclave whose evidence did not match, so a local configuration fault and a real attestation failure were indistinguishable. Callers matching on `attestationFailed` to detect a bad identity need to match the new code instead.
 
 ## 0.0.4
 
