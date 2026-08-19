@@ -50,6 +50,27 @@ android {
         unitTests {
             // Robolectric reads the merged manifest and resources.
             includeAndroidResources = true
+
+            all {
+                testLogging {
+                    events 'failed'
+                    exceptionFormat 'full'
+                }
+
+                // Gradle reports a run that discovered nothing as a success, so
+                // a green lane would otherwise say the same thing whether these
+                // tests ran or stopped being found at all.
+                afterSuite { descriptor, result ->
+                    if (descriptor.parent != null) {
+                        return
+                    }
+                    println "${result.testCount} tests, ${result.failedTestCount} failed, " +
+                            "${result.skippedTestCount} skipped"
+                    if (result.testCount == 0) {
+                        throw new GradleException('No unit tests were found.')
+                    }
+                }
+            }
         }
     }
 }
