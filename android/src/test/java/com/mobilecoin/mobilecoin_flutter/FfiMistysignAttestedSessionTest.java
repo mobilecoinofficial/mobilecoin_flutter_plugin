@@ -127,10 +127,12 @@ public class FfiMistysignAttestedSessionTest {
     @Test
     public void measurement_rejectsANonHexCharacter() {
         // The SDK's own hex decoder maps a bad character to -1, which turns a
-        // typo into a measurement that never matches instead of an error.
-        assertMalformed("'mrEnclave' is not hex encoded",
+        // typo into a measurement that never matches instead of an error. The
+        // index is the start of the failing pair, so it points at the byte
+        // rather than at the character.
+        assertMalformed("'mrEnclave' contains a non hex character at index 6",
                 entry("mrEnclave", "deadbeeg"), "mrEnclave");
-        assertMalformed("'mrEnclave' is not hex encoded",
+        assertMalformed("'mrEnclave' contains a non hex character at index 4",
                 entry("mrEnclave", "dead beef "), "mrEnclave");
     }
 
@@ -139,9 +141,9 @@ public class FfiMistysignAttestedSessionTest {
         // Character.digit answers for every Unicode digit, so a fullwidth or
         // Arabic-Indic character decodes to a measurement that is well formed
         // and simply wrong: "\uFF13\uFF13" would become 0x33.
-        assertMalformed("'mrEnclave' is not hex encoded",
+        assertMalformed("'mrEnclave' contains a non hex character at index 0",
                 entry("mrEnclave", "\uFF13\uFF13"), "mrEnclave");
-        assertMalformed("'mrEnclave' is not hex encoded",
+        assertMalformed("'mrEnclave' contains a non hex character at index 0",
                 entry("mrEnclave", "\u0663\u0663"), "mrEnclave");
     }
 
@@ -164,9 +166,13 @@ public class FfiMistysignAttestedSessionTest {
     }
 
     @Test
-    public void measurement_rejectsANonStringValue() {
-        assertMalformed("Trusted identity is missing 'mrSigner'",
+    public void measurement_namesAWronglyTypedValueRatherThanCallingItMissing() {
+        // An mrSigner sent as bytes rather than hex is present, so reporting it
+        // as missing sends the reader looking for a key that is right there.
+        assertMalformed("'mrSigner' is not a hex encoded string: java.lang.Integer",
                 entry("mrSigner", 7), "mrSigner");
+        assertMalformed("'mrSigner' is not a hex encoded string: [B",
+                entry("mrSigner", new byte[]{1}), "mrSigner");
     }
 
     @Test
@@ -190,32 +196,50 @@ public class FfiMistysignAttestedSessionTest {
     }
 
     @Test
+    public void shortValue_namesAWronglyTypedValueRatherThanCallingItMissing() {
+        assertMalformedShort("'productId' is not a number: java.lang.String",
+                entry("productId", "2"), "productId");
+    }
+
+    @Test
     public void shortValue_rejectsAMissingKey() {
         assertMalformedShort("Trusted identity is missing 'minimumSecurityVersion'",
                 entry("productId", 2), "minimumSecurityVersion");
     }
 
     @Test
-    public void advisories_splitsTheCommaJoinedValue() {
+    public void advisories_splitsTheCommaJoinedValue() throws Exception {
         assertArrayEquals(
                 new String[]{"INTEL-SA-00334", "INTEL-SA-00615", "INTEL-SA-00657"},
                 FfiMistysignAttestedSession.advisories(
-                        "INTEL-SA-00334,INTEL-SA-00615,INTEL-SA-00657"));
+                        entry("configAdvisories",
+                                "INTEL-SA-00334,INTEL-SA-00615,INTEL-SA-00657"),
+                        "configAdvisories"));
     }
 
     @Test
-    public void advisories_treatsAbsentAndEmptyAsNone() {
+    public void advisories_treatsAbsentAndEmptyAsNone() throws Exception {
         // An empty list joins to an empty string, which must not become one
         // empty advisory: advisories are compared verbatim.
-        assertEquals(0, FfiMistysignAttestedSession.advisories(null).length);
-        assertEquals(0, FfiMistysignAttestedSession.advisories("").length);
+        assertEquals(0, FfiMistysignAttestedSession.advisories(
+                entry("productId", 2), "configAdvisories").length);
+        assertEquals(0, FfiMistysignAttestedSession.advisories(
+                entry("configAdvisories", ""), "configAdvisories").length);
     }
 
     @Test
-    public void advisories_ignoresAValueThatIsNotAString() {
-        // Allowing fewer advisories only makes verification stricter, so
-        // dropping a malformed value fails closed.
-        assertEquals(0, FfiMistysignAttestedSession.advisories(7).length);
+    public void advisories_rejectsAValueThatIsNotAString() {
+        // Reading no advisories out of a malformed value would quietly narrow
+        // what the identity tolerates, so an enclave that legitimately carries
+        // them would stop attesting with nothing to point at.
+        final MistysignAttestedSessionException exception = assertThrows(
+                MistysignAttestedSessionException.class,
+                () -> FfiMistysignAttestedSession.advisories(
+                        entry("hardeningAdvisories", 7), "hardeningAdvisories"));
+
+        assertEquals(Code.ATTESTATION_FAILED, exception.getCode());
+        assertEquals("'hardeningAdvisories' is not a comma joined string: java.lang.Integer",
+                exception.getMessage());
     }
 
     private interface SessionOperation {
