@@ -2,6 +2,7 @@
 
 - `MistysignAttestedSession` now works on Android as well as iOS. `create()` throws `UnsupportedError` only on platforms other than those two.
 - Native failures that declare a `ChannelErrorCode` now reach Dart under that code rather than the catch-all `NATIVE`, so Android surfaces the same `MistysignAttestedSessionErrorCode` values as iOS.
+- `MistysignAttestedSession.authBeginRequestData` now throws `ArgumentError` on an empty `responderId`. The iOS SDK treats the native handshake as infallible and traps the process on one, where Android reports an invalid uri.
 
 ## 0.0.4
 
