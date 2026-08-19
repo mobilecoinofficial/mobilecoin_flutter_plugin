@@ -148,6 +148,23 @@ public class FfiMistysignAttestedSessionTest {
     }
 
     @Test
+    public void measurement_rejectsTheCharactersEitherSideOfEachHexRange() throws Exception {
+        // nibble compares three ranges by hand, so an off by one at any edge
+        // would accept a neighbour and decode it to a wrong byte. These are the
+        // six characters immediately outside '0'-'9', 'a'-'f' and 'A'-'F'.
+        for (final String pair : new String[]{"//", "::", "@@", "GG", "``", "gg"}) {
+            assertMalformed("'mrEnclave' contains a non hex character at index 0",
+                    entry("mrEnclave", pair), "mrEnclave");
+        }
+
+        // The edges themselves still decode, so the guard is not simply
+        // rejecting everything near the boundary.
+        assertArrayEquals(new byte[]{0x09, (byte) 0xaf, (byte) 0xAF},
+                FfiMistysignAttestedSession.measurement(
+                        entry("mrEnclave", "09afAF"), "mrEnclave"));
+    }
+
+    @Test
     public void measurement_rejectsAnOddLength() {
         assertMalformed("'mrEnclave' is not a whole number of hex encoded bytes",
                 entry("mrEnclave", "abc"), "mrEnclave");
