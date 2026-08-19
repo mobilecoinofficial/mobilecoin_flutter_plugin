@@ -167,8 +167,12 @@ public final class FfiMistysignAttestedSession {
                                       @NonNull final String key)
             throws MistysignAttestedSessionException {
         final Object value = entry.get(key);
-        if (!(value instanceof String)) {
+        if (value == null) {
             throw malformed("Trusted identity is missing '" + key + "'");
+        }
+        if (!(value instanceof String)) {
+            throw malformed("'" + key + "' is not a hex encoded string: "
+                    + value.getClass().getName());
         }
 
         final String hex = (String) value;
@@ -181,7 +185,7 @@ public final class FfiMistysignAttestedSession {
             final int high = Character.digit(hex.charAt(i * 2), 16);
             final int low = Character.digit(hex.charAt(i * 2 + 1), 16);
             if (high < 0 || low < 0) {
-                throw malformed("'" + key + "' is not hex encoded");
+                throw malformed("'" + key + "' contains a non hex character at index " + (i * 2));
             }
             measurement[i] = (byte) ((high << 4) + low);
         }
@@ -192,8 +196,11 @@ public final class FfiMistysignAttestedSession {
                                     @NonNull final String key)
             throws MistysignAttestedSessionException {
         final Object value = entry.get(key);
-        if (!(value instanceof Number)) {
+        if (value == null) {
             throw malformed("Trusted identity is missing '" + key + "'");
+        }
+        if (!(value instanceof Number)) {
+            throw malformed("'" + key + "' is not a number: " + value.getClass().getName());
         }
 
         final int intValue = ((Number) value).intValue();
