@@ -161,9 +161,14 @@ public final class FfiMistysignAttestedSession {
      * {@link com.mobilecoin.lib.util.Hex#toByteArray} maps non hex characters
      * to -1 rather than failing, which would turn a typo into a measurement
      * that simply never matches. Failing here says why.
+     * <p>
+     * This and the two helpers below are package private rather than private so
+     * that the unit tests can reach them: everything that calls them goes
+     * through {@link TrustedIdentities}, whose constructor is a JNI call and so
+     * cannot run on the host JVM.
      */
     @NonNull
-    private static byte[] measurement(@NonNull final Map<String, Object> entry,
+    static byte[] measurement(@NonNull final Map<String, Object> entry,
                                       @NonNull final String key)
             throws MistysignAttestedSessionException {
         final Object value = entry.get(key);
@@ -192,7 +197,7 @@ public final class FfiMistysignAttestedSession {
         return measurement;
     }
 
-    private static short shortValue(@NonNull final Map<String, Object> entry,
+    static short shortValue(@NonNull final Map<String, Object> entry,
                                     @NonNull final String key)
             throws MistysignAttestedSessionException {
         final Object value = entry.get(key);
@@ -221,8 +226,8 @@ public final class FfiMistysignAttestedSession {
      * nothing to point at.
      */
     @NonNull
-    private static String[] advisories(@NonNull final Map<String, Object> entry,
-                                       @NonNull final String key)
+    static String[] advisories(@NonNull final Map<String, Object> entry,
+                               @NonNull final String key)
             throws MistysignAttestedSessionException {
         final Object value = entry.get(key);
         if (value == null) {

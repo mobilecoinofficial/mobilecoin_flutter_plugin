@@ -1,0 +1,262 @@
+// Copyright (c) 2021-2026 MobileCoin. All rights reserved.
+
+package com.mobilecoin.mobilecoin_flutter;
+
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThrows;
+import static org.junit.Assert.assertTrue;
+
+import org.junit.Test;
+
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+
+import mistysign.MistysignAttestedSessionException;
+import mistysign.MistysignAttestedSessionException.Code;
+
+/**
+ * Covers the bridge's argument validation and its session lookup. A handshake
+ * cannot be driven here because {@link com.mobilecoin.lib.TrustedIdentities}
+ * constructs through JNI, which the host JVM has no library for.
+ */
+public class FfiMistysignAttestedSessionTest {
+
+    /** Never registered, so every lookup for it misses. */
+    private static final int UNKNOWN_ID = 0x5440;
+
+    /** Registered, but holding something that is not a session. */
+    private static final int FOREIGN_ID = 0x5441;
+
+    private static final String MR_SIGNER_HEX =
+            "7ee5e29d74623fdbc6fbf1454be6f3bb0b86c12366b7b478ad13353e44de8411";
+
+    @Test
+    public void authEnd_rejectsAnEmptyIdentitySet() {
+        // The id is deliberately unregistered: an identity set is only visible
+        // as empty before it is handed over, so the guard has to fire ahead of
+        // the session lookup.
+        final MistysignAttestedSessionException exception = assertThrows(
+                MistysignAttestedSessionException.class,
+                () -> FfiMistysignAttestedSession.authEnd(
+                        UNKNOWN_ID,
+                        new byte[0],
+                        Collections.emptyList(),
+                        Collections.emptyList()));
+
+        assertEquals(Code.NO_TRUSTED_IDENTITIES, exception.getCode());
+        assertEquals("MISTYSIGN_NO_TRUSTED_IDENTITIES", exception.channelErrorCode());
+    }
+
+    @Test
+    public void authEnd_looksUpTheSessionOnceIdentitiesAreNamed() {
+        // One named identity clears the empty-set guard, so the guard is not
+        // just firing on every call.
+        final MistysignAttestedSessionException exception = assertThrows(
+                MistysignAttestedSessionException.class,
+                () -> FfiMistysignAttestedSession.authEnd(
+                        UNKNOWN_ID,
+                        new byte[0],
+                        Collections.emptyList(),
+                        Collections.singletonList(mrSignerEntry(MR_SIGNER_HEX, 2, 6))));
+
+        assertEquals(Code.NOT_ATTESTED, exception.getCode());
+    }
+
+    @Test
+    public void everyOperationRejectsAnUnknownSessionId() {
+        assertRejectsUnknownSession("authBeginRequestData",
+                id -> FfiMistysignAttestedSession.authBeginRequestData(id, "misty.test:443"));
+        assertRejectsUnknownSession("encrypt",
+                id -> FfiMistysignAttestedSession.encrypt(id, new byte[]{1}));
+        assertRejectsUnknownSession("decrypt",
+                id -> FfiMistysignAttestedSession.decrypt(id, new byte[]{1}));
+        assertRejectsUnknownSession("deattest", FfiMistysignAttestedSession::deattest);
+        assertRejectsUnknownSession("isAttested", FfiMistysignAttestedSession::isAttested);
+    }
+
+    @Test
+    public void everyOperationRejectsAnIdHoldingSomethingElse() {
+        // Every handle type shares one object registry, so an id mix-up arrives
+        // as a live entry of the wrong type rather than as a miss.
+        ObjectStorage.addObject(FOREIGN_ID, "not a session");
+        try {
+            final MistysignAttestedSessionException exception = assertThrows(
+                    MistysignAttestedSessionException.class,
+                    () -> FfiMistysignAttestedSession.encrypt(FOREIGN_ID, new byte[]{1}));
+
+            assertEquals(Code.NOT_ATTESTED, exception.getCode());
+        } finally {
+            ObjectStorage.removeObject(FOREIGN_ID);
+        }
+    }
+
+    @Test
+    public void destroy_releasesTheEntryAndToleratesAnUnknownId() {
+        ObjectStorage.addObject(FOREIGN_ID, "not a session");
+
+        // A foreign entry must be dropped rather than cast to a session.
+        FfiMistysignAttestedSession.destroy(FOREIGN_ID);
+        assertNull(ObjectStorage.objectForKey(FOREIGN_ID));
+
+        // A double dispose from Dart arrives as two destroys.
+        FfiMistysignAttestedSession.destroy(FOREIGN_ID);
+        FfiMistysignAttestedSession.destroy(UNKNOWN_ID);
+    }
+
+    @Test
+    public void measurement_decodesHexInEitherCase() throws Exception {
+        assertArrayEquals(
+                new byte[]{(byte) 0xde, (byte) 0xad, (byte) 0xbe, (byte) 0xef},
+                FfiMistysignAttestedSession.measurement(
+                        entry("mrSigner", "DeAdBeEf"), "mrSigner"));
+    }
+
+    @Test
+    public void measurement_decodesTheStagingMrSigner() throws Exception {
+        final byte[] measurement = FfiMistysignAttestedSession.measurement(
+                entry("mrSigner", MR_SIGNER_HEX), "mrSigner");
+
+        assertEquals(32, measurement.length);
+        assertEquals((byte) 0x7e, measurement[0]);
+        assertEquals((byte) 0x11, measurement[31]);
+    }
+
+    @Test
+    public void measurement_rejectsANonHexCharacter() {
+        // The SDK's own hex decoder maps a bad character to -1, which turns a
+        // typo into a measurement that never matches instead of an error.
+        assertMalformed("'mrEnclave' is not hex encoded",
+                entry("mrEnclave", "deadbeeg"), "mrEnclave");
+        assertMalformed("'mrEnclave' is not hex encoded",
+                entry("mrEnclave", "dead beef "), "mrEnclave");
+    }
+
+    @Test
+    public void measurement_rejectsAnOddLength() {
+        assertMalformed("'mrEnclave' is not a whole number of hex encoded bytes",
+                entry("mrEnclave", "abc"), "mrEnclave");
+    }
+
+    @Test
+    public void measurement_rejectsAnEmptyValue() {
+        assertMalformed("'mrEnclave' is not a whole number of hex encoded bytes",
+                entry("mrEnclave", ""), "mrEnclave");
+    }
+
+    @Test
+    public void measurement_rejectsAMissingKey() {
+        assertMalformed("Trusted identity is missing 'mrSigner'",
+                entry("mrEnclave", "dead"), "mrSigner");
+    }
+
+    @Test
+    public void measurement_rejectsANonStringValue() {
+        assertMalformed("Trusted identity is missing 'mrSigner'",
+                entry("mrSigner", 7), "mrSigner");
+    }
+
+    @Test
+    public void shortValue_narrowsTheFullUnsignedRange() throws Exception {
+        assertEquals((short) 0,
+                FfiMistysignAttestedSession.shortValue(entry("productId", 0), "productId"));
+        assertEquals((short) 2,
+                FfiMistysignAttestedSession.shortValue(entry("productId", 2), "productId"));
+        // The SDK takes a signed short and reads it as unsigned, so the top of
+        // the range arrives as -1 rather than being rejected.
+        assertEquals((short) -1,
+                FfiMistysignAttestedSession.shortValue(entry("productId", 0xFFFF), "productId"));
+    }
+
+    @Test
+    public void shortValue_rejectsAValueOutsideTheUnsignedRange() {
+        assertMalformedShort("'productId' does not fit in an unsigned 16 bit value: -1",
+                entry("productId", -1), "productId");
+        assertMalformedShort("'productId' does not fit in an unsigned 16 bit value: 65536",
+                entry("productId", 0x10000), "productId");
+    }
+
+    @Test
+    public void shortValue_rejectsAMissingKey() {
+        assertMalformedShort("Trusted identity is missing 'minimumSecurityVersion'",
+                entry("productId", 2), "minimumSecurityVersion");
+    }
+
+    @Test
+    public void advisories_splitsTheCommaJoinedValue() {
+        assertArrayEquals(
+                new String[]{"INTEL-SA-00334", "INTEL-SA-00615", "INTEL-SA-00657"},
+                FfiMistysignAttestedSession.advisories(
+                        "INTEL-SA-00334,INTEL-SA-00615,INTEL-SA-00657"));
+    }
+
+    @Test
+    public void advisories_treatsAbsentAndEmptyAsNone() {
+        // An empty list joins to an empty string, which must not become one
+        // empty advisory: advisories are compared verbatim.
+        assertEquals(0, FfiMistysignAttestedSession.advisories(null).length);
+        assertEquals(0, FfiMistysignAttestedSession.advisories("").length);
+    }
+
+    @Test
+    public void advisories_ignoresAValueThatIsNotAString() {
+        // Allowing fewer advisories only makes verification stricter, so
+        // dropping a malformed value fails closed.
+        assertEquals(0, FfiMistysignAttestedSession.advisories(7).length);
+    }
+
+    private interface SessionOperation {
+        void run(int objectId) throws MistysignAttestedSessionException;
+    }
+
+    private static void assertRejectsUnknownSession(final String name,
+                                                    final SessionOperation operation) {
+        final MistysignAttestedSessionException exception = assertThrows(name,
+                MistysignAttestedSessionException.class, () -> operation.run(UNKNOWN_ID));
+
+        assertEquals(name, Code.NOT_ATTESTED, exception.getCode());
+        assertTrue(name + " should name the id, but said: " + exception.getMessage(),
+                exception.getMessage().contains(Integer.toString(UNKNOWN_ID)));
+    }
+
+    private static void assertMalformed(final String expectedMessage,
+                                        final Map<String, Object> entry,
+                                        final String key) {
+        final MistysignAttestedSessionException exception = assertThrows(
+                MistysignAttestedSessionException.class,
+                () -> FfiMistysignAttestedSession.measurement(entry, key));
+
+        assertEquals(Code.ATTESTATION_FAILED, exception.getCode());
+        assertEquals(expectedMessage, exception.getMessage());
+    }
+
+    private static void assertMalformedShort(final String expectedMessage,
+                                             final Map<String, Object> entry,
+                                             final String key) {
+        final MistysignAttestedSessionException exception = assertThrows(
+                MistysignAttestedSessionException.class,
+                () -> FfiMistysignAttestedSession.shortValue(entry, key));
+
+        assertEquals(Code.ATTESTATION_FAILED, exception.getCode());
+        assertEquals(expectedMessage, exception.getMessage());
+    }
+
+    private static Map<String, Object> entry(final String key, final Object value) {
+        final Map<String, Object> entry = new HashMap<>();
+        entry.put(key, value);
+        return entry;
+    }
+
+    private static Map<String, Object> mrSignerEntry(final String mrSigner,
+                                                     final int productId,
+                                                     final int minimumSecurityVersion) {
+        final Map<String, Object> entry = entry("mrSigner", mrSigner);
+        entry.put("productId", productId);
+        entry.put("minimumSecurityVersion", minimumSecurityVersion);
+        entry.put("hardeningAdvisories", "");
+        entry.put("configAdvisories", "");
+        return entry;
+    }
+}
