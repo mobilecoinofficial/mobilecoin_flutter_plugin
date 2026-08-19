@@ -4,49 +4,81 @@ import Flutter
 import Foundation
 import MobileCoin
 
-private func mistysignMrEnclaves(from entries: [[String: Any]]) -> [Attestation.MrEnclave] {
-    entries.compactMap { entry in
-        guard
-            let hex = entry["mrEnclave"] as? String,
-            let mrEnclave = HexEncoding.data(fromHexEncodedString: hex)
-        else {
-            return nil
+// Identity parsing rejects a malformed entry rather than dropping it. Dropping
+// one cannot weaken trust -- evidence is only accepted against the identities
+// that survive -- but it makes a misconfiguration invisible, leaving a typo to
+// present as an enclave that never matches. Matches the Android bridge.
+private func malformedIdentity(_ reason: String) -> MistysignAttestedSessionError {
+    // Reuses the SDK's error so the Dart-visible code comes from the one
+    // mapping in `flutterCode` and cannot drift from it.
+    .attestationFailed(reason)
+}
+
+/// Splits the comma joined advisories the Dart side sends. An absent or empty
+/// value means none.
+private func mistysignAdvisories(_ value: Any?) -> [String] {
+    (value as? String)?.split(separator: ",").map(String.init) ?? []
+}
+
+private func mistysignMeasurement(
+    _ entry: [String: Any],
+    _ key: String
+) throws -> Data {
+    guard let hex = entry[key] as? String else {
+        throw malformedIdentity("Trusted identity is missing '\(key)'")
+    }
+    // HexEncoding rejects an odd length and any non-hex character, so a typo
+    // cannot become a measurement that silently never matches.
+    guard let measurement = HexEncoding.data(fromHexEncodedString: hex) else {
+        throw malformedIdentity("'\(key)' is not hex encoded: \(hex)")
+    }
+    return measurement
+}
+
+private func mistysignUInt16(
+    _ entry: [String: Any],
+    _ key: String
+) throws -> UInt16 {
+    guard let value = entry[key] as? Int else {
+        throw malformedIdentity("Trusted identity is missing '\(key)'")
+    }
+    guard let narrowed = UInt16(exactly: value) else {
+        throw malformedIdentity("'\(key)' does not fit in an unsigned 16 bit value: \(value)")
+    }
+    return narrowed
+}
+
+private func mistysignMrEnclaves(from entries: [[String: Any]]) throws -> [Attestation.MrEnclave] {
+    try entries.map { entry in
+        let mrEnclave = try mistysignMeasurement(entry, "mrEnclave")
+        do {
+            return try Attestation.MrEnclave.make(
+                mrEnclave: mrEnclave,
+                allowedConfigAdvisories: mistysignAdvisories(entry["configAdvisories"]),
+                allowedHardeningAdvisories: mistysignAdvisories(entry["hardeningAdvisories"])
+            ).get()
+        } catch {
+            throw malformedIdentity("Invalid mrEnclave identity: \(error)")
         }
-        let hardening = (entry["hardeningAdvisories"] as? String)?
-            .split(separator: ",").map(String.init) ?? []
-        let config = (entry["configAdvisories"] as? String)?
-            .split(separator: ",").map(String.init) ?? []
-        return try? Attestation.MrEnclave.make(
-            mrEnclave: mrEnclave,
-            allowedConfigAdvisories: config,
-            allowedHardeningAdvisories: hardening
-        ).get()
     }
 }
 
-private func mistysignMrSigners(from entries: [[String: Any]]) -> [Attestation.MrSigner] {
-    entries.compactMap { entry in
-        guard
-            let hex = entry["mrSigner"] as? String,
-            let mrSigner = HexEncoding.data(fromHexEncodedString: hex),
-            let productIdArg = entry["productId"] as? Int,
-            let minimumSecurityVersionArg = entry["minimumSecurityVersion"] as? Int,
-            let productId = UInt16(exactly: productIdArg),
-            let minimumSecurityVersion = UInt16(exactly: minimumSecurityVersionArg)
-        else {
-            return nil
+private func mistysignMrSigners(from entries: [[String: Any]]) throws -> [Attestation.MrSigner] {
+    try entries.map { entry in
+        let mrSigner = try mistysignMeasurement(entry, "mrSigner")
+        let productId = try mistysignUInt16(entry, "productId")
+        let minimumSecurityVersion = try mistysignUInt16(entry, "minimumSecurityVersion")
+        do {
+            return try Attestation.MrSigner.make(
+                mrSigner: mrSigner,
+                productId: productId,
+                minimumSecurityVersion: minimumSecurityVersion,
+                allowedConfigAdvisories: mistysignAdvisories(entry["configAdvisories"]),
+                allowedHardeningAdvisories: mistysignAdvisories(entry["hardeningAdvisories"])
+            ).get()
+        } catch {
+            throw malformedIdentity("Invalid mrSigner identity: \(error)")
         }
-        let hardening = (entry["hardeningAdvisories"] as? String)?
-            .split(separator: ",").map(String.init) ?? []
-        let config = (entry["configAdvisories"] as? String)?
-            .split(separator: ",").map(String.init) ?? []
-        return try? Attestation.MrSigner.make(
-            mrSigner: mrSigner,
-            productId: productId,
-            minimumSecurityVersion: minimumSecurityVersion,
-            allowedConfigAdvisories: config,
-            allowedHardeningAdvisories: hardening
-        ).get()
     }
 }
 
@@ -107,12 +139,11 @@ struct FfiMistysignAttestedSession {
                 throw PluginError.invalidArguments
             }
 
-            let attestation = Attestation(
-                mrEnclaves: mistysignMrEnclaves(from: mrEnclaveEntries),
-                mrSigners: mistysignMrSigners(from: mrSignerEntries)
-            )
-
             do {
+                let attestation = Attestation(
+                    mrEnclaves: try mistysignMrEnclaves(from: mrEnclaveEntries),
+                    mrSigners: try mistysignMrSigners(from: mrSignerEntries)
+                )
                 try session.authEnd(authResponseData: authResponseData.data, attestation: attestation)
                 result(nil)
             } catch let error as MistysignAttestedSessionError {
