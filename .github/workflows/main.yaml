@@ -217,9 +217,18 @@ jobs:
             | sed -n '/-- iOS/,/^-- /p' \
             | grep -m1 -oE '[0-9A-F]{8}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{12}');
           test -n "$udid";
+          log="${RUNNER_TEMP:-/tmp}/xcodebuild-test.log";
+          set -o pipefail;
           xcodebuild test \
             -workspace Runner.xcworkspace \
             -scheme Runner \
             -destination "platform=iOS Simulator,id=$udid" \
             -only-testing:RunnerTests \
-            CODE_SIGNING_ALLOWED=NO;
+            CODE_SIGNING_ALLOWED=NO | tee "$log";
+          # xcodebuild reports a run that executed nothing as TEST SUCCEEDED, so
+          # a green lane would otherwise say the same thing whether these tests
+          # ran or stopped being found at all.
+          executed=$(grep -oE 'Executed [0-9]+ test' "$log" \
+            | grep -oE '[0-9]+' | sort -rn | head -1);
+          echo "executed $executed tests";
+          test -n "$executed" && test "$executed" -gt 0;
