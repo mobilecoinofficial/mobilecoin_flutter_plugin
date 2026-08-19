@@ -1,6 +1,9 @@
 // swift-tools-version:5.9
 // Copyright (c) 2021-2026 MobileCoin. All rights reserved.
 
+// The Flutter module comes from the host app's generated Swift package, so these sources compile
+// only inside a Flutter iOS build and never under a standalone `swift build`.
+
 import PackageDescription
 
 let package = Package(
