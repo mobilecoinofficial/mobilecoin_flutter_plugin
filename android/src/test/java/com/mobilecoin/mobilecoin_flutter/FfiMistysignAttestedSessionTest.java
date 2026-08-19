@@ -135,6 +135,17 @@ public class FfiMistysignAttestedSessionTest {
     }
 
     @Test
+    public void measurement_rejectsANonAsciiDigit() {
+        // Character.digit answers for every Unicode digit, so a fullwidth or
+        // Arabic-Indic character decodes to a measurement that is well formed
+        // and simply wrong: "\uFF13\uFF13" would become 0x33.
+        assertMalformed("'mrEnclave' is not hex encoded",
+                entry("mrEnclave", "\uFF13\uFF13"), "mrEnclave");
+        assertMalformed("'mrEnclave' is not hex encoded",
+                entry("mrEnclave", "\u0663\u0663"), "mrEnclave");
+    }
+
+    @Test
     public void measurement_rejectsAnOddLength() {
         assertMalformed("'mrEnclave' is not a whole number of hex encoded bytes",
                 entry("mrEnclave", "abc"), "mrEnclave");

@@ -187,14 +187,34 @@ public final class FfiMistysignAttestedSession {
 
         final byte[] measurement = new byte[hex.length() / 2];
         for (int i = 0; i < measurement.length; ++i) {
-            final int high = Character.digit(hex.charAt(i * 2), 16);
-            final int low = Character.digit(hex.charAt(i * 2 + 1), 16);
+            final int high = nibble(hex.charAt(i * 2));
+            final int low = nibble(hex.charAt(i * 2 + 1));
             if (high < 0 || low < 0) {
                 throw malformed("'" + key + "' contains a non hex character at index " + (i * 2));
             }
             measurement[i] = (byte) ((high << 4) + low);
         }
         return measurement;
+    }
+
+    /**
+     * Decodes one ASCII hex digit, or -1 for anything else.
+     * <p>
+     * {@link Character#digit} answers for every Unicode digit, so a fullwidth
+     * or Arabic-Indic character would decode to a measurement that is well
+     * formed and simply wrong rather than being rejected.
+     */
+    private static int nibble(final char character) {
+        if (character >= '0' && character <= '9') {
+            return character - '0';
+        }
+        if (character >= 'a' && character <= 'f') {
+            return character - 'a' + 10;
+        }
+        if (character >= 'A' && character <= 'F') {
+            return character - 'A' + 10;
+        }
+        return -1;
     }
 
     static short shortValue(@NonNull final Map<String, Object> entry,
