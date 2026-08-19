@@ -8,12 +8,11 @@ PODS:
   - mobilecoin_flutter (0.2.4):
     - Flutter
     - MobileCoin/CoreHTTP (~> 6.0.6)
-  - SwiftProtobuf (1.29.0)
+  - SwiftProtobuf (1.38.1)
 
 DEPENDENCIES:
   - Flutter (from `Flutter`)
   - mobilecoin_flutter (from `.symlinks/plugins/mobilecoin_flutter/ios`)
-  - SwiftProtobuf (= 1.29.0)
 
 SPEC REPOS:
   trunk:
@@ -28,12 +27,12 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/mobilecoin_flutter/ios"
 
 SPEC CHECKSUMS:
-  Flutter: e0871f40cf51350855a761d2e70bf5af5b9b5de7
+  Flutter: cabc95a1d2626b1b06e7179b784ebcf0c0cde467
   LibMobileCoin: 8503f567fa32184a5be7bc038fbd727747dd9991
   MobileCoin: 351e04031a100e53de8cb1119b71a7bc2cede863
   mobilecoin_flutter: e1d38a490f2bc13f86c7ed586b06e1f9c49754da
-  SwiftProtobuf: b7aa08087e2ab6d162862d143020091254095f69
+  SwiftProtobuf: 409d3aaec90e51b1705b1dd8065b56893450e77c
 
-PODFILE CHECKSUM: b0e9494b39f1a80aa556754e2f3bd3cbd272ac46
+PODFILE CHECKSUM: ce65f00ac3b4a157ab3d0156c862500c0d443073
 
 COCOAPODS: 1.16.2
