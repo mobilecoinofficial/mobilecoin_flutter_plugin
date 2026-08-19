@@ -209,3 +209,17 @@ jobs:
         run: |
           cd ${{ github.workspace }}/example;
           flutter build ios --simulator;
+
+      - name: 'Run native unit tests'
+        run: |
+          cd ${{ github.workspace }}/example/ios;
+          udid=$(xcrun simctl list devices available \
+            | sed -n '/-- iOS/,/^-- /p' \
+            | grep -m1 -oE '[0-9A-F]{8}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{12}');
+          test -n "$udid";
+          xcodebuild test \
+            -workspace Runner.xcworkspace \
+            -scheme Runner \
+            -destination "platform=iOS Simulator,id=$udid" \
+            -only-testing:RunnerTests \
+            CODE_SIGNING_ALLOWED=NO;
