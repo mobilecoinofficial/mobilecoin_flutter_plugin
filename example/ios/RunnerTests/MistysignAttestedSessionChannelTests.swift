@@ -58,6 +58,20 @@ final class MistysignAttestedSessionChannelTests: PluginChannelTestCase {
         XCTAssertEqual(invoke(isAttested, ["id": id]) as? Bool, false)
     }
 
+    func testAuthBeginWithAnEmptyResponderIdIsRejected() {
+        // Without the plugin's own guard this does not fail, it traps the
+        // process: the SDK reaches the handshake through
+        // withMcMutableBufferInfallible, whose failure is a Swift fatalError.
+        assertFails(authBeginRequestData, ["id": id, "responderId": ""],
+                    code: "NATIVE")
+
+        // The session has to stay usable, rather than being left holding a
+        // half started handshake.
+        XCTAssertFalse((invoke(authBeginRequestData,
+                               ["id": id, "responderId": "misty.test:443"]) as? Data
+                        ?? Data()).isEmpty)
+    }
+
     func testEncryptBeforeAuthEndIsRejected() {
         assertFails(encrypt, ["id": id, "plaintext": bytes([1, 2, 3])],
                     code: "MISTYSIGN_NOT_ATTESTED")

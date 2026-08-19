@@ -83,7 +83,10 @@ struct FfiMistysignAttestedSession {
             guard
                 let id = args["id"] as? Int,
                 let session = ObjectStorage.objectForKey(id) as? MistysignAttestedSession,
-                let responderId = args["responderId"] as? String
+                let responderId = args["responderId"] as? String,
+                // The SDK treats the handshake as infallible and traps the
+                // process on an empty responder id, so it cannot be let past.
+                !responderId.isEmpty
             else {
                 throw PluginError.invalidArguments
             }
