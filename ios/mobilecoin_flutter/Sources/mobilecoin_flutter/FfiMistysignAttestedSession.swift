@@ -14,10 +14,20 @@ private func malformedIdentity(_ reason: String) -> MistysignAttestedSessionErro
     .attestationFailed(reason)
 }
 
-/// Splits the comma joined advisories the Dart side sends. An absent or empty
-/// value means none.
-private func mistysignAdvisories(_ value: Any?) -> [String] {
-    (value as? String)?.split(separator: ",").map(String.init) ?? []
+/// Splits the comma joined advisories the Dart side sends.
+///
+/// An absent value means none. A present one has to be the string the channel
+/// contract specifies: reading no advisories out of a malformed value would
+/// quietly narrow what the identity tolerates, so an enclave that legitimately
+/// carries them would stop attesting with nothing to point at.
+private func mistysignAdvisories(_ entry: [String: Any], _ key: String) throws -> [String] {
+    guard let value = entry[key] else {
+        return []
+    }
+    guard let joined = value as? String else {
+        throw malformedIdentity("'\(key)' is not a comma joined string: \(type(of: value))")
+    }
+    return joined.split(separator: ",").map(String.init)
 }
 
 private func mistysignMeasurement(
@@ -51,11 +61,15 @@ private func mistysignUInt16(
 private func mistysignMrEnclaves(from entries: [[String: Any]]) throws -> [Attestation.MrEnclave] {
     try entries.map { entry in
         let mrEnclave = try mistysignMeasurement(entry, "mrEnclave")
+        // Read outside the do block: its catch is scoped to what `make` rejects,
+        // and would otherwise restate a malformed advisory as an invalid identity.
+        let config = try mistysignAdvisories(entry, "configAdvisories")
+        let hardening = try mistysignAdvisories(entry, "hardeningAdvisories")
         do {
             return try Attestation.MrEnclave.make(
                 mrEnclave: mrEnclave,
-                allowedConfigAdvisories: mistysignAdvisories(entry["configAdvisories"]),
-                allowedHardeningAdvisories: mistysignAdvisories(entry["hardeningAdvisories"])
+                allowedConfigAdvisories: config,
+                allowedHardeningAdvisories: hardening
             ).get()
         } catch {
             throw malformedIdentity("Invalid mrEnclave identity: \(error)")
@@ -68,13 +82,15 @@ private func mistysignMrSigners(from entries: [[String: Any]]) throws -> [Attest
         let mrSigner = try mistysignMeasurement(entry, "mrSigner")
         let productId = try mistysignUInt16(entry, "productId")
         let minimumSecurityVersion = try mistysignUInt16(entry, "minimumSecurityVersion")
+        let config = try mistysignAdvisories(entry, "configAdvisories")
+        let hardening = try mistysignAdvisories(entry, "hardeningAdvisories")
         do {
             return try Attestation.MrSigner.make(
                 mrSigner: mrSigner,
                 productId: productId,
                 minimumSecurityVersion: minimumSecurityVersion,
-                allowedConfigAdvisories: mistysignAdvisories(entry["configAdvisories"]),
-                allowedHardeningAdvisories: mistysignAdvisories(entry["hardeningAdvisories"])
+                allowedConfigAdvisories: config,
+                allowedHardeningAdvisories: hardening
             ).get()
         } catch {
             throw malformedIdentity("Invalid mrSigner identity: \(error)")
