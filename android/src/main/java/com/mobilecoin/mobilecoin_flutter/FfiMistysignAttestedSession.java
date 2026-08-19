@@ -4,7 +4,6 @@ package com.mobilecoin.mobilecoin_flutter;
 
 import androidx.annotation.Keep;
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 
 import com.mobilecoin.lib.TrustedIdentities;
 import com.mobilecoin.lib.exceptions.AttestationException;
@@ -134,8 +133,8 @@ public final class FfiMistysignAttestedSession {
             for (final Map<String, Object> entry : mrEnclaves) {
                 identities.addMrEnclaveIdentity(
                         measurement(entry, MR_ENCLAVE_KEY),
-                        advisories(entry.get(CONFIG_ADVISORIES_KEY)),
-                        advisories(entry.get(HARDENING_ADVISORIES_KEY)));
+                        advisories(entry, CONFIG_ADVISORIES_KEY),
+                        advisories(entry, HARDENING_ADVISORIES_KEY));
             }
 
             for (final Map<String, Object> entry : mrSigners) {
@@ -143,8 +142,8 @@ public final class FfiMistysignAttestedSession {
                         measurement(entry, MR_SIGNER_KEY),
                         shortValue(entry, PRODUCT_ID_KEY),
                         shortValue(entry, MINIMUM_SECURITY_VERSION_KEY),
-                        advisories(entry.get(CONFIG_ADVISORIES_KEY)),
-                        advisories(entry.get(HARDENING_ADVISORIES_KEY)));
+                        advisories(entry, CONFIG_ADVISORIES_KEY),
+                        advisories(entry, HARDENING_ADVISORIES_KEY));
             }
 
             return identities;
@@ -205,15 +204,30 @@ public final class FfiMistysignAttestedSession {
     }
 
     /**
-     * Splits the comma joined advisories the Dart side sends. An absent or
-     * empty value means none, rather than one empty advisory.
+     * Splits the comma joined advisories the Dart side sends.
+     * <p>
+     * An absent value means none, and so does an empty one: <code>"".split(",")</code>
+     * would otherwise yield a single empty advisory. A present value has to be
+     * the string the channel contract specifies, because reading no advisories
+     * out of a malformed one would quietly narrow what the identity tolerates,
+     * leaving an enclave that legitimately carries them unable to attest with
+     * nothing to point at.
      */
     @NonNull
-    private static String[] advisories(@Nullable final Object value) {
-        if (!(value instanceof String) || ((String) value).isEmpty()) {
+    private static String[] advisories(@NonNull final Map<String, Object> entry,
+                                       @NonNull final String key)
+            throws MistysignAttestedSessionException {
+        final Object value = entry.get(key);
+        if (value == null) {
             return new String[0];
         }
-        return ((String) value).split(ADVISORY_SEPARATOR);
+        if (!(value instanceof String)) {
+            throw malformed("'" + key + "' is not a comma joined string: "
+                    + value.getClass().getName());
+        }
+
+        final String joined = (String) value;
+        return joined.isEmpty() ? new String[0] : joined.split(ADVISORY_SEPARATOR);
     }
 
     @NonNull
