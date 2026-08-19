@@ -40,6 +40,22 @@ import attest.Attest;
 @Keep
 public final class MistysignAttestedSession extends AttestedClient {
 
+    /**
+     * Whether the handshake has been completed, as opposed to merely started.
+     * <p>
+     * Deliberately not derived from {@link AttestedClient#isAttested()}, which
+     * reports whether the native AKE object exists. That object is allocated by
+     * <code>attest_start</code>, so the inherited answer turns true as soon as
+     * the handshake is pending, while the Swift session stays false until
+     * <code>authEnd</code> succeeds. Tracking it here keeps the Dart-visible
+     * answer identical on both platforms.
+     * <p>
+     * Left without an initializer on purpose: {@link #attestReset()} is
+     * reachable from the superclass, so an explicit <code>= false</code> could
+     * run after a reset rather than before it.
+     */
+    private boolean handshakeComplete;
+
     private MistysignAttestedSession(@NonNull final LoadBalancer loadBalancer,
                                      @NonNull final ClientConfig.Service serviceConfig,
                                      @NonNull final TransportProtocol transportProtocol) {
@@ -72,10 +88,15 @@ public final class MistysignAttestedSession extends AttestedClient {
      * enclave was launched with. It is bound into the handshake, so a mismatch
      * surfaces as a failure in {@link #authEnd(byte[], TrustedIdentities)}
      * rather than here.
+     * <p>
+     * Beginning a handshake un-attests the session, so restarting one on an
+     * already attested session reports false from {@link #isAttested()} until
+     * the new handshake completes.
      */
     @NonNull
     public synchronized byte[] authBeginRequestData(@NonNull final String responderId)
             throws MistysignAttestedSessionException {
+        handshakeComplete = false;
         try {
             return attestStart(MistysignUri.forResponderId(responderId));
         } catch (InvalidUriException | AttestationException exception) {
@@ -103,6 +124,7 @@ public final class MistysignAttestedSession extends AttestedClient {
             throws MistysignAttestedSessionException {
         try {
             attestFinish(authResponseData, trustedIdentities);
+            handshakeComplete = true;
         } catch (AttestationException exception) {
             throw new MistysignAttestedSessionException(
                     MistysignAttestedSessionException.Code.ATTESTATION_FAILED,
@@ -154,6 +176,30 @@ public final class MistysignAttestedSession extends AttestedClient {
                     "Unable to decrypt the Mistysign message",
                     exception);
         }
+    }
+
+    /**
+     * Whether {@link #authEnd(byte[], TrustedIdentities)} has completed, so
+     * that {@link #encrypt(byte[])} and {@link #decrypt(byte[])} can be used.
+     * A pending handshake reports false, matching the Swift session.
+     */
+    @Override
+    public synchronized boolean isAttested() {
+        return handshakeComplete;
+    }
+
+    /**
+     * Clears the completed handshake alongside the native AKE state.
+     * <p>
+     * Overridden here rather than on {@link #deattest()} because this is the
+     * single point every reset passes through, including the ones
+     * <code>attestStart</code> and <code>attestFinish</code> perform internally
+     * when they fail.
+     */
+    @Override
+    public synchronized void attestReset() {
+        handshakeComplete = false;
+        super.attestReset();
     }
 
     private void requireAttested() throws MistysignAttestedSessionException {
