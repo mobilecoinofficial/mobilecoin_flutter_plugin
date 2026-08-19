@@ -38,7 +38,7 @@ jobs:
             ${{ env.FLUTTER_HOME }}/.pub-cache
             **/.packages
             **/.flutter-plugins
-            **/.flutter-plugin-dependencies
+            **/.flutter-plugins-dependencies
             **/.dart_tool/package_config.json
 
       - name: 'Install Flutter archive dependencies'
@@ -100,7 +100,7 @@ jobs:
             ${{ env.FLUTTER_HOME }}/.pub-cache
             **/.packages
             **/.flutter-plugins
-            **/.flutter-plugin-dependencies
+            **/.flutter-plugins-dependencies
             **/.dart_tool/package_config.json
 
       - name: 'Install Flutter archive dependencies'
@@ -155,7 +155,7 @@ jobs:
             ${{ env.FLUTTER_HOME }}/.pub-cache
             **/.packages
             **/.flutter-plugins
-            **/.flutter-plugin-dependencies
+            **/.flutter-plugins-dependencies
             **/.dart_tool/package_config.json
 
       - name: 'Cache Ruby dependencies'
