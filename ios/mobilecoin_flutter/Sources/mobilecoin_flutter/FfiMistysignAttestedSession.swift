@@ -34,13 +34,16 @@ private func mistysignMeasurement(
     _ entry: [String: Any],
     _ key: String
 ) throws -> Data {
-    guard let hex = entry[key] as? String else {
+    guard let value = entry[key] else {
         throw malformedIdentity("Trusted identity is missing '\(key)'")
+    }
+    guard let hex = value as? String else {
+        throw malformedIdentity("'\(key)' is not a hex encoded string: \(type(of: value))")
     }
     // HexEncoding rejects an odd length and any non-hex character, so a typo
     // cannot become a measurement that silently never matches.
     guard let measurement = HexEncoding.data(fromHexEncodedString: hex) else {
-        throw malformedIdentity("'\(key)' is not hex encoded: \(hex)")
+        throw malformedIdentity("'\(key)' is not a whole number of hex encoded bytes: \(hex)")
     }
     return measurement
 }
@@ -49,11 +52,14 @@ private func mistysignUInt16(
     _ entry: [String: Any],
     _ key: String
 ) throws -> UInt16 {
-    guard let value = entry[key] as? Int else {
+    guard let value = entry[key] else {
         throw malformedIdentity("Trusted identity is missing '\(key)'")
     }
-    guard let narrowed = UInt16(exactly: value) else {
-        throw malformedIdentity("'\(key)' does not fit in an unsigned 16 bit value: \(value)")
+    guard let number = value as? Int else {
+        throw malformedIdentity("'\(key)' is not an integer: \(type(of: value))")
+    }
+    guard let narrowed = UInt16(exactly: number) else {
+        throw malformedIdentity("'\(key)' does not fit in an unsigned 16 bit value: \(number)")
     }
     return narrowed
 }
