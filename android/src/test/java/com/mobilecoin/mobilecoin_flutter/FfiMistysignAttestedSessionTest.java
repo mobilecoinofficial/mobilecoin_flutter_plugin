@@ -4,7 +4,6 @@ package com.mobilecoin.mobilecoin_flutter;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
@@ -64,7 +63,6 @@ public class FfiMistysignAttestedSessionTest {
 
         assertEquals(Code.INVALID_TRUSTED_IDENTITY, exception.getCode());
         assertEquals("MISTYSIGN_INVALID_TRUSTED_IDENTITY", exception.channelErrorCode());
-        assertNotEquals("MISTYSIGN_ATTESTATION_FAILED", exception.channelErrorCode());
     }
 
     @Test
