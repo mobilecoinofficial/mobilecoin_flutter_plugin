@@ -115,9 +115,32 @@ final class MistysignAttestedSessionChannelTests: PluginChannelTestCase {
     }
 
     func testAnUnreadableEnclaveMeasurementIsRejected() {
-        assertFails(authEnd,
-                    arguments(for: id, mrEnclaves: [Self.mrEnclaveEntry(measurement: "zz")]),
-                    code: "MISTYSIGN_INVALID_TRUSTED_IDENTITY")
+        // Well formed hex, so it decodes and reaches MrEnclave.make, which takes
+        // 32 bytes and nothing else. That is the only way into the catch around
+        // make, since every other unreadable case is refused earlier by the hex
+        // decode, and its code has to agree with them.
+        let fromMake = assertFails(
+            authEnd,
+            arguments(for: id, mrEnclaves: [Self.mrEnclaveEntry(measurement: "abcd")]),
+            code: "MISTYSIGN_INVALID_TRUSTED_IDENTITY",
+            because: "two byte measurement")
+
+        // The message is what says which guard refused it. Sharing one code with
+        // the decode means the code alone cannot, so a case that never reached
+        // make would leave its catch untested while still passing.
+        XCTAssertEqual(fromMake?.message?.contains("Invalid mrEnclave identity"), true,
+                       "a decodable measurement should be refused by make, but said: "
+                        + (fromMake?.message ?? "nothing"))
+
+        let fromDecode = assertFails(
+            authEnd,
+            arguments(for: id, mrEnclaves: [Self.mrEnclaveEntry(measurement: "zz")]),
+            code: "MISTYSIGN_INVALID_TRUSTED_IDENTITY",
+            because: "non hex measurement")
+
+        XCTAssertEqual(fromDecode?.message?.contains("hex encoded bytes"), true,
+                       "a non hex measurement should be refused by the decode, but said: "
+                        + (fromDecode?.message ?? "nothing"))
     }
 
     func testAuthEndWithUnusableEvidenceIsRejected() {
