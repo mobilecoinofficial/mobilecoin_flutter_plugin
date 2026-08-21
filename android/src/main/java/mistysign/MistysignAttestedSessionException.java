@@ -24,12 +24,20 @@ public final class MistysignAttestedSessionException extends Exception implement
         NO_TRUSTED_IDENTITIES("MISTYSIGN_NO_TRUSTED_IDENTITIES"),
 
         /**
-         * A trusted identity was named but could not be read. A local
-         * configuration fault, as opposed to {@link #ATTESTATION_FAILED},
-         * which is evidence not matching identities that read fine.
+         * A trusted identity was named but could not be read: a measurement
+         * that is not hex, a field of the wrong type, a product id that does
+         * not fit. Always a fault in what the caller sent, so it is actionable
+         * locally without involving the enclave.
          */
         INVALID_TRUSTED_IDENTITY("MISTYSIGN_INVALID_TRUSTED_IDENTITY"),
 
+        /**
+         * The handshake did not complete. Usually the enclave's evidence not
+         * matching the identities it was checked against, though it also covers
+         * a session that could not be built or a handshake that could not be
+         * begun -- everything that goes wrong once the identities themselves
+         * have been read.
+         */
         ATTESTATION_FAILED("MISTYSIGN_ATTESTATION_FAILED"),
         ENCRYPTION_FAILED("MISTYSIGN_ENCRYPTION_FAILED"),
         DECRYPTION_FAILED("MISTYSIGN_DECRYPTION_FAILED");

@@ -142,11 +142,14 @@ enum MistysignAttestedSessionErrorCode {
   /// A trusted identity was named but could not be read: a measurement that is
   /// not hex, a field of the wrong type, a product id that does not fit.
   ///
-  /// A local configuration fault, distinct from [attestationFailed], which is
-  /// the enclave's evidence not matching identities that were read fine. The
-  /// two want different triage, so they do not share a code.
+  /// Always a fault in what the caller sent, so it is actionable locally
+  /// without involving the enclave.
   invalidTrustedIdentity,
 
+  /// The handshake did not complete. Usually the enclave's evidence not
+  /// matching the identities it was checked against, though it also covers a
+  /// session that could not be built or a handshake that could not be begun --
+  /// everything that goes wrong once the identities themselves have been read.
   attestationFailed,
   encryptionFailed,
   decryptionFailed,
