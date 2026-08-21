@@ -115,14 +115,9 @@ final class MistysignAttestedSessionChannelTests: PluginChannelTestCase {
     }
 
     func testAnUnreadableEnclaveMeasurementIsRejected() {
-        let arguments: [String: Any] = [
-            "id": id,
-            "authResponseData": bytes([0x00]),
-            "mrEnclaves": [["mrEnclave": "zz", "hardeningAdvisories": "", "configAdvisories": ""]],
-            "mrSigners": [[String: Any]](),
-        ]
-
-        assertFails(authEnd, arguments, code: "MISTYSIGN_INVALID_TRUSTED_IDENTITY")
+        assertFails(authEnd,
+                    arguments(for: id, mrEnclaves: [Self.mrEnclaveEntry(measurement: "zz")]),
+                    code: "MISTYSIGN_INVALID_TRUSTED_IDENTITY")
     }
 
     func testAuthEndWithUnusableEvidenceIsRejected() {
@@ -195,12 +190,22 @@ final class MistysignAttestedSessionChannelTests: PluginChannelTestCase {
         assertFails(destroy, [:], code: "NATIVE")
     }
 
-    private func arguments(for handle: Int, mrSigners: [[String: Any]]) -> [String: Any] {
+    private func arguments(for handle: Int,
+                           mrSigners: [[String: Any]] = [],
+                           mrEnclaves: [[String: Any]] = []) -> [String: Any] {
         [
             "id": handle,
             "authResponseData": bytes([0x00]),
-            "mrEnclaves": [[String: Any]](),
+            "mrEnclaves": mrEnclaves,
             "mrSigners": mrSigners,
+        ]
+    }
+
+    private static func mrEnclaveEntry(measurement: String) -> [String: Any] {
+        [
+            "mrEnclave": measurement,
+            "hardeningAdvisories": "",
+            "configAdvisories": "",
         ]
     }
 
