@@ -35,19 +35,24 @@ class PluginChannelTestCase: XCTestCase {
     }
 
     /// Asserts the command failed and returns the code Dart would match on.
+    ///
+    /// `because` names the case when several share a call site, so a table
+    /// driven test says which entry regressed rather than only which line.
     @discardableResult
     func assertFails(_ method: String,
                      _ arguments: [String: Any] = [:],
                      code expected: String,
+                     because context: String = "",
                      file: StaticString = #filePath,
                      line: UInt = #line) -> FlutterError? {
+        let described = context.isEmpty ? method : "\(method) (\(context))"
         let reply = invoke(method, arguments, file: file, line: line)
         guard let error = reply as? FlutterError else {
-            XCTFail("\(method) should have failed with \(expected)", file: file, line: line)
+            XCTFail("\(described) should have failed with \(expected)", file: file, line: line)
             return nil
         }
 
-        XCTAssertEqual(error.code, expected, file: file, line: line)
+        XCTAssertEqual(error.code, expected, described, file: file, line: line)
         return error
     }
 

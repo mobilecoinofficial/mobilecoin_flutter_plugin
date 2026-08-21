@@ -102,12 +102,15 @@ final class MistysignAttestedSessionChannelTests: PluginChannelTestCase {
         // The handshake is deliberately not begun: reaching this code proves
         // the identity was rejected before the state check that
         // testAuthEndBeforeAuthBeginIsRejected pins.
-        for entry in [Self.mrSignerEntry(overriding: "mrSigner", with: "not hex"),
-                      Self.mrSignerEntry(overriding: "productId", with: 70000),
-                      Self.mrSignerEntry(overriding: "minimumSecurityVersion", with: "6"),
-                      Self.mrSignerEntry(overriding: "hardeningAdvisories", with: 7)] {
-            assertFails(authEnd, arguments(for: id, mrSigners: [entry]),
-                        code: "MISTYSIGN_INVALID_TRUSTED_IDENTITY")
+        for (field, value) in [("mrSigner", "not hex" as Any),
+                               ("productId", 70000 as Any),
+                               ("minimumSecurityVersion", "6" as Any),
+                               ("hardeningAdvisories", 7 as Any)] {
+            assertFails(authEnd,
+                        arguments(for: id,
+                                  mrSigners: [Self.mrSignerEntry(overriding: field, with: value)]),
+                        code: "MISTYSIGN_INVALID_TRUSTED_IDENTITY",
+                        because: field)
         }
     }
 
