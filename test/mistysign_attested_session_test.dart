@@ -19,6 +19,24 @@ void main() {
       debugDefaultTargetPlatformOverride = TargetPlatform.android;
     });
 
+    test('create returns a session backed by the native object id', () async {
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, (call) async {
+        expect(call.method, 'MistysignAttestedSession#create');
+        return 11;
+      });
+
+      final session = await MistysignAttestedSession.create();
+
+      expect(session.id, 11);
+    });
+  });
+
+  group('on an unsupported platform', () {
+    setUp(() {
+      debugDefaultTargetPlatformOverride = TargetPlatform.linux;
+    });
+
     test('create throws UnsupportedError', () {
       expect(
         MistysignAttestedSession.create,
@@ -59,6 +77,20 @@ void main() {
           await session.authBeginRequestData(responderId: 'enclave-1');
 
       expect(result, Uint8List.fromList([1, 2, 3]));
+    });
+
+    test('authBeginRequestData rejects an empty responder id', () async {
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, (call) async {
+        fail('the channel should not have been reached');
+      });
+
+      // The iOS SDK treats the native handshake as infallible and traps the
+      // process on an empty responder id, so nothing may reach the channel.
+      expect(
+        () => MistysignAttestedSession(1).authBeginRequestData(responderId: ''),
+        throwsA(isA<ArgumentError>()),
+      );
     });
 
     test('authEnd sends the trusted identities as channel maps', () async {

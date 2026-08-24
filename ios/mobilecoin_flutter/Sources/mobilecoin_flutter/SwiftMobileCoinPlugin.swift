@@ -164,8 +164,12 @@ struct ObjectStorage {
         }
     }
 
-    static func removeObject(forKey key: Int) {
-        lockQueue.sync(flags: .barrier) {
+    // Keys are untyped, so the type check happens under the barrier to keep a key belonging to
+    // another object from being dropped. An absent key removes nothing and is not an error.
+    static func removeObject<T: AnyObject>(forKey key: Int, ofType type: T.Type) throws {
+        try lockQueue.sync(flags: .barrier) {
+            guard let existing = managedObjects[key] else { return }
+            guard existing is T else { throw PluginError.invalidArguments }
             managedObjects.removeValue(forKey: key)
         }
     }

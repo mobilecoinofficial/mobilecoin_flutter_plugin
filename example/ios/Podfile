@@ -36,6 +36,12 @@ target 'Runner' do
   pod 'SwiftProtobuf', '1.29.0'
 
   flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
+
+  target 'RunnerTests' do
+    # The tests link against the frameworks the host app already embeds, so they
+    # need the search paths and nothing else.
+    inherit! :search_paths
+  end
 end
 
 post_install do |installer|

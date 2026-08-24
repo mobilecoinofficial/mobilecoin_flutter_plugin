@@ -28,6 +28,8 @@ import org.json.JSONException;
 import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -36,6 +38,7 @@ import io.flutter.plugin.common.MethodCall;
 import io.flutter.plugin.common.MethodChannel;
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler;
 import io.flutter.plugin.common.MethodChannel.Result;
+import mistysign.MistysignAttestedSessionException;
 import mistyswap.AttestedMistySwapClient;
 
 /**
@@ -87,7 +90,8 @@ public class MobileCoinFlutterPlugin implements FlutterPlugin, MethodCallHandler
                 Ffi.processSuccess(result, resultValue);
             } catch (Exception exception) {
                 exception.printStackTrace();
-                Ffi.processError(result, exception.getLocalizedMessage(), exception);
+                Ffi.processError(result, Ffi.errorCodeFor(exception),
+                        exception.getLocalizedMessage(), exception);
             }
         });
     }
@@ -330,6 +334,35 @@ public class MobileCoinFlutterPlugin implements FlutterPlugin, MethodCallHandler
             case "AttestedMistySwapClient#getInfo":
                 return api.attestedMistySwapClientGetInfo(
                     getCallArgument(call, "mobileCoinClientId"));
+            case "MistysignAttestedSession#create":
+                return api.mistysignAttestedSessionCreate();
+            case "MistysignAttestedSession#authBeginRequestData":
+                return api.mistysignAttestedSessionAuthBeginRequestData(
+                    getCallArgument(call, "id"),
+                    getCallArgument(call, "responderId"));
+            case "MistysignAttestedSession#authEnd":
+                api.mistysignAttestedSessionAuthEnd(
+                    getCallArgument(call, "id"),
+                    getCallArgument(call, "authResponseData"),
+                    getCallArgument(call, "mrEnclaves"),
+                    getCallArgument(call, "mrSigners"));
+                return null;
+            case "MistysignAttestedSession#encrypt":
+                return api.mistysignAttestedSessionEncrypt(
+                    getCallArgument(call, "id"),
+                    getCallArgument(call, "plaintext"));
+            case "MistysignAttestedSession#decrypt":
+                return api.mistysignAttestedSessionDecrypt(
+                    getCallArgument(call, "id"),
+                    getCallArgument(call, "messageData"));
+            case "MistysignAttestedSession#deattest":
+                api.mistysignAttestedSessionDeattest(getCallArgument(call, "id"));
+                return null;
+            case "MistysignAttestedSession#isAttested":
+                return api.mistysignAttestedSessionIsAttested(getCallArgument(call, "id"));
+            case "MistysignAttestedSession#destroy":
+                api.mistysignAttestedSessionDestroy(getCallArgument(call, "id"));
+                return null;
             default:
                 throw new UnsupportedOperationException();
             }
@@ -684,6 +717,29 @@ public class MobileCoinFlutterPlugin implements FlutterPlugin, MethodCallHandler
         byte[] attestedMistySwapClientGetOnrampDebugInfo(int mobileCoinClientId, byte[] getOnrampDebugInfoRequestBytes) throws AttestationException, NetworkException;
 
         int attestedMistySwapClientGetInfo(int mobileCoinClientId) throws AttestationException, NetworkException;
+
+        int mistysignAttestedSessionCreate() throws MistysignAttestedSessionException;
+
+        byte[] mistysignAttestedSessionAuthBeginRequestData(int objectId, String responderId)
+                throws MistysignAttestedSessionException;
+
+        void mistysignAttestedSessionAuthEnd(int objectId, byte[] authResponseData,
+                List<Map<String, Object>> mrEnclaves, List<Map<String, Object>> mrSigners)
+                throws MistysignAttestedSessionException;
+
+        byte[] mistysignAttestedSessionEncrypt(int objectId, byte[] plaintext)
+                throws MistysignAttestedSessionException;
+
+        byte[] mistysignAttestedSessionDecrypt(int objectId, byte[] messageData)
+                throws MistysignAttestedSessionException;
+
+        void mistysignAttestedSessionDeattest(int objectId)
+                throws MistysignAttestedSessionException;
+
+        boolean mistysignAttestedSessionIsAttested(int objectId)
+                throws MistysignAttestedSessionException;
+
+        void mistysignAttestedSessionDestroy(int objectId);
 
     }
 
@@ -1071,6 +1127,53 @@ public class MobileCoinFlutterPlugin implements FlutterPlugin, MethodCallHandler
             final int hashCode = Arrays.hashCode(getInfoResponseBytes);
             ObjectStorage.addObject(hashCode, getInfoResponseBytes);
             return hashCode;
+        }
+
+        @Override
+        public int mistysignAttestedSessionCreate() throws MistysignAttestedSessionException {
+            return FfiMistysignAttestedSession.create();
+        }
+
+        @Override
+        public byte[] mistysignAttestedSessionAuthBeginRequestData(int objectId,
+                String responderId) throws MistysignAttestedSessionException {
+            return FfiMistysignAttestedSession.authBeginRequestData(objectId, responderId);
+        }
+
+        @Override
+        public void mistysignAttestedSessionAuthEnd(int objectId, byte[] authResponseData,
+                List<Map<String, Object>> mrEnclaves, List<Map<String, Object>> mrSigners)
+                throws MistysignAttestedSessionException {
+            FfiMistysignAttestedSession.authEnd(objectId, authResponseData, mrEnclaves, mrSigners);
+        }
+
+        @Override
+        public byte[] mistysignAttestedSessionEncrypt(int objectId, byte[] plaintext)
+                throws MistysignAttestedSessionException {
+            return FfiMistysignAttestedSession.encrypt(objectId, plaintext);
+        }
+
+        @Override
+        public byte[] mistysignAttestedSessionDecrypt(int objectId, byte[] messageData)
+                throws MistysignAttestedSessionException {
+            return FfiMistysignAttestedSession.decrypt(objectId, messageData);
+        }
+
+        @Override
+        public void mistysignAttestedSessionDeattest(int objectId)
+                throws MistysignAttestedSessionException {
+            FfiMistysignAttestedSession.deattest(objectId);
+        }
+
+        @Override
+        public boolean mistysignAttestedSessionIsAttested(int objectId)
+                throws MistysignAttestedSessionException {
+            return FfiMistysignAttestedSession.isAttested(objectId);
+        }
+
+        @Override
+        public void mistysignAttestedSessionDestroy(int objectId) {
+            FfiMistysignAttestedSession.destroy(objectId);
         }
 
     }

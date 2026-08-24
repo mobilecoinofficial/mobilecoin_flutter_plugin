@@ -10,13 +10,18 @@ import 'package:mobilecoin_flutter/src/platform_object.dart';
 ///
 /// The caller relays the handshake and encrypted messages to the enclave
 /// itself, this class only performs the handshake and the message
-/// encryption. android-sdk has no equivalent yet, so every constructor call
-/// throws [UnsupportedError] on Android.
+/// encryption. Supported on iOS and Android; every other platform throws
+/// [UnsupportedError] from [create].
 class MistysignAttestedSession extends PlatformObject {
   MistysignAttestedSession(int objectId) : super(id: objectId);
 
+  static const _supportedPlatforms = {
+    TargetPlatform.iOS,
+    TargetPlatform.android,
+  };
+
   static Future<MistysignAttestedSession> create() async {
-    if (defaultTargetPlatform != TargetPlatform.iOS) {
+    if (!_supportedPlatforms.contains(defaultTargetPlatform)) {
       throw UnsupportedError(
         'MistysignAttestedSession is not supported on this platform.',
       );
@@ -29,7 +34,21 @@ class MistysignAttestedSession extends PlatformObject {
 
   /// Begins the handshake and returns the bytes to relay to the enclave's
   /// Auth RPC.
+  ///
+  /// [responderId] is bound into the handshake verbatim and must equal the
+  /// value the enclave was launched with, so a mismatch surfaces from
+  /// [authEnd] rather than here. An empty one is rejected up front: the iOS
+  /// SDK treats the native handshake as infallible and traps the process on
+  /// it, where Android reports an invalid uri.
   Future<Uint8List> authBeginRequestData({required String responderId}) {
+    if (responderId.isEmpty) {
+      throw ArgumentError.value(
+        responderId,
+        'responderId',
+        'must name the enclave the session attests against',
+      );
+    }
+
     return _wrap(
       () => MobileCoinFlutterPluginChannelApi.instance
           .mistysignAttestedSessionAuthBeginRequestData(
@@ -93,7 +112,8 @@ class MistysignAttestedSession extends PlatformObject {
     );
   }
 
-  /// Releases the native session. The instance must not be used afterwards.
+  /// Releases the native session. The instance must not be used afterwards, and a
+  /// second call is a no-op.
   Future<void> destroy() {
     return _wrap(
       () => MobileCoinFlutterPluginChannelApi.instance
