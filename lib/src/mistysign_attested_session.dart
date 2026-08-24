@@ -34,7 +34,21 @@ class MistysignAttestedSession extends PlatformObject {
 
   /// Begins the handshake and returns the bytes to relay to the enclave's
   /// Auth RPC.
+  ///
+  /// [responderId] is bound into the handshake verbatim and must equal the
+  /// value the enclave was launched with, so a mismatch surfaces from
+  /// [authEnd] rather than here. An empty one is rejected up front: the iOS
+  /// SDK treats the native handshake as infallible and traps the process on
+  /// it, where Android reports an invalid uri.
   Future<Uint8List> authBeginRequestData({required String responderId}) {
+    if (responderId.isEmpty) {
+      throw ArgumentError.value(
+        responderId,
+        'responderId',
+        'must name the enclave the session attests against',
+      );
+    }
+
     return _wrap(
       () => MobileCoinFlutterPluginChannelApi.instance
           .mistysignAttestedSessionAuthBeginRequestData(

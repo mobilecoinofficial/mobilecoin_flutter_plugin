@@ -10,11 +10,12 @@ on:
   workflow_dispatch:
 
 env:
-  FLUTTER_VERSION: 3.27.2
+  FLUTTER_VERSION: 3.41.3
+  RUBY_VERSION: 3.1.6
 
 jobs:
-  android:
-    runs-on: ubuntu-latest
+  dart:
+    runs-on: mco-dev-small-x64
     timeout-minutes: 15
     steps:
       - name: 'Checkout Repo'
@@ -22,19 +23,12 @@ jobs:
         with:
           fetch-depth: 0 # to get all branches and tags
 
-      - name: 'Set Java version'
-        uses: actions/setup-java@v3
-        with:
-          distribution: 'zulu'
-          java-version: '17'
-          cache: 'gradle'
-
       - name: 'Cache Flutter'
         id: flutter-cache
         uses: actions/cache@v4
         with:
           key: ${{ runner.OS }}-flutter-install-cache-${{ env.FLUTTER_VERSION }}
-          path: /opt/hostedtoolcache/flutter
+          path: ${{ runner.tool_cache }}/flutter
 
       - name: 'Cache Flutter dependencies'
         id: pub-cache
@@ -45,12 +39,16 @@ jobs:
             ${{ env.FLUTTER_HOME }}/.pub-cache
             **/.packages
             **/.flutter-plugins
-            **/.flutter-plugin-dependencies
+            **/.flutter-plugins-dependencies
             **/.dart_tool/package_config.json
+
+      - name: 'Install Flutter archive dependencies'
+        if: steps.flutter-cache.cache.outputs.cache-hit != 'true'
+        run: sudo apt-get update && sudo apt-get install -y zstd xz-utils
 
       - name: 'Set Flutter version'
         if: steps.flutter-cache.cache.outputs.cache-hit != 'true'
-        uses: subosito/flutter-action@v1
+        uses: subosito/flutter-action@v2
         with:
           flutter-version: ${{ env.FLUTTER_VERSION }}
 
@@ -71,14 +69,71 @@ jobs:
       - name: 'Run unit tests'
         run: flutter test --no-pub --coverage --test-randomize-ordering-seed random
 
+  android:
+    runs-on: mco-dev-large-x64
+    timeout-minutes: 15
+    steps:
+      - name: 'Checkout Repo'
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0 # to get all branches and tags
+
+      - name: 'Set Java version'
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+          cache: 'gradle'
+
+      - name: 'Cache Flutter'
+        id: flutter-cache
+        uses: actions/cache@v4
+        with:
+          key: ${{ runner.OS }}-flutter-install-cache-${{ env.FLUTTER_VERSION }}
+          path: ${{ runner.tool_cache }}/flutter
+
+      - name: 'Cache Flutter dependencies'
+        id: pub-cache
+        uses: actions/cache@v4
+        with:
+          key: ${{ runner.os }}-pub-${{ hashFiles('**/pubspec.lock') }}
+          path: |
+            ${{ env.FLUTTER_HOME }}/.pub-cache
+            **/.packages
+            **/.flutter-plugins
+            **/.flutter-plugins-dependencies
+            **/.dart_tool/package_config.json
+
+      - name: 'Install Flutter archive dependencies'
+        if: steps.flutter-cache.cache.outputs.cache-hit != 'true'
+        run: sudo apt-get update && sudo apt-get install -y zstd xz-utils
+
+      - name: 'Set Flutter version'
+        if: steps.flutter-cache.cache.outputs.cache-hit != 'true'
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+
+      - name: 'Install Dart dependencies'
+        if: steps.pub-cache.cache.outputs.cache-hit != 'true'
+        run: flutter pub get;
+
+      - name: 'Setup Android SDK'
+        uses: amyu/setup-android@v5
+
       - name: 'Build example'
         run: |
           cd ${{ github.workspace }}/example;
           flutter build apk;
 
+      - name: 'Run native unit tests'
+        run: |
+          cd ${{ github.workspace }}/example/android;
+          ./gradlew :mobilecoin_flutter:testDebugUnitTest;
+
   ios:
-    runs-on: macos-14-xlarge
-    timeout-minutes: 25
+    runs-on: macos-26
+    timeout-minutes: 35
     steps:
       - name: 'Checkout Repo'
         uses: actions/checkout@v2
@@ -101,14 +156,14 @@ jobs:
             ${{ env.FLUTTER_HOME }}/.pub-cache
             **/.packages
             **/.flutter-plugins
-            **/.flutter-plugin-dependencies
+            **/.flutter-plugins-dependencies
             **/.dart_tool/package_config.json
 
       - name: 'Cache Ruby dependencies'
         id: ruby-cache
         uses: actions/cache@v4
         with:
-          key: ${{ runner.os }}-gems-${{ hashFiles('**/Gemfile') }}
+          key: ${{ runner.os }}-gems-${{ env.RUBY_VERSION }}-${{ hashFiles('**/Gemfile') }}
           path: ${{ github.workspace }}/vendor/bundle
 
       - name: 'Cache Pods'
@@ -120,19 +175,19 @@ jobs:
 
       - name: 'Set Flutter version'
         if: steps.flutter-cache.cache.outputs.cache-hit != 'true'
-        uses: subosito/flutter-action@v1
+        uses: subosito/flutter-action@v2
         with:
           flutter-version: ${{ env.FLUTTER_VERSION }}
 
       - name: 'Set Ruby version'
         uses: ruby/setup-ruby@v1
         with:
-          ruby-version: '2.7.2'
+          ruby-version: ${{ env.RUBY_VERSION }}
 
       - name: 'Set Xcode version'
         uses: maxim-lobanov/setup-xcode@v1
         with:
-          xcode-version: '16.2.0'
+          xcode-version: '26.3.0'
 
       - name: 'Install Dart dependencies'
         if: steps.pub-cache.cache.outputs.cache-hit != 'true'
@@ -155,3 +210,26 @@ jobs:
         run: |
           cd ${{ github.workspace }}/example;
           flutter build ios --simulator;
+
+      - name: 'Run native unit tests'
+        run: |
+          cd ${{ github.workspace }}/example/ios;
+          udid=$(xcrun simctl list devices available \
+            | sed -n '/-- iOS/,/^-- /p' \
+            | grep -m1 -oE '[0-9A-F]{8}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{12}');
+          test -n "$udid";
+          log="${RUNNER_TEMP:-/tmp}/xcodebuild-test.log";
+          set -o pipefail;
+          xcodebuild test \
+            -workspace Runner.xcworkspace \
+            -scheme Runner \
+            -destination "platform=iOS Simulator,id=$udid" \
+            -only-testing:RunnerTests \
+            CODE_SIGNING_ALLOWED=NO | tee "$log";
+          # xcodebuild reports a run that executed nothing as TEST SUCCEEDED, so
+          # a green lane would otherwise say the same thing whether these tests
+          # ran or stopped being found at all.
+          executed=$(grep -oE 'Executed [0-9]+ test' "$log" \
+            | grep -oE '[0-9]+' | sort -rn | head -1);
+          echo "executed $executed tests";
+          test -n "$executed" && test "$executed" -gt 0;

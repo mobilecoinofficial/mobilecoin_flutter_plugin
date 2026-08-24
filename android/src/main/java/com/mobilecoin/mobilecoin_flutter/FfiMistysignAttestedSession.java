@@ -161,9 +161,14 @@ public final class FfiMistysignAttestedSession {
      * {@link com.mobilecoin.lib.util.Hex#toByteArray} maps non hex characters
      * to -1 rather than failing, which would turn a typo into a measurement
      * that simply never matches. Failing here says why.
+     * <p>
+     * This and the two helpers below are package private rather than private so
+     * that the unit tests can reach them: everything that calls them goes
+     * through {@link TrustedIdentities}, whose constructor is a JNI call and so
+     * cannot run on the host JVM.
      */
     @NonNull
-    private static byte[] measurement(@NonNull final Map<String, Object> entry,
+    static byte[] measurement(@NonNull final Map<String, Object> entry,
                                       @NonNull final String key)
             throws MistysignAttestedSessionException {
         final Object value = entry.get(key);
@@ -182,8 +187,8 @@ public final class FfiMistysignAttestedSession {
 
         final byte[] measurement = new byte[hex.length() / 2];
         for (int i = 0; i < measurement.length; ++i) {
-            final int high = Character.digit(hex.charAt(i * 2), 16);
-            final int low = Character.digit(hex.charAt(i * 2 + 1), 16);
+            final int high = nibble(hex.charAt(i * 2));
+            final int low = nibble(hex.charAt(i * 2 + 1));
             if (high < 0 || low < 0) {
                 throw malformed("'" + key + "' contains a non hex character at index " + (i * 2));
             }
@@ -192,7 +197,27 @@ public final class FfiMistysignAttestedSession {
         return measurement;
     }
 
-    private static short shortValue(@NonNull final Map<String, Object> entry,
+    /**
+     * Decodes one ASCII hex digit, or -1 for anything else.
+     * <p>
+     * {@link Character#digit} answers for every Unicode digit, so a fullwidth
+     * or Arabic-Indic character would decode to a measurement that is well
+     * formed and simply wrong rather than being rejected.
+     */
+    private static int nibble(final char character) {
+        if (character >= '0' && character <= '9') {
+            return character - '0';
+        }
+        if (character >= 'a' && character <= 'f') {
+            return character - 'a' + 10;
+        }
+        if (character >= 'A' && character <= 'F') {
+            return character - 'A' + 10;
+        }
+        return -1;
+    }
+
+    static short shortValue(@NonNull final Map<String, Object> entry,
                                     @NonNull final String key)
             throws MistysignAttestedSessionException {
         final Object value = entry.get(key);
@@ -221,8 +246,8 @@ public final class FfiMistysignAttestedSession {
      * nothing to point at.
      */
     @NonNull
-    private static String[] advisories(@NonNull final Map<String, Object> entry,
-                                       @NonNull final String key)
+    static String[] advisories(@NonNull final Map<String, Object> entry,
+                               @NonNull final String key)
             throws MistysignAttestedSessionException {
         final Object value = entry.get(key);
         if (value == null) {

@@ -79,6 +79,20 @@ void main() {
       expect(result, Uint8List.fromList([1, 2, 3]));
     });
 
+    test('authBeginRequestData rejects an empty responder id', () async {
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, (call) async {
+        fail('the channel should not have been reached');
+      });
+
+      // The iOS SDK treats the native handshake as infallible and traps the
+      // process on an empty responder id, so nothing may reach the channel.
+      expect(
+        () => MistysignAttestedSession(1).authBeginRequestData(responderId: ''),
+        throwsA(isA<ArgumentError>()),
+      );
+    });
+
     test('authEnd sends the trusted identities as channel maps', () async {
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
           .setMockMethodCallHandler(channel, (call) async {
