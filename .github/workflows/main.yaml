@@ -145,6 +145,12 @@ jobs:
           cd ${{ github.workspace }}/example/ios;
           bundle install;
 
+      - name: 'Update CocoaPods specs'
+        run: |
+          bundle config path ${{ github.workspace }}/vendor/bundle;
+          cd ${{ github.workspace }}/example/ios;
+          bundle exec pod repo update;
+
       - name: 'Build example'
         run: |
           cd ${{ github.workspace }}/example;

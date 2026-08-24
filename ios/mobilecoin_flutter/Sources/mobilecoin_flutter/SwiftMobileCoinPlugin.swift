@@ -125,6 +125,23 @@ class CommandFactory {
             return FfiCryptoBox.encrypt()
         case "CryptoBox#decrypt":
             return FfiCryptoBox.decrypt()
+
+        case "MistysignAttestedSession#create":
+            return FfiMistysignAttestedSession.Create()
+        case "MistysignAttestedSession#authBeginRequestData":
+            return FfiMistysignAttestedSession.AuthBeginRequestData()
+        case "MistysignAttestedSession#authEnd":
+            return FfiMistysignAttestedSession.AuthEnd()
+        case "MistysignAttestedSession#encrypt":
+            return FfiMistysignAttestedSession.Encrypt()
+        case "MistysignAttestedSession#decrypt":
+            return FfiMistysignAttestedSession.Decrypt()
+        case "MistysignAttestedSession#deattest":
+            return FfiMistysignAttestedSession.Deattest()
+        case "MistysignAttestedSession#isAttested":
+            return FfiMistysignAttestedSession.IsAttested()
+        case "MistysignAttestedSession#destroy":
+            return FfiMistysignAttestedSession.Destroy()
         default:
             throw PluginError.invalidCall
         }
@@ -144,6 +161,16 @@ struct ObjectStorage {
     static func addObject(_ obj: Any, forKey key: Int) {
         lockQueue.sync(flags: .barrier) {
             managedObjects[key] = obj
+        }
+    }
+
+    // Keys are untyped, so the type check happens under the barrier to keep a key belonging to
+    // another object from being dropped. An absent key removes nothing and is not an error.
+    static func removeObject<T: AnyObject>(forKey key: Int, ofType type: T.Type) throws {
+        try lockQueue.sync(flags: .barrier) {
+            guard let existing = managedObjects[key] else { return }
+            guard existing is T else { throw PluginError.invalidArguments }
+            managedObjects.removeValue(forKey: key)
         }
     }
 }
