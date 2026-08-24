@@ -16,4 +16,8 @@ class ObjectStorage {
     public static synchronized Object objectForKey(final Integer key) {
         return managedObjects.get(key);
     }
+
+    public static synchronized void removeObject(final Integer key) {
+        managedObjects.remove(key);
+    }
 }

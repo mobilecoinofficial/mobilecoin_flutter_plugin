@@ -10,13 +10,18 @@ import 'package:mobilecoin_flutter/src/platform_object.dart';
 ///
 /// The caller relays the handshake and encrypted messages to the enclave
 /// itself, this class only performs the handshake and the message
-/// encryption. android-sdk has no equivalent yet, so every constructor call
-/// throws [UnsupportedError] on Android.
+/// encryption. Supported on iOS and Android; every other platform throws
+/// [UnsupportedError] from [create].
 class MistysignAttestedSession extends PlatformObject {
   MistysignAttestedSession(int objectId) : super(id: objectId);
 
+  static const _supportedPlatforms = {
+    TargetPlatform.iOS,
+    TargetPlatform.android,
+  };
+
   static Future<MistysignAttestedSession> create() async {
-    if (defaultTargetPlatform != TargetPlatform.iOS) {
+    if (!_supportedPlatforms.contains(defaultTargetPlatform)) {
       throw UnsupportedError(
         'MistysignAttestedSession is not supported on this platform.',
       );

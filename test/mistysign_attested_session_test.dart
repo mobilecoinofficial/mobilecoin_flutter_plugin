@@ -19,6 +19,24 @@ void main() {
       debugDefaultTargetPlatformOverride = TargetPlatform.android;
     });
 
+    test('create returns a session backed by the native object id', () async {
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, (call) async {
+        expect(call.method, 'MistysignAttestedSession#create');
+        return 11;
+      });
+
+      final session = await MistysignAttestedSession.create();
+
+      expect(session.id, 11);
+    });
+  });
+
+  group('on an unsupported platform', () {
+    setUp(() {
+      debugDefaultTargetPlatformOverride = TargetPlatform.linux;
+    });
+
     test('create throws UnsupportedError', () {
       expect(
         MistysignAttestedSession.create,
