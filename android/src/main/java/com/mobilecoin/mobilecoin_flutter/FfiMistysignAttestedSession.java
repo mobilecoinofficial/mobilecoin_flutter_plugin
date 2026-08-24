@@ -148,8 +148,11 @@ public final class FfiMistysignAttestedSession {
 
             return identities;
         } catch (AttestationException exception) {
+            // The SDK rejecting an identity is still a configuration fault, not
+            // an enclave that failed to match, so it carries the same code as
+            // the entries this bridge rejects itself.
             throw new MistysignAttestedSessionException(
-                    MistysignAttestedSessionException.Code.ATTESTATION_FAILED,
+                    MistysignAttestedSessionException.Code.INVALID_TRUSTED_IDENTITY,
                     "Unable to build the trusted identities",
                     exception);
         }
@@ -265,7 +268,7 @@ public final class FfiMistysignAttestedSession {
     @NonNull
     private static MistysignAttestedSessionException malformed(@NonNull final String message) {
         return new MistysignAttestedSessionException(
-                MistysignAttestedSessionException.Code.ATTESTATION_FAILED, message);
+                MistysignAttestedSessionException.Code.INVALID_TRUSTED_IDENTITY, message);
     }
 
 }

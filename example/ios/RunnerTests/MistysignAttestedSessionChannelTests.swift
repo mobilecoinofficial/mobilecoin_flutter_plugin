@@ -94,6 +94,55 @@ final class MistysignAttestedSessionChannelTests: PluginChannelTestCase {
                     code: "MISTYSIGN_ATTESTATION_FAILED")
     }
 
+    func testAnUnreadableIdentityIsNotReportedAsAFailedAttestation() {
+        // A local configuration fault, so it must not arrive under the code an
+        // enclave whose evidence did not match uses. Those two want different
+        // triage and Dart can only tell them apart by the code.
+        //
+        // The handshake is deliberately not begun: reaching this code proves
+        // the identity was rejected before the state check that
+        // testAuthEndBeforeAuthBeginIsRejected pins.
+        for (field, value) in [("mrSigner", "not hex" as Any),
+                               ("productId", 70000 as Any),
+                               ("minimumSecurityVersion", "6" as Any),
+                               ("hardeningAdvisories", 7 as Any)] {
+            assertFails(authEnd,
+                        arguments(for: id,
+                                  mrSigners: [Self.mrSignerEntry(overriding: field, with: value)]),
+                        code: "MISTYSIGN_INVALID_TRUSTED_IDENTITY",
+                        because: field)
+        }
+    }
+
+    func testAnUnreadableEnclaveMeasurementIsRejected() {
+        // Well formed hex, so it decodes and reaches MrEnclave.make, which takes
+        // 32 bytes and nothing else. That is the only way into the catch around
+        // make, since every other unreadable case is refused earlier by the hex
+        // decode, and its code has to agree with them.
+        let fromMake = assertFails(
+            authEnd,
+            arguments(for: id, mrEnclaves: [Self.mrEnclaveEntry(measurement: "abcd")]),
+            code: "MISTYSIGN_INVALID_TRUSTED_IDENTITY",
+            because: "two byte measurement")
+
+        // The message is what says which guard refused it. Sharing one code with
+        // the decode means the code alone cannot, so a case that never reached
+        // make would leave its catch untested while still passing.
+        XCTAssertEqual(fromMake?.message?.contains("Invalid mrEnclave identity"), true,
+                       "a decodable measurement should be refused by make, but said: "
+                        + (fromMake?.message ?? "nothing"))
+
+        let fromDecode = assertFails(
+            authEnd,
+            arguments(for: id, mrEnclaves: [Self.mrEnclaveEntry(measurement: "zz")]),
+            code: "MISTYSIGN_INVALID_TRUSTED_IDENTITY",
+            because: "non hex measurement")
+
+        XCTAssertEqual(fromDecode?.message?.contains("hex encoded bytes"), true,
+                       "a non hex measurement should be refused by the decode, but said: "
+                        + (fromDecode?.message ?? "nothing"))
+    }
+
     func testAuthEndWithUnusableEvidenceIsRejected() {
         _ = invoke(authBeginRequestData, ["id": id, "responderId": "misty.test:443"])
 
@@ -164,12 +213,22 @@ final class MistysignAttestedSessionChannelTests: PluginChannelTestCase {
         assertFails(destroy, [:], code: "NATIVE")
     }
 
-    private func arguments(for handle: Int, mrSigners: [[String: Any]]) -> [String: Any] {
+    private func arguments(for handle: Int,
+                           mrSigners: [[String: Any]] = [],
+                           mrEnclaves: [[String: Any]] = []) -> [String: Any] {
         [
             "id": handle,
             "authResponseData": bytes([0x00]),
-            "mrEnclaves": [[String: Any]](),
+            "mrEnclaves": mrEnclaves,
             "mrSigners": mrSigners,
+        ]
+    }
+
+    private static func mrEnclaveEntry(measurement: String) -> [String: Any] {
+        [
+            "mrEnclave": measurement,
+            "hardeningAdvisories": "",
+            "configAdvisories": "",
         ]
     }
 
@@ -181,5 +240,14 @@ final class MistysignAttestedSessionChannelTests: PluginChannelTestCase {
             "hardeningAdvisories": "INTEL-SA-00334,INTEL-SA-00615",
             "configAdvisories": "",
         ]
+    }
+
+    /// A signer entry with one field replaced by something unreadable, so each
+    /// case differs from the well formed one by exactly the field under test.
+    private static func mrSignerEntry(overriding key: String,
+                                      with value: Any) -> [String: Any] {
+        var entry = mrSignerEntry()
+        entry[key] = value
+        return entry
     }
 }

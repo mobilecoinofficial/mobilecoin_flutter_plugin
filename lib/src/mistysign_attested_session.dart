@@ -134,7 +134,22 @@ class MistysignAttestedSession extends PlatformObject {
 
 enum MistysignAttestedSessionErrorCode {
   notAttested,
+
+  /// The call named no trusted identities at all, so nothing could ever have
+  /// been accepted.
   noTrustedIdentities,
+
+  /// A trusted identity was named but could not be read: a measurement that is
+  /// not hex, a field of the wrong type, a product id that does not fit.
+  ///
+  /// Always a fault in what the caller sent, so it is actionable locally
+  /// without involving the enclave.
+  invalidTrustedIdentity,
+
+  /// The handshake did not complete. Usually the enclave's evidence not
+  /// matching the identities it was checked against, though it also covers a
+  /// session that could not be built or a handshake that could not be begun --
+  /// everything that goes wrong once the identities themselves have been read.
   attestationFailed,
   encryptionFailed,
   decryptionFailed,
@@ -153,6 +168,8 @@ class MistysignAttestedSessionException implements Exception {
       'MISTYSIGN_NOT_ATTESTED': MistysignAttestedSessionErrorCode.notAttested,
       'MISTYSIGN_NO_TRUSTED_IDENTITIES':
           MistysignAttestedSessionErrorCode.noTrustedIdentities,
+      'MISTYSIGN_INVALID_TRUSTED_IDENTITY':
+          MistysignAttestedSessionErrorCode.invalidTrustedIdentity,
       'MISTYSIGN_ATTESTATION_FAILED':
           MistysignAttestedSessionErrorCode.attestationFailed,
       'MISTYSIGN_ENCRYPTION_FAILED':

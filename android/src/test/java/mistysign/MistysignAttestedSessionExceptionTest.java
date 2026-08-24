@@ -28,6 +28,7 @@ public class MistysignAttestedSessionExceptionTest {
         assertEquals(Arrays.asList(
                 "MISTYSIGN_NOT_ATTESTED",
                 "MISTYSIGN_NO_TRUSTED_IDENTITIES",
+                "MISTYSIGN_INVALID_TRUSTED_IDENTITY",
                 "MISTYSIGN_ATTESTATION_FAILED",
                 "MISTYSIGN_ENCRYPTION_FAILED",
                 "MISTYSIGN_DECRYPTION_FAILED"), codes);
