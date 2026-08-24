@@ -9,7 +9,7 @@ import PackageDescription
 let package = Package(
     name: "mobilecoin_flutter",
     platforms: [
-        .iOS("13.0"),
+        .iOS("15.0"),
         .macOS("11.0")
     ],
     products: [
