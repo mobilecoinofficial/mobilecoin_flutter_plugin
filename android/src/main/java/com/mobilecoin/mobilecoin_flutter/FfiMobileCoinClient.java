@@ -142,7 +142,9 @@ public class FfiMobileCoinClient {
             AccountKey accountKey = mobileCoinClient.getAccountKey();
             activity.put("balance", balance);
             activity.put("transferableAmount", transferableAmount.getValue().toString());
-            activity.put("blockCount", accountActivity.getBlockCount());
+            // longValue() keeps this a JSON number even if the SDK stops returning a
+            // Number subclass, which org.json would otherwise quote as a string.
+            activity.put("blockCount", accountActivity.getBlockCount().longValue());
             Set<OwnedTxOut> ownedTxOuts = accountActivity.getAllTokenTxOuts(tokenId).stream()
                 .filter(txOut ->
                     txOut.getReceivedBlockIndex().compareTo(minTxOutBlockIndex) >= 0 ||

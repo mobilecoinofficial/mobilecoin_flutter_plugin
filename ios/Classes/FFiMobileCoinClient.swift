@@ -328,7 +328,9 @@ struct FfiMobileCoinClient {
 
                             let balance: UInt64 = balances.balances[tokenId]?.amount() ?? 0
                             jsonObject["balance"] = String(balance)
-                            jsonObject["blockCount"] = String(activity.blockCount)
+                            // Must serialize as a JSON number to match Android; clamping
+                            // avoids a trap on the UInt64 -> Int conversion.
+                            jsonObject["blockCount"] = Int(clamping: activity.blockCount)
                             activityDispatchGroup.enter()
                             client.amountTransferable(tokenId: tokenId) { (amountTransferableResult: Result<UInt64, BalanceTransferEstimationFetcherError>) in
                                 switch amountTransferableResult {
