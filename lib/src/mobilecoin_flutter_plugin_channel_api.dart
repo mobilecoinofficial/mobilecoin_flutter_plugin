@@ -3,6 +3,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:mobilecoin_flutter/src/account_key.dart';
+import 'package:mobilecoin_flutter/src/attestation/mistysign_trusted_identities.dart';
 import 'package:mobilecoin_flutter/src/attestation/service_config.dart';
 import 'package:mobilecoin_flutter/src/extensions/string_extensions.dart';
 import 'package:mobilecoin_flutter/src/protobufs/generated/mistyswap_common.pb.dart';
@@ -797,5 +798,93 @@ class MobileCoinFlutterPluginChannelApi {
         params,
       ),
     );
+  }
+
+  Future<int> mistysignAttestedSessionCreate() async {
+    return await _channel.invokeMethod(
+      "MistysignAttestedSession#create",
+      <String, dynamic>{},
+    );
+  }
+
+  Future<Uint8List> mistysignAttestedSessionAuthBeginRequestData({
+    required int objectId,
+    required String responderId,
+  }) async {
+    final Map<String, dynamic> params = <String, dynamic>{
+      'id': objectId,
+      'responderId': responderId,
+    };
+    return await _channel.invokeMethod(
+      "MistysignAttestedSession#authBeginRequestData",
+      params,
+    );
+  }
+
+  Future<void> mistysignAttestedSessionAuthEnd({
+    required int objectId,
+    required Uint8List authResponseData,
+    required List<MistysignMrEnclave> mrEnclaves,
+    required List<MistysignMrSigner> mrSigners,
+  }) async {
+    final Map<String, dynamic> params = <String, dynamic>{
+      'id': objectId,
+      'authResponseData': authResponseData,
+      'mrEnclaves': mrEnclaves.map((e) => e.toChannelMap).toList(),
+      'mrSigners': mrSigners.map((s) => s.toChannelMap).toList(),
+    };
+    await _channel.invokeMethod("MistysignAttestedSession#authEnd", params);
+  }
+
+  Future<Uint8List> mistysignAttestedSessionEncrypt({
+    required int objectId,
+    required Uint8List plaintext,
+  }) async {
+    final Map<String, dynamic> params = <String, dynamic>{
+      'id': objectId,
+      'plaintext': plaintext,
+    };
+    return await _channel.invokeMethod(
+      "MistysignAttestedSession#encrypt",
+      params,
+    );
+  }
+
+  Future<Uint8List> mistysignAttestedSessionDecrypt({
+    required int objectId,
+    required Uint8List messageData,
+  }) async {
+    final Map<String, dynamic> params = <String, dynamic>{
+      'id': objectId,
+      'messageData': messageData,
+    };
+    return await _channel.invokeMethod(
+      "MistysignAttestedSession#decrypt",
+      params,
+    );
+  }
+
+  Future<void> mistysignAttestedSessionDeattest({
+    required int objectId,
+  }) async {
+    final Map<String, dynamic> params = <String, dynamic>{'id': objectId};
+    await _channel.invokeMethod("MistysignAttestedSession#deattest", params);
+  }
+
+  Future<bool> mistysignAttestedSessionIsAttested({
+    required int objectId,
+  }) async {
+    final Map<String, dynamic> params = <String, dynamic>{'id': objectId};
+    return await _channel.invokeMethod(
+      "MistysignAttestedSession#isAttested",
+      params,
+    );
+  }
+
+  Future<void> mistysignAttestedSessionDestroy({
+    required int objectId,
+  }) async {
+    final Map<String, dynamic> params = <String, dynamic>{'id': objectId};
+    await _channel.invokeMethod("MistysignAttestedSession#destroy", params);
   }
 }

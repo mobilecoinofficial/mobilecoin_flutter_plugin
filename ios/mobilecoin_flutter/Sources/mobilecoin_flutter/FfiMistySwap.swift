@@ -1,8 +1,17 @@
 // Copyright (c) 2021-2024 MobileCoin. All rights reserved.
 
+import Flutter
 import Foundation
 import MobileCoin
+// The generated Mistyswap protos below sit in a different module depending on
+// how LibMobileCoin is consumed: CocoaPods compiles the C headers and the
+// `.pb.swift` files into one `LibMobileCoin` module, while SwiftPM splits them
+// into the `LibMobileCoin` C module and the `LibMobileCoinCommon` target. The
+// SDK's own sources import both the same way.
 import LibMobileCoin
+#if canImport(LibMobileCoinCommon)
+import LibMobileCoinCommon
+#endif
 
 struct FfiMistyswap {
     struct InitiateOfframp: Command {
