@@ -142,8 +142,8 @@ public class FfiMobileCoinClient {
             AccountKey accountKey = mobileCoinClient.getAccountKey();
             activity.put("balance", balance);
             activity.put("transferableAmount", transferableAmount.getValue().toString());
-            // longValue() keeps this a JSON number even if the SDK stops returning a
-            // Number subclass, which org.json would otherwise quote as a string.
+            // Use a primitive long so org.json always emits a JSON number.
+            // (avoids any ambiguity around how a wrapped numeric type is serialized).
             activity.put("blockCount", accountActivity.getBlockCount().longValue());
             Set<OwnedTxOut> ownedTxOuts = accountActivity.getAllTokenTxOuts(tokenId).stream()
                 .filter(txOut ->
