@@ -69,6 +69,29 @@ class MobileCoinFlutterPluginChannelApi {
     return json;
   }
 
+  Future<Map<String, Object?>> getTxOutPublicKeys({
+    required int mobileClientId,
+    required int recipientId,
+    required String rngSeed,
+  }) async {
+    if (rngSeed.codeUnits.length != 32) {
+      throw Exception(
+        '''Invalid rngSeed $rngSeed. Byte length must be 32, but received ${rngSeed.codeUnits.length}''',
+      );
+    }
+
+    final Map<String, dynamic> params = <String, dynamic>{
+      'id': mobileClientId,
+      'recipient': recipientId,
+      'rngSeed': Uint8List.fromList(rngSeed.codeUnits),
+    };
+    final result = await _channel.invokeMethod(
+      "MobileCoinClient#getTxOutPublicKeys",
+      params,
+    );
+    return Map<String, Object?>.from(result as Map);
+  }
+
   Future<Map<String, Object?>> createPendingTransaction({
     required int mobileClientId,
     required int recipientId,

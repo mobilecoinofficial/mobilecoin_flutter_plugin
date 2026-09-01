@@ -68,6 +68,32 @@ class MobileCoinFlutterClient extends PlatformObject {
         printableWrapperId: printableWrapperId,
       );
 
+  /// Derives the payload and change TxOut public keys a transaction from
+  /// [rngSeed] would produce, without building one.
+  ///
+  /// Returns the same `payloadTxOutPublicKey` and `changeTxOutPublicKey` that
+  /// [createPendingTransaction] does, base64 encoded: pass that method the
+  /// same [rngSeed] later and it carries these keys. Nothing else about the
+  /// eventual transaction changes them, so the two calls need not happen
+  /// close together.
+  ///
+  /// [rngSeed] must be 32 bytes; a shorter or longer one is rejected rather
+  /// than padded, since a substituted seed would name keys no transaction
+  /// will carry.
+  ///
+  /// Needs no balance, but fetches fog reports, so this makes network calls
+  /// and can fail like any other fog operation.
+  Future<Map<String, Object?>> getTxOutPublicKeys({
+    required PublicAddress recipient,
+    required String rngSeed,
+  }) async {
+    return await MobileCoinFlutterPluginChannelApi.instance.getTxOutPublicKeys(
+      mobileClientId: id,
+      recipientId: recipient.id,
+      rngSeed: rngSeed,
+    );
+  }
+
   Future<Map<String, Object?>> createPendingTransaction({
     required PublicAddress recipient,
     required BigInt amount,
