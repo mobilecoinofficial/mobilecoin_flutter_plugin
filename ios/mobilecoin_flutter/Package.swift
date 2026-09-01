@@ -18,7 +18,7 @@ let package = Package(
     dependencies: [
         .package(
             url: "https://github.com/mobilecoinofficial/MobileCoin-Swift.git",
-            from: "6.0.6"
+            from: "6.0.7"
         )
     ],
     targets: [
