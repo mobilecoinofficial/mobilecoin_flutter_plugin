@@ -37,6 +37,7 @@ import com.mobilecoin.lib.SenderWithPaymentRequestMemo;
 import com.mobilecoin.lib.SignedContingentInput;
 import com.mobilecoin.lib.TokenId;
 import com.mobilecoin.lib.Transaction;
+import com.mobilecoin.lib.TxOutContexts;
 import com.mobilecoin.lib.TxOutMemo;
 import com.mobilecoin.lib.TxOutMemoBuilder;
 import com.mobilecoin.lib.TxOutMemoType;
@@ -367,6 +368,39 @@ public class FfiMobileCoinClient {
                 Base64.encodeToString(changeTxOutPublicKey.getKeyBytes(), Base64.NO_WRAP));
         returnPayload.put("changeTxOutSharedSecret",
                 Base64.encodeToString(changeTxOutSharedSecret.getKeyBytes(), Base64.NO_WRAP));
+
+        return returnPayload;
+    }
+
+    /**
+     * Derives the payload and change TxOut public keys a transaction from
+     * {@code rngSeed} would produce, without selecting inputs or building one.
+     *
+     * <p>Returns the same two keys {@code createPendingTransaction} does,
+     * base64 encoded under the same names. Takes only the recipient and the
+     * seed: a TxOut public key is {@code r * D}, and no amount, fee or memo
+     * reaches either factor. Needs no balance; still fetches fog reports and
+     * the block version.
+     */
+    public static HashMap<String, Object> getTxOutPublicKeys(int mobileClientId,
+            int recipientId, byte[] rngSeed)
+            throws InvalidFogResponse, AttestationException, NetworkException,
+            TransactionBuilderException, FogReportException {
+        PublicAddress recipient = (PublicAddress) ObjectStorage.objectForKey(recipientId);
+        MobileCoinClient mobileCoinClient =
+                (MobileCoinClient) ObjectStorage.objectForKey(mobileClientId);
+
+        // The seed goes straight through: getTxOutContexts makes the same hop
+        // to a builder seed that createPendingTransaction does, so both reach
+        // the same stream from the same seed.
+        final TxOutContexts txOutContexts =
+                mobileCoinClient.getTxOutContexts(recipient, rngSeed);
+
+        HashMap<String, Object> returnPayload = new HashMap<>();
+        returnPayload.put("payloadTxOutPublicKey", Base64.encodeToString(
+                txOutContexts.getPayload().getTxOutPublicKey().getKeyBytes(), Base64.NO_WRAP));
+        returnPayload.put("changeTxOutPublicKey", Base64.encodeToString(
+                txOutContexts.getChange().getTxOutPublicKey().getKeyBytes(), Base64.NO_WRAP));
 
         return returnPayload;
     }
