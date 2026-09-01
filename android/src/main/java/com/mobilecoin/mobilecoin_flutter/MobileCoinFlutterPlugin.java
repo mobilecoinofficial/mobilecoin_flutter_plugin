@@ -155,6 +155,9 @@ public class MobileCoinFlutterPlugin implements FlutterPlugin, MethodCallHandler
                         getCallArgument(call, "rngSeed"),
                         call.argument("paymentRequestId")); // can be null
             }
+            case "MobileCoinClient#getTxOutPublicKeys":
+                return api.getTxOutPublicKeys(getCallArgument(call, "id"),
+                        getCallArgument(call, "recipient"), getCallArgument(call, "rngSeed"));
             case "MobileCoinClient#sendFunds":
                 return api.sendFunds(getCallArgument(call, "id"), getCallArgument(call, "transaction"));
             case "MobileCoinClient#checkTransactionStatus":
@@ -400,6 +403,16 @@ public class MobileCoinFlutterPlugin implements FlutterPlugin, MethodCallHandler
          * the given <code>recipient</code> and then returns pending transaction ID, along with the
          * payloadPublicKey, changePublicKey, payloadSharedSecret, and changeSharedSecret
          */
+        /**
+         * Derives the payload and change TxOut public keys a transaction from
+         * <code>rngSeed</code> would produce, without building one. Needs no
+         * balance; still fetches fog reports and the block version.
+         */
+        HashMap<String, Object> getTxOutPublicKeys(int mobileClientId, int recipientId,
+                @NonNull byte[] rngSeed)
+                throws InvalidFogResponse, AttestationException, NetworkException,
+                TransactionBuilderException, FogReportException;
+
         HashMap<String, Object> createPendingTransaction(int mobileClientId, int recipientId,
                 @NonNull PicoMob fee, @NonNull PicoMob amount, @NonNull TokenId tokenId,
                 @NonNull byte[] rngSeed, String paymentRequestId)
@@ -772,6 +785,14 @@ public class MobileCoinFlutterPlugin implements FlutterPlugin, MethodCallHandler
                 @NonNull String password) {
             FfiMobileCoinClient.setAuthorization(mobileClientId, username, password);
             return null;
+        }
+
+        @Override
+        public HashMap<String, Object> getTxOutPublicKeys(int mobileClientId, int recipientId,
+                @NonNull byte[] rngSeed)
+                throws InvalidFogResponse, AttestationException, NetworkException,
+                TransactionBuilderException, FogReportException {
+            return FfiMobileCoinClient.getTxOutPublicKeys(mobileClientId, recipientId, rngSeed);
         }
 
         @Override
