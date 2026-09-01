@@ -386,6 +386,9 @@ public class FfiMobileCoinClient {
             int recipientId, byte[] rngSeed)
             throws InvalidFogResponse, AttestationException, NetworkException,
             TransactionBuilderException, FogReportException {
+        if (rngSeed.length != 32) {
+            throw new IllegalArgumentException("rngSeed must be 32 bytes");
+        }
         PublicAddress recipient = (PublicAddress) ObjectStorage.objectForKey(recipientId);
         MobileCoinClient mobileCoinClient =
                 (MobileCoinClient) ObjectStorage.objectForKey(mobileClientId);
@@ -395,7 +398,6 @@ public class FfiMobileCoinClient {
         // the same stream from the same seed.
         final TxOutContexts txOutContexts =
                 mobileCoinClient.getTxOutContexts(recipient, rngSeed);
-
         HashMap<String, Object> returnPayload = new HashMap<>();
         returnPayload.put("payloadTxOutPublicKey", Base64.encodeToString(
                 txOutContexts.getPayload().getTxOutPublicKey().getKeyBytes(), Base64.NO_WRAP));

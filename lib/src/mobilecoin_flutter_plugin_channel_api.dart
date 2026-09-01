@@ -76,7 +76,7 @@ class MobileCoinFlutterPluginChannelApi {
   }) async {
     if (rngSeed.codeUnits.length != 32) {
       throw Exception(
-        '''Invalid rngSeed $rngSeed. Byte length must be 32, but received ${rngSeed.codeUnits.length}''',
+        'Invalid rngSeed. Byte length must be 32, but received ${rngSeed.codeUnits.length}',
       );
     }
 
