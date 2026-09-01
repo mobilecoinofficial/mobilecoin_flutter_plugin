@@ -83,15 +83,26 @@ class MobileCoinFlutterClient extends PlatformObject {
   ///
   /// Needs no balance, but fetches fog reports, so this makes network calls
   /// and can fail like any other fog operation.
-  Future<Map<String, Object?>> getTxOutPublicKeys({
+  Future<({String payload, String change})> getTxOutPublicKeys({
     required PublicAddress recipient,
     required String rngSeed,
   }) async {
-    return await MobileCoinFlutterPluginChannelApi.instance.getTxOutPublicKeys(
+    final keys =
+        await MobileCoinFlutterPluginChannelApi.instance.getTxOutPublicKeys(
       mobileClientId: id,
       recipientId: recipient.id,
       rngSeed: rngSeed,
     );
+
+    final payload = keys['payloadTxOutPublicKey'];
+    final change = keys['changeTxOutPublicKey'];
+    if (payload is! String || change is! String) {
+      throw StateError(
+        'Platform returned no TxOut public keys for the seed: $keys',
+      );
+    }
+
+    return (payload: payload, change: change);
   }
 
   Future<Map<String, Object?>> createPendingTransaction({

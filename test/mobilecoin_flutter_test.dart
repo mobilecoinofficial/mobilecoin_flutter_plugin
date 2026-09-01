@@ -2,7 +2,9 @@
 
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mobilecoin_flutter/src/mobilecoin_client.dart';
 import 'package:mobilecoin_flutter/src/mobilecoin_flutter_plugin_channel_api.dart';
+import 'package:mobilecoin_flutter/src/public_address.dart';
 
 void main() {
   const MethodChannel channel = MethodChannel('mobilecoin_flutter');
@@ -46,7 +48,7 @@ void main() {
       });
     });
 
-    test('returns the keys the platform answers with', () async {
+    test('returns the raw map the platform answers with', () async {
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
           .setMockMethodCallHandler(channel, (_) async {
         // A method channel hands back an untyped map, not a typed one.
@@ -90,6 +92,45 @@ void main() {
       // A substituted seed would name keys no transaction carries, so the
       // seed must never reach native unchecked.
       expect(invoked, isFalse);
+    });
+  });
+
+  group('MobileCoinFlutterClient.getTxOutPublicKeys', () {
+    const seed = 'abcdefghijklmnopqrstuvwxyz012345';
+
+    test('reports the two keys as a record', () async {
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, (_) async {
+        return <Object?, Object?>{
+          'payloadTxOutPublicKey': 'abc',
+          'changeTxOutPublicKey': 'def',
+        };
+      });
+
+      final keys = await MobileCoinFlutterClient(1).getTxOutPublicKeys(
+        recipient: PublicAddress(2),
+        rngSeed: seed,
+      );
+
+      expect(keys.payload, 'abc');
+      expect(keys.change, 'def');
+    });
+
+    test('throws when the platform answers without both keys', () async {
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, (_) async {
+        // Reporting one key as the other's value would seal a key the
+        // transaction never carries, so a partial answer is not usable.
+        return <Object?, Object?>{'payloadTxOutPublicKey': 'abc'};
+      });
+
+      await expectLater(
+        () => MobileCoinFlutterClient(1).getTxOutPublicKeys(
+          recipient: PublicAddress(2),
+          rngSeed: seed,
+        ),
+        throwsA(isA<StateError>()),
+      );
     });
   });
 }
