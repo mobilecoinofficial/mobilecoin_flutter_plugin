@@ -403,6 +403,14 @@ public class MobileCoinFlutterPlugin implements FlutterPlugin, MethodCallHandler
          * the given <code>recipient</code> and then returns pending transaction ID, along with the
          * payloadPublicKey, changePublicKey, payloadSharedSecret, and changeSharedSecret
          */
+        HashMap<String, Object> createPendingTransaction(int mobileClientId, int recipientId,
+                @NonNull PicoMob fee, @NonNull PicoMob amount, @NonNull TokenId tokenId,
+                @NonNull byte[] rngSeed, String paymentRequestId)
+                throws InvalidFogResponse, InterruptedException, InvalidTransactionException,
+                AttestationException, FeeRejectedException, InsufficientFundsException,
+                FragmentedAccountException, NetworkException, TransactionBuilderException,
+                FogReportException, FogSyncException, SerializationException;
+
         /**
          * Derives the payload and change TxOut public keys a transaction from
          * <code>rngSeed</code> would produce, without building one. Needs no
@@ -412,14 +420,6 @@ public class MobileCoinFlutterPlugin implements FlutterPlugin, MethodCallHandler
                 @NonNull byte[] rngSeed)
                 throws InvalidFogResponse, AttestationException, NetworkException,
                 TransactionBuilderException, FogReportException;
-
-        HashMap<String, Object> createPendingTransaction(int mobileClientId, int recipientId,
-                @NonNull PicoMob fee, @NonNull PicoMob amount, @NonNull TokenId tokenId,
-                @NonNull byte[] rngSeed, String paymentRequestId)
-                throws InvalidFogResponse, InterruptedException, InvalidTransactionException,
-                AttestationException, FeeRejectedException, InsufficientFundsException,
-                FragmentedAccountException, NetworkException, TransactionBuilderException,
-                FogReportException, FogSyncException, SerializationException;
 
         /**
          * Sends from the given <code>FftMobileCoinClient</code> based on the
