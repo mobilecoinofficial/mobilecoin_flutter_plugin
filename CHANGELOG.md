@@ -1,3 +1,7 @@
+## 0.0.6
+
+- iOS now emits `blockCount` in the account activity JSON as a number rather than a quoted string, matching what Android has always sent. A consumer that parsed the iOS value as a `String` needs to read it as an `int`.
+
 ## 0.0.5
 
 - The iOS deployment target is now 15.0, up from 12.2. Flutter 3.41 requires 13.0 of its own, and the Sentz app already builds at 15.0.

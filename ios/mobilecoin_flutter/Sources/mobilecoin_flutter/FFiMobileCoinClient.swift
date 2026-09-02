@@ -329,7 +329,7 @@ struct FfiMobileCoinClient {
 
                             let balance: UInt64 = balances.balances[tokenId]?.amount() ?? 0
                             jsonObject["balance"] = String(balance)
-                            jsonObject["blockCount"] = String(activity.blockCount)
+                            jsonObject["blockCount"] = activity.blockCount
                             activityDispatchGroup.enter()
                             client.amountTransferable(tokenId: tokenId) { (amountTransferableResult: Result<UInt64, BalanceTransferEstimationFetcherError>) in
                                 switch amountTransferableResult {
