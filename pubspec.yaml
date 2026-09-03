@@ -1,6 +1,6 @@
 name: mobilecoin_flutter
 description: Flutter plugin providing Dart bindings for MobileCoin-Swift and android-sdk.
-version: 0.1.0
+version: 0.1.1
 homepage: https://github.com/mobilecoinofficial/mobilecoin_flutter_plugin
 
 environment:

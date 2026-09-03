@@ -507,6 +507,57 @@ struct FfiMobileCoinClient {
         }
     }
 
+    /// Derives the payload and change TxOut public keys a transaction from
+    /// `rngSeed` would produce, without building one.
+    ///
+    /// Returns the same two keys `CreatePendingTransaction` does, base64
+    /// encoded under the same names. Takes only the recipient and the seed: a
+    /// TxOut public key is `r * D`, and no amount, fee or memo reaches either
+    /// factor. Needs no balance; still fetches fog reports and the block
+    /// version.
+    struct GetTxOutPublicKeys: Command {
+        func execute(args: [String: Any], result: @escaping FlutterResult) throws {
+            guard let mobileClientId: Int = args["id"] as? Int,
+                  let recipientId: Int = args["recipient"] as? Int,
+                  let rngSeed: FlutterStandardTypedData = args["rngSeed"] as? FlutterStandardTypedData else {
+                      result(FlutterError(code: "NATIVE", message: "GetTxOutPublicKeys", details: "parsing arguments"))
+                      throw PluginError.invalidArguments
+                  }
+
+            guard let recipient: PublicAddress = ObjectStorage.objectForKey(recipientId) as? PublicAddress,
+                  let mobileCoinClient: MobileCoinClient = ObjectStorage.objectForKey(mobileClientId) as? MobileCoinClient else {
+                      result(FlutterError(code: "NATIVE", message: "GetTxOutPublicKeys", details: "retrieve client"))
+                      throw PluginError.invalidArguments
+                  }
+
+            guard let seed = RngSeed(rngSeed.data) else {
+                result(FlutterError(code: "NATIVE", message: "GetTxOutPublicKeys",
+                                    details: "rngSeed must be 32 bytes"))
+                throw PluginError.invalidArguments
+            }
+
+            // The seed goes straight through: txOutContexts makes the same hop
+            // to a builder seed that prepareTransaction does, so both reach the
+            // same stream from the same seed.
+            mobileCoinClient.txOutContexts(
+                to: recipient,
+                rngSeed: seed
+            ) { contexts in
+                switch contexts {
+                case .success(let (payload, change)):
+                    var returnPayload: [String: Any] = [:]
+                    returnPayload["payloadTxOutPublicKey"] =
+                        payload.txOutPublicKey.base64EncodedString()
+                    returnPayload["changeTxOutPublicKey"] =
+                        change.txOutPublicKey.base64EncodedString()
+                    result(returnPayload)
+                case .failure(let e):
+                    result(FlutterError(code: "NATIVE", message: e.localizedDescription, details: "GetTxOutPublicKeys.txOutContexts"))
+                }
+            }
+        }
+    }
+
     struct SendFunds: Command {
         func execute(args: [String : Any], result: @escaping FlutterResult) throws {
             guard let mobileClientId: Int = args["id"] as? Int,
