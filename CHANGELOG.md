@@ -1,3 +1,7 @@
+## 0.1.0
+
+- The SwiftPM floor for `MobileCoin-Swift` is now 6.1.0. Every 6.0.x tag vendors `libmobilecoin` as a git submodule whose gitlink the reseeded libmobilecoin repository refuses, so SwiftPM fails those checkouts. The CocoaPods dependency is `MobileCoin/CoreHTTP ~> 6.0.6`, because CocoaPods trunk publishes no 6.1.0 podspec. That pod clones the v6.0.x tag with submodules, so the pod route needs a warm cache until a 6.1.0 pod reaches trunk.
+
 ## 0.0.6
 
 - iOS now emits `blockCount` in the account activity JSON as a number rather than a quoted string, matching what Android has always sent. A consumer that parsed the iOS value as a `String` needs to read it as an `int`.
