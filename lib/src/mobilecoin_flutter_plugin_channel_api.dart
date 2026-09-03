@@ -69,21 +69,37 @@ class MobileCoinFlutterPluginChannelApi {
     return json;
   }
 
+  /// The 32 bytes [rngSeed] stands for, as every seed-taking method sends
+  /// them.
+  ///
+  /// Rejects a seed that is not 32 code units, and one holding a code unit
+  /// above `0xFF` that [Uint8List.fromList] would quietly truncate to a
+  /// different byte. Either way the transaction would carry keys other than
+  /// the ones the caller derived. The seed stays out of the message so it
+  /// cannot reach a log.
+  static Uint8List _seedBytes(String rngSeed) {
+    final units = rngSeed.codeUnits;
+    if (units.length != 32) {
+      throw Exception(
+        'Invalid rngSeed. Byte length must be 32, but received ${units.length}',
+      );
+    }
+    if (units.any((unit) => unit > 0xFF)) {
+      throw Exception('Invalid rngSeed. Every code unit must fit in a byte.');
+    }
+
+    return Uint8List.fromList(units);
+  }
+
   Future<Map<String, Object?>> getTxOutPublicKeys({
     required int mobileClientId,
     required int recipientId,
     required String rngSeed,
   }) async {
-    if (rngSeed.codeUnits.length != 32) {
-      throw Exception(
-        '''Invalid rngSeed $rngSeed. Byte length must be 32, but received ${rngSeed.codeUnits.length}''',
-      );
-    }
-
     final Map<String, dynamic> params = <String, dynamic>{
       'id': mobileClientId,
       'recipient': recipientId,
-      'rngSeed': Uint8List.fromList(rngSeed.codeUnits),
+      'rngSeed': _seedBytes(rngSeed),
     };
     final result = await _channel.invokeMethod(
       "MobileCoinClient#getTxOutPublicKeys",
@@ -101,19 +117,13 @@ class MobileCoinFlutterPluginChannelApi {
     required String rngSeed,
     BigInt? paymentRequestId,
   }) async {
-    if (rngSeed.codeUnits.length != 32) {
-      throw Exception(
-        '''Invalid rngSeed $rngSeed. Byte length must be 32, but received ${rngSeed.codeUnits.length}''',
-      );
-    }
-
     final Map<String, dynamic> params = <String, dynamic>{
       'id': mobileClientId,
       'recipient': recipientId,
       'fee': fee.toString(),
       'amount': amount.toString(),
       'tokenId': tokenId.toString(),
-      'rngSeed': Uint8List.fromList(rngSeed.codeUnits),
+      'rngSeed': _seedBytes(rngSeed),
       'paymentRequestId': paymentRequestId?.toString(),
     };
     final result = await _channel.invokeMethod(

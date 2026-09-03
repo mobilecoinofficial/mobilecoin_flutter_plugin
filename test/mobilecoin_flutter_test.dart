@@ -73,10 +73,10 @@ void main() {
 
     test('rejects a seed that is not 32 bytes without calling native',
         () async {
-      var invoked = false;
+      var wasInvoked = false;
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
           .setMockMethodCallHandler(channel, (_) async {
-        invoked = true;
+        wasInvoked = true;
         return <Object?, Object?>{};
       });
 
@@ -91,7 +91,60 @@ void main() {
 
       // A substituted seed would name keys no transaction carries, so the
       // seed must never reach native unchecked.
-      expect(invoked, isFalse);
+      expect(wasInvoked, isFalse);
+    });
+
+    test('rejects a 32-character seed that is not 32 bytes', () async {
+      var wasInvoked = false;
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, (_) async {
+        wasInvoked = true;
+        return <Object?, Object?>{};
+      });
+
+      await expectLater(
+        () => MobileCoinFlutterPluginChannelApi.instance.getTxOutPublicKeys(
+          mobileClientId: 1,
+          recipientId: 2,
+          // Counts as 32 code units, but the last one does not fit in a byte
+          // and would be truncated to bytes the caller never meant.
+          rngSeed: 'abcdefghijklmnopqrstuvwxyz01234\u0100',
+        ),
+        throwsA(isA<Exception>()),
+      );
+
+      expect(wasInvoked, isFalse);
+    });
+
+    test('sends the same seed bytes createPendingTransaction does', () async {
+      final sent = <String, Object?>{};
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, (call) async {
+        sent[call.method] =
+            (call.arguments as Map<Object?, Object?>)['rngSeed'];
+        return <Object?, Object?>{};
+      });
+
+      await MobileCoinFlutterPluginChannelApi.instance.getTxOutPublicKeys(
+        mobileClientId: 1,
+        recipientId: 2,
+        rngSeed: seed,
+      );
+      await MobileCoinFlutterPluginChannelApi.instance.createPendingTransaction(
+        mobileClientId: 1,
+        recipientId: 2,
+        fee: BigInt.one,
+        amount: BigInt.two,
+        tokenId: BigInt.zero,
+        rngSeed: seed,
+      );
+
+      // The derived keys only describe the later send while both calls reach
+      // the same stream, which they do only from identical seed bytes.
+      expect(
+        sent['MobileCoinClient#getTxOutPublicKeys'],
+        sent['MobileCoinClient#createPendingTransaction'],
+      );
     });
   });
 
