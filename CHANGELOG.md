@@ -1,4 +1,4 @@
-## 0.0.7
+## 0.1.0
 
 - Swift Package Manager is the only iOS distribution route. `ios/mobilecoin_flutter.podspec` is deleted, so a consuming app sets `enable-swift-package-manager: true` under `flutter: config:` and resolves `mobilecoin_flutter` as a Swift package. Flutter 3.35.0 is the first stable release that reads that pubspec key, and an app on an older SDK runs `flutter config --enable-swift-package-manager` instead.
 - An app that reaches this plugin through CocoaPods switches route and commits a regenerated `ios/Podfile.lock`. The regenerated lock drops the `mobilecoin_flutter` pod along with the `MobileCoin/CoreHTTP` and `LibMobileCoin/CoreHTTP` pods only it pulled in, and the app takes `MobileCoin-Swift` 6.1.0 or newer and the rest of that SwiftPM graph into its own `Package.resolved`.
