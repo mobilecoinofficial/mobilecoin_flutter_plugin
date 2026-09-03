@@ -98,7 +98,7 @@ class MobileCoinFlutterClient extends PlatformObject {
     final change = keys['changeTxOutPublicKey'];
     if (payload is! String || change is! String) {
       throw StateError(
-        'Platform returned no TxOut public keys for the seed: $keys',
+        'Platform returned an incomplete TxOut public key pair: $keys',
       );
     }
 
