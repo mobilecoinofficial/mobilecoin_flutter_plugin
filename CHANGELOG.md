@@ -1,3 +1,13 @@
+## 0.1.0
+
+- Swift Package Manager is the only iOS distribution route. `ios/mobilecoin_flutter.podspec` is deleted, so a consuming app sets `enable-swift-package-manager: true` under `flutter: config:` and resolves `mobilecoin_flutter` as a Swift package. Flutter 3.35.0 is the first stable release that reads that pubspec key, and an app on an older SDK runs `flutter config --enable-swift-package-manager` instead.
+- An app that reaches this plugin through CocoaPods switches route and commits a regenerated `ios/Podfile.lock`. The regenerated lock drops the `mobilecoin_flutter` pod along with the `MobileCoin/CoreHTTP` and `LibMobileCoin/CoreHTTP` pods only it pulled in, and the app takes `MobileCoin-Swift` 6.1.0 or newer and the rest of that SwiftPM graph into its own `Package.resolved`.
+- The SwiftPM floor for `MobileCoin-Swift` is 6.1.0. Every 6.0.x tag vendors `libmobilecoin` as a git submodule whose gitlink the reseeded libmobilecoin repository refuses, so SwiftPM fails those checkouts.
+
+## 0.0.6
+
+- iOS now emits `blockCount` in the account activity JSON as a number rather than a quoted string, matching what Android has always sent. A consumer that parsed the iOS value as a `String` needs to read it as an `int`.
+
 ## 0.0.5
 
 - The iOS deployment target is now 15.0, up from 12.2. Flutter 3.41 requires 13.0 of its own, and the Sentz app already builds at 15.0.
