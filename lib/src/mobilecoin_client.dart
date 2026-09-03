@@ -77,9 +77,9 @@ class MobileCoinFlutterClient extends PlatformObject {
   /// eventual transaction changes them, so the two calls need not happen
   /// close together.
   ///
-  /// [rngSeed] must be 32 bytes; a shorter or longer one is rejected rather
-  /// than padded, since a substituted seed would name keys no transaction
-  /// will carry.
+  /// [rngSeed] must be 32 code units that each fit in a byte; anything else
+  /// is rejected rather than truncated or padded, since a substituted seed
+  /// would name keys no transaction will carry.
   ///
   /// Needs no balance, but fetches fog reports, so this makes network calls
   /// and can fail like any other fog operation.

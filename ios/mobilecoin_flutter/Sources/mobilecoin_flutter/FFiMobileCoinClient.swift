@@ -530,15 +530,15 @@ struct FfiMobileCoinClient {
                       throw PluginError.invalidArguments
                   }
 
-            // The seed goes straight through: txOutContexts makes the same hop
-            // to a builder seed that prepareTransaction does, so both reach the
-            // same stream from the same seed.
             guard let seed = RngSeed(rngSeed.data) else {
                 result(FlutterError(code: "NATIVE", message: "GetTxOutPublicKeys",
                                     details: "rngSeed must be 32 bytes"))
                 throw PluginError.invalidArguments
             }
 
+            // The seed goes straight through: txOutContexts makes the same hop
+            // to a builder seed that prepareTransaction does, so both reach the
+            // same stream from the same seed.
             mobileCoinClient.txOutContexts(
                 to: recipient,
                 rngSeed: seed
