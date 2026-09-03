@@ -788,14 +788,6 @@ public class MobileCoinFlutterPlugin implements FlutterPlugin, MethodCallHandler
         }
 
         @Override
-        public HashMap<String, Object> getTxOutPublicKeys(int mobileClientId, int recipientId,
-                @NonNull byte[] rngSeed)
-                throws InvalidFogResponse, AttestationException, NetworkException,
-                TransactionBuilderException, FogReportException {
-            return FfiMobileCoinClient.getTxOutPublicKeys(mobileClientId, recipientId, rngSeed);
-        }
-
-        @Override
         public HashMap<String, Object> createPendingTransaction(int mobileClientId, int recipientId,
                 @NonNull PicoMob fee, @NonNull PicoMob amount, @NonNull TokenId tokenId,
                 @NonNull byte[] rngSeed, String paymentRequestIdString) throws InvalidFogResponse, AttestationException,
@@ -804,6 +796,14 @@ public class MobileCoinFlutterPlugin implements FlutterPlugin, MethodCallHandler
                 SerializationException {
             return FfiMobileCoinClient.createPendingTransaction(mobileClientId, recipientId, fee,
                     amount, tokenId, rngSeed, paymentRequestIdString);
+        }
+
+        @Override
+        public HashMap<String, Object> getTxOutPublicKeys(int mobileClientId, int recipientId,
+                @NonNull byte[] rngSeed)
+                throws InvalidFogResponse, AttestationException, NetworkException,
+                TransactionBuilderException, FogReportException {
+            return FfiMobileCoinClient.getTxOutPublicKeys(mobileClientId, recipientId, rngSeed);
         }
 
         @Override
