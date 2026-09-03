@@ -1,3 +1,9 @@
+## 0.1.1
+
+- Add `MobileCoinFlutterClient.getTxOutPublicKeys`, which derives the payload and change TxOut public keys a transaction built from a given `RngSeed` would carry, without selecting inputs, building a transaction, or holding the balance to build one. Pass the same seed to `createPendingTransaction` later and it carries those exact keys.
+- The Android dependency is now `com.mobilecoin:android-sdk` 6.1.5, up from 6.1.3, for `MobileCoinClient.getTxOutContexts`. A consumer resolving below it gets a plugin whose new method cannot compile. iOS needs no change: `txOutContexts` has shipped since `MobileCoin-Swift` 6.0.7, under the 6.1.0 SwiftPM floor already in place.
+- Every method taking an `rngSeed` now rejects a seed holding a code unit above `0xFF` instead of quietly truncating it to a different byte, and no longer repeats the seed in the exception message. This tightens `createPendingTransaction` as well as the new method: a seed of 32 characters that are not all single-byte used to reach native as bytes the caller never meant.
+
 ## 0.1.0
 
 - Swift Package Manager is the only iOS distribution route. `ios/mobilecoin_flutter.podspec` is deleted, so a consuming app sets `enable-swift-package-manager: true` under `flutter: config:` and resolves `mobilecoin_flutter` as a Swift package. Flutter 3.35.0 is the first stable release that reads that pubspec key, and an app on an older SDK runs `flutter config --enable-swift-package-manager` instead.
