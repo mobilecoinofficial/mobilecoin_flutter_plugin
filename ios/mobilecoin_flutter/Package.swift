@@ -16,8 +16,8 @@ let package = Package(
         .library(name: "mobilecoin-flutter", targets: ["mobilecoin_flutter"])
     ],
     dependencies: [
-        // 6.1.0 is the floor, not a preference. Every 6.0.x tag vendors libmobilecoin
-        // as a submodule whose gitlink the reseeded repository no longer serves.
+        // 6.0.x tags vendor libmobilecoin as a git submodule whose gitlink the reseeded
+        // libmobilecoin repository refuses. 6.1.0 takes it as a plain package dependency.
         .package(
             url: "https://github.com/mobilecoinofficial/MobileCoin-Swift.git",
             from: "6.1.0"
