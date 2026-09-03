@@ -173,6 +173,14 @@ jobs:
         if: steps.pub-cache.cache.outputs.cache-hit != 'true'
         run: flutter pub get
 
+      - name: 'Check both Package.resolved copies agree'
+        run: |
+          cd ${{ github.workspace }}/example/ios;
+          # Each container holds its own copy and a resolve updates only the one it ran
+          # in, so resolving through Runner.xcodeproj alone leaves the copy CI reads stale.
+          cmp Runner.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved \
+              Runner.xcworkspace/xcshareddata/swiftpm/Package.resolved;
+
       - name: 'Build example'
         run: |
           cd ${{ github.workspace }}/example;
