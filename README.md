@@ -12,8 +12,17 @@ Please see [CONTRIBUTING.md](CONTRIBUTING.md) for notes on contributing bug repo
 ## Build iOS
 
 ```bash
-$ cd example; flutter build ios-framework
+$ cd example; flutter build ios --simulator
 ```
+
+Swift Package Manager is the only iOS route, and `flutter build ios-framework`
+forces CocoaPods. That command skips this plugin and writes a framework set with
+no `mobilecoin_flutter.xcframework`. It also puts the CocoaPods integration back
+under `example/ios`: a `Podfile`, a `Podfile.lock`, a `Pods` directory, and
+rewrites of the tracked Xcode project, workspace and Flutter xcconfigs. Restore
+`example/ios` afterwards, and delete the untracked `Podfile` and `Podfile.lock`
+with it. A device build needs `flutter build ios --no-codesign`, because the
+project carries no `DEVELOPMENT_TEAM`.
 
 ## Generating Protobufs
 

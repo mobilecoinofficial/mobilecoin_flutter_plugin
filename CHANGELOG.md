@@ -1,6 +1,8 @@
 ## 0.0.7
 
-- The SwiftPM floor for `MobileCoin-Swift` is now 6.1.0. Every 6.0.x tag vendors `libmobilecoin` as a git submodule whose gitlink the reseeded libmobilecoin repository refuses, so SwiftPM fails those checkouts. The CocoaPods dependency is `MobileCoin/CoreHTTP ~> 6.0.6`, because CocoaPods trunk publishes no 6.1.0 podspec. That pod clones the v6.0.x tag with submodules, so the pod route needs a warm cache until a 6.1.0 pod reaches trunk.
+- Swift Package Manager is the only iOS distribution route. `ios/mobilecoin_flutter.podspec` is deleted, so a consuming app sets `enable-swift-package-manager: true` under `flutter: config:` and resolves `mobilecoin_flutter` as a Swift package. Flutter 3.35.0 is the first stable release that reads that pubspec key, and an app on an older SDK runs `flutter config --enable-swift-package-manager` instead.
+- An app that reaches this plugin through CocoaPods switches route and commits a regenerated `ios/Podfile.lock`. The regenerated lock drops the `mobilecoin_flutter` pod along with the `MobileCoin/CoreHTTP` and `LibMobileCoin/CoreHTTP` pods only it pulled in, and the app takes `MobileCoin-Swift` 6.1.0 or newer and the rest of that SwiftPM graph into its own `Package.resolved`.
+- The SwiftPM floor for `MobileCoin-Swift` is 6.1.0. Every 6.0.x tag vendors `libmobilecoin` as a git submodule whose gitlink the reseeded libmobilecoin repository refuses, so SwiftPM fails those checkouts.
 
 ## 0.0.6
 

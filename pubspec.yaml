@@ -40,6 +40,11 @@ flutter:
       ios:
         pluginClass: SwiftMobileCoinPlugin
 
+  # A root `flutter pub get` resolves example/ as well and reads this flag, so
+  # the plugin's Swift-package-only iOS side needs it here.
+  config:
+    enable-swift-package-manager: true
+
   # To add assets to your plugin package, add an assets section, like this:
   # assets:
   #   - images/a_dot_burr.jpeg
