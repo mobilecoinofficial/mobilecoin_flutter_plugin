@@ -42,17 +42,14 @@ jobs:
             **/.dart_tool/package_config.json
 
       - name: 'Install Flutter archive dependencies'
-        if: steps.flutter-cache.cache.outputs.cache-hit != 'true'
         run: sudo apt-get update && sudo apt-get install -y zstd xz-utils
 
       - name: 'Set Flutter version'
-        if: steps.flutter-cache.cache.outputs.cache-hit != 'true'
         uses: subosito/flutter-action@v2
         with:
           flutter-version: ${{ env.FLUTTER_VERSION }}
 
       - name: 'Install Dart dependencies'
-        if: steps.pub-cache.cache.outputs.cache-hit != 'true'
         run: flutter pub get;
 
       - name: 'Format'
@@ -104,17 +101,14 @@ jobs:
             **/.dart_tool/package_config.json
 
       - name: 'Install Flutter archive dependencies'
-        if: steps.flutter-cache.cache.outputs.cache-hit != 'true'
         run: sudo apt-get update && sudo apt-get install -y zstd xz-utils
 
       - name: 'Set Flutter version'
-        if: steps.flutter-cache.cache.outputs.cache-hit != 'true'
         uses: subosito/flutter-action@v2
         with:
           flutter-version: ${{ env.FLUTTER_VERSION }}
 
       - name: 'Install Dart dependencies'
-        if: steps.pub-cache.cache.outputs.cache-hit != 'true'
         run: flutter pub get;
 
       - name: 'Setup Android SDK'
@@ -159,7 +153,6 @@ jobs:
             **/.dart_tool/package_config.json
 
       - name: 'Set Flutter version'
-        if: steps.flutter-cache.cache.outputs.cache-hit != 'true'
         uses: subosito/flutter-action@v2
         with:
           flutter-version: ${{ env.FLUTTER_VERSION }}
@@ -170,7 +163,6 @@ jobs:
           xcode-version: '26.3.0'
 
       - name: 'Install Dart dependencies'
-        if: steps.pub-cache.cache.outputs.cache-hit != 'true'
         run: flutter pub get
 
       - name: 'Check both Package.resolved copies agree'
