@@ -22,25 +22,6 @@ jobs:
         with:
           fetch-depth: 0 # to get all branches and tags
 
-      - name: 'Cache Flutter'
-        id: flutter-cache
-        uses: actions/cache@v4
-        with:
-          key: ${{ runner.OS }}-flutter-install-cache-${{ env.FLUTTER_VERSION }}
-          path: ${{ runner.tool_cache }}/flutter
-
-      - name: 'Cache Flutter dependencies'
-        id: pub-cache
-        uses: actions/cache@v4
-        with:
-          key: ${{ runner.os }}-pub-${{ hashFiles('**/pubspec.lock') }}
-          path: |
-            ${{ env.FLUTTER_HOME }}/.pub-cache
-            **/.packages
-            **/.flutter-plugins
-            **/.flutter-plugins-dependencies
-            **/.dart_tool/package_config.json
-
       - name: 'Install Flutter archive dependencies'
         run: sudo apt-get update && sudo apt-get install -y zstd xz-utils
 
@@ -48,6 +29,7 @@ jobs:
         uses: subosito/flutter-action@v2
         with:
           flutter-version: ${{ env.FLUTTER_VERSION }}
+          cache: true
 
       - name: 'Install Dart dependencies'
         run: flutter pub get;
@@ -81,25 +63,6 @@ jobs:
           java-version: '17'
           cache: 'gradle'
 
-      - name: 'Cache Flutter'
-        id: flutter-cache
-        uses: actions/cache@v4
-        with:
-          key: ${{ runner.OS }}-flutter-install-cache-${{ env.FLUTTER_VERSION }}
-          path: ${{ runner.tool_cache }}/flutter
-
-      - name: 'Cache Flutter dependencies'
-        id: pub-cache
-        uses: actions/cache@v4
-        with:
-          key: ${{ runner.os }}-pub-${{ hashFiles('**/pubspec.lock') }}
-          path: |
-            ${{ env.FLUTTER_HOME }}/.pub-cache
-            **/.packages
-            **/.flutter-plugins
-            **/.flutter-plugins-dependencies
-            **/.dart_tool/package_config.json
-
       - name: 'Install Flutter archive dependencies'
         run: sudo apt-get update && sudo apt-get install -y zstd xz-utils
 
@@ -107,6 +70,7 @@ jobs:
         uses: subosito/flutter-action@v2
         with:
           flutter-version: ${{ env.FLUTTER_VERSION }}
+          cache: true
 
       - name: 'Install Dart dependencies'
         run: flutter pub get;
@@ -133,29 +97,11 @@ jobs:
         with:
           fetch-depth: 0 # to get all branches and tags
 
-      - name: 'Cache Flutter'
-        id: flutter-cache
-        uses: actions/cache@v4
-        with:
-          key: ${{ runner.OS }}-flutter-install-cache-${{ env.FLUTTER_VERSION }}
-          path: /Users/runner/hostedtoolcache/flutter
-
-      - name: 'Cache Flutter dependencies'
-        id: pub-cache
-        uses: actions/cache@v4
-        with:
-          key: ${{ runner.os }}-pub-${{ hashFiles('**/pubspec.lock') }}
-          path: |
-            ${{ env.FLUTTER_HOME }}/.pub-cache
-            **/.packages
-            **/.flutter-plugins
-            **/.flutter-plugins-dependencies
-            **/.dart_tool/package_config.json
-
       - name: 'Set Flutter version'
         uses: subosito/flutter-action@v2
         with:
           flutter-version: ${{ env.FLUTTER_VERSION }}
+          cache: true
 
       - name: 'Set Xcode version'
         uses: maxim-lobanov/setup-xcode@v1
