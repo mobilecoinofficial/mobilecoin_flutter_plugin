@@ -30,9 +30,9 @@ import attest.Attest;
  * The counterpart of <code>MistysignAttestedSession</code> in MobileCoin-Swift,
  * exposing the same handshake and message operations. Unlike the SDK's typed
  * attested clients, this session never opens a connection: the auth messages
- * and the encrypted messages it produces are
- * relayed to the enclave by the backend, so {@link #attest} is unreachable and
- * the inherited load balancer is never dialed.
+ * and the encrypted messages it produces are relayed to the enclave by the
+ * backend, so {@link #attest} is unreachable and the inherited load balancer
+ * is never dialed.
  * <p>
  * Not thread safe beyond the synchronization {@link AttestedClient} already
  * provides: a caller driving two handshakes on one session interleaves them.
@@ -230,8 +230,7 @@ public final class MistysignAttestedSession extends AttestedClient {
      * <code>encryptPayload</code> private, so this is the only way to put
      * caller-supplied bytes on the wire unaltered. Typed attested clients do
      * not need it because they parse each request into its generated type
-     * first; Mistysign relays
-     * arbitrary credential protos and cannot.
+     * first; Mistysign relays arbitrary credential protos and cannot.
      * <p>
      * Only the serialization methods are reachable. The Builder exists solely
      * to satisfy the generic bound and is never instantiated.
