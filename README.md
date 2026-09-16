@@ -23,10 +23,3 @@ rewrites of the tracked Xcode project, workspace and Flutter xcconfigs. Restore
 `example/ios` afterwards, and delete the untracked `Podfile` and `Podfile.lock`
 with it. A device build needs `flutter build ios --no-codesign`, because the
 project carries no `DEVELOPMENT_TEAM`.
-
-## Generating Protobufs
-
-```bash
-$ ./bin/update_protobufs.sh
-```
-
