@@ -27,7 +27,6 @@ class CommandFactory {
         case "ClientConfig#addServiceConfig":
             return FfiClientConfig.AddServiceConfig()
 
-
         case "MobileCoinClient#create":
             return FfiMobileCoinClient.Create()
         case "MobileCoinClient#requiresDefragmentation":

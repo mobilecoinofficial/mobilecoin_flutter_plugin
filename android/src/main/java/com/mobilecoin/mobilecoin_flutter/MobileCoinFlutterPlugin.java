@@ -26,7 +26,6 @@ import com.mobilecoin.lib.exceptions.TransactionBuilderException;
 import org.json.JSONException;
 
 import java.math.BigInteger;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -675,15 +674,6 @@ public class MobileCoinFlutterPlugin implements FlutterPlugin, MethodCallHandler
          * Creates the TxOut public key from the TxOut private key and the recipient spend public key
          */
         int createTxOutPublicKey(int txOutPrivateKeyId , int recipientSpendPublicKeyId) throws Exception;
-
-
-
-
-
-
-
-
-
 
         int mistysignAttestedSessionCreate() throws MistysignAttestedSessionException;
 
