@@ -30,7 +30,6 @@ class MobileCoinFlutterPluginChannelApi {
       'accountKey': key.id,
       'fogUrl': key.config.fogUrl,
       'consensusUrl': key.config.consensusUrl,
-      'useTestNet': key.config.useTestNet,
       'clientConfigId': key.config.attestClientConfig.id,
     };
 

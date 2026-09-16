@@ -131,7 +131,6 @@ public class MobileCoinFlutterPlugin implements FlutterPlugin, MethodCallHandler
                     return api.createMobileCoinClient(getCallArgument(call, "accountKey"),
                             getCallArgument(call, "fogUrl"),
                             getCallArgument(call, "consensusUrl"),
-                            getCallArgument(call, "useTestNet"),
                             getCallArgument(call, "clientConfigId"));
                 case "MobileCoinClient#getAccountActivity":
                     BigInteger minTxOutBlockIndex = new BigInteger((String) getCallArgument(call, "minTxOutBlockIndex"));
@@ -340,7 +339,7 @@ public class MobileCoinFlutterPlugin implements FlutterPlugin, MethodCallHandler
          * instance.
          */
         Integer createMobileCoinClient(Integer accountKey, String fogUrl, String consensusUrl,
-                boolean useTestNet, Integer clientConfigId) throws InvalidUriException, AttestationException;
+                Integer clientConfigId) throws InvalidUriException;
 
         /**
          * Retrieves and returns the current balance of all coins of the given
@@ -705,9 +704,9 @@ public class MobileCoinFlutterPlugin implements FlutterPlugin, MethodCallHandler
 
         @Override
         public Integer createMobileCoinClient(Integer accountKey, String fogUrl,
-                String consensusUrl, boolean useTestNet, Integer clientConfigId)
-                throws InvalidUriException, AttestationException {
-            return FfiMobileCoinClient.create(accountKey, fogUrl, consensusUrl, useTestNet,
+                String consensusUrl, Integer clientConfigId)
+                throws InvalidUriException {
+            return FfiMobileCoinClient.create(accountKey, fogUrl, consensusUrl,
                     clientConfigId);
         }
 
