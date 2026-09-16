@@ -10,7 +10,6 @@ struct ClientConfig {
     var fogLedger: [ServiceMrEnclave] = []
     var fogReport: [ServiceMrEnclave] = []
     var consensus: [ServiceMrEnclave] = []
-    var mistyswap: [ServiceMrEnclave] = []
 
     public static func create() -> Int {
         var client = ClientConfig() 
@@ -26,7 +25,6 @@ struct ClientConfig {
         consensusMrEnclave: String,
         hardeningAdvisories: [String],
         configAdvisories: [String] = [],
-        mistyswapMrEnclave: String? = nil
     ) {
         self.fogView.append(
             ServiceMrEnclave(
@@ -60,15 +58,6 @@ struct ClientConfig {
             )
         )
         
-        if let mistyswapMrEnclave = mistyswapMrEnclave {
-            self.mistyswap.append(
-                ServiceMrEnclave(
-                    mrEnclave: mistyswapMrEnclave,
-                    hardeningAdvisories: hardeningAdvisories,
-                    configAdvisories: configAdvisories
-                )
-            )
-        }
     }
 
     public func save() {
@@ -89,10 +78,6 @@ struct ClientConfig {
 
     var fogReportMrEnclaves: [Attestation.MrEnclave] {
         compactMapToAttestations(service: fogReport)
-    }
-
-    var mistyswapMrEnclaves: [Attestation.MrEnclave] {
-        compactMapToAttestations(service: mistyswap)
     }
 
     private func compactMapToAttestations(service: [ServiceMrEnclave]) -> [Attestation.MrEnclave] {
@@ -131,7 +116,6 @@ extension ClientConfig: CustomStringConvertible {
         fogLedger: \(fogLedger.count)
         fogReport: \(fogReport.count)
         consensus: \(consensus.count)
-        mistyswap: \(mistyswap.count)
         """
     }
 }
@@ -148,7 +132,6 @@ struct FfiClientConfig {
     static var fogLedgerMrEnclaveKey = "fogLedgerMrEnclave"
     static var fogReportMrEnclaveKey = "fogReportMrEnclave"
     static var consensusMrEnclaveKey = "consensusMrEnclave"
-    static var mistyswapMrEnclaveKey = "mistyswapMrEnclave"
     static var hardeningAdvisoriesKey = "hardeningAdvisories"
 
     struct Create: Command {
@@ -183,7 +166,6 @@ struct FfiClientConfig {
                 fogReportMrEnclave: fogReportMrEnclave,
                 consensusMrEnclave: consensusMrEnclave,
                 hardeningAdvisories: hardeningAdvisories,
-                mistyswapMrEnclave: (args["mistyswapMrEnclave"] as? String)
             )
 
             clientConfig.save()

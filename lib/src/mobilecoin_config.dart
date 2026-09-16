@@ -7,7 +7,6 @@ class MobileCoinConfig {
   final String consensusUrl;
   final bool useTestNet;
   final ClientConfig attestClientConfig;
-  final String? mistyswapUrl;
   final Uint8List fogAuthoritySpki;
   final String fogReportId;
 
@@ -16,7 +15,6 @@ class MobileCoinConfig {
     required this.consensusUrl,
     required this.useTestNet,
     required this.attestClientConfig,
-    required this.mistyswapUrl,
     required this.fogAuthoritySpki,
     required this.fogReportId,
   });

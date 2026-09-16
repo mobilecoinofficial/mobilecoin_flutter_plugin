@@ -7,7 +7,6 @@ import 'package:mobilecoin_flutter/src/account_key.dart';
 import 'package:mobilecoin_flutter/src/mobilecoin_flutter_plugin_channel_api.dart';
 import 'package:mobilecoin_flutter/src/platform_object.dart';
 import 'package:mobilecoin_flutter/src/public_address.dart';
-import 'package:mobilecoin_flutter/src/protobufs/generated/mistyswap_offramp.pb.dart';
 
 class MobileCoinFlutterClient extends PlatformObject {
   MobileCoinFlutterClient(int objectId) : super(id: objectId);
@@ -248,42 +247,6 @@ class MobileCoinFlutterClient extends PlatformObject {
         .createProofOfReserveSignedContingentInput(
       mobileCoinClientId: id,
       txOutPublicKeyBytes: txOutPublicKeyBytes,
-    );
-  }
-
-  /// Initiates a Mistyswap offramp request
-  ///
-  Future<InitiateOfframpResponse> attestedMistySwapClientInitiateOfframp({
-    required InitiateOfframpRequest request,
-  }) async {
-    return await MobileCoinFlutterPluginChannelApi.instance
-        .attestedMistySwapClientInitiateOfframp(
-      mobileCoinClientId: id,
-      initiateOfframpRequest: request,
-    );
-  }
-
-  /// Gets status for a Mistyswap offramp request
-  ///
-  Future<GetOfframpStatusResponse> attestedMistySwapClientGetOfframpStatus({
-    required GetOfframpStatusRequest request,
-  }) async {
-    return await MobileCoinFlutterPluginChannelApi.instance
-        .attestedMistySwapClientGetOfframpStatus(
-      mobileCoinClientId: id,
-      getOfframpStatusRequest: request,
-    );
-  }
-
-  /// Forgets a Mistyswap offramp request
-  ///
-  Future<ForgetOfframpResponse> attestedMistySwapClientForgetOfframp({
-    required ForgetOfframpRequest forgetOfframpRequest,
-  }) async {
-    return await MobileCoinFlutterPluginChannelApi.instance
-        .attestedMistySwapClientForgetOfframp(
-      mobileCoinClientId: id,
-      forgetOfframpRequest: forgetOfframpRequest,
     );
   }
 }

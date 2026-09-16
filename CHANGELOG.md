@@ -1,3 +1,9 @@
+## 0.2.0
+
+- **Breaking.** MistySwap is removed. `MobileCoinConfig.mistyswapUrl`, `ServiceConfig.mistyswapMrEnclave`, the nine `MobileCoinFlutterClient.attestedMistySwapClient*` methods and the generated `mistyswap_common`/`mistyswap_offramp`/`mistyswap_onramp` protos are gone, along with the `mistyswap` Java package, `FfiMistySwap.swift` and their platform-channel handlers. A consumer still naming any of them does not compile; one that already passes `mistyswapUrl: null` drops the argument.
+- Mistysign is unaffected. It shares no code with the removed surface — `MistysignAttestedSession` referenced `AttestedMistySwapClient` only in javadoc, now reworded — and its enclave measurement continues to arrive through `MistysignMrEnclave`, not `ServiceConfig`. That a Mistysign enclave verifies against a mistyswap-built measurement is a fact about the enclave, not a dependency on this code.
+- `createMobileCoinClient` no longer takes a mistyswap URL on either platform. iOS built the client through a two-branch `MobileCoinClient.Config.make` that chose an overload on whether the URL was present; only the branch without it remains, so the SDK's mistyswap-aware overload is no longer called from here.
+
 ## 0.1.1
 
 - Add `MobileCoinFlutterClient.getTxOutPublicKeys`, which derives the payload and change TxOut public keys a transaction built from a given `RngSeed` would carry, without selecting inputs, building a transaction, or holding the balance to build one. Pass the same seed to `createPendingTransaction` later and it carries those exact keys.

@@ -70,8 +70,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import consensus_common.ConsensusCommon;
-import mistyswap.AttestedMistySwapClient;
-import mistyswap.MistySwapUri;
 
 @Keep
 public class FfiMobileCoinClient {
@@ -79,7 +77,7 @@ public class FfiMobileCoinClient {
     private FfiMobileCoinClient() {}
 
     public static int create(int accountKeyId, String fogUrl, String consensusUrl,
-            @Nullable String mistySwapUrl, boolean useTestNet, Integer clientConfigId) throws InvalidUriException, AttestationException {
+            boolean useTestNet, Integer clientConfigId) throws InvalidUriException, AttestationException {
         AccountKey accountKey = (AccountKey) ObjectStorage.objectForKey(accountKeyId);
         ClientConfig clientConfig = (ClientConfig) ObjectStorage.objectForKey(clientConfigId);
         MobileCoinClient mobileCoinClient = new MobileCoinClient(accountKey, Uri.parse(fogUrl),
@@ -88,19 +86,7 @@ public class FfiMobileCoinClient {
         final int mobileCoinClientHashCode = mobileCoinClient.hashCode();
         ObjectStorage.addObject(mobileCoinClientHashCode, mobileCoinClient);
 
-        if (!useTestNet && mistySwapUrl != null && !mistySwapUrl.isEmpty()) {
-            AttestedMistySwapClient mistySwapClient = new AttestedMistySwapClient(
-                    RandomLoadBalancer.create(new MistySwapUri(mistySwapUrl)),
-                    new ClientConfig.Service().withTrustedIdentities((new TrustedIdentities())),
-                    TransportProtocol.forGRPC());
-            ObjectStorage.addObject(mistySwapClientHashCode(mobileCoinClientHashCode), mistySwapClient);
-        }
         return mobileCoinClientHashCode;
-    }
-
-    static int mistySwapClientHashCode(int mobileCoinClientHashCode) {
-        // TODO: will this work?
-        return mobileCoinClientHashCode + 1;
     }
 
     public static String getBalance(int mobileClientId) throws InvalidFogResponse, NetworkException,
