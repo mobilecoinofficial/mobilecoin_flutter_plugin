@@ -24,7 +24,7 @@ struct ClientConfig {
         fogReportMrEnclave: String,
         consensusMrEnclave: String,
         hardeningAdvisories: [String],
-        configAdvisories: [String] = [],
+        configAdvisories: [String] = []
     ) {
         self.fogView.append(
             ServiceMrEnclave(
@@ -57,7 +57,6 @@ struct ClientConfig {
                 configAdvisories: configAdvisories
             )
         )
-        
     }
 
     public func save() {
@@ -165,7 +164,7 @@ struct FfiClientConfig {
                 fogLedgerMrEnclave: fogLedgerMrEnclave,
                 fogReportMrEnclave: fogReportMrEnclave,
                 consensusMrEnclave: consensusMrEnclave,
-                hardeningAdvisories: hardeningAdvisories,
+                hardeningAdvisories: hardeningAdvisories
             )
 
             clientConfig.save()
