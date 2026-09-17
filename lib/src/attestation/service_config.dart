@@ -48,5 +48,6 @@ class ServiceConfig extends Equatable {
         fogLedgerMrEnclave,
         fogReportMrEnclave,
         consensusMrEnclave,
+        hardeningAdvisories,
       ];
 }

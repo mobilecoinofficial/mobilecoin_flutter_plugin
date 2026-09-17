@@ -38,5 +38,24 @@ void main() {
       expect(restoredConfig, originalConfig);
       expect(originalConfig, isNot(secondConfig));
     });
+
+    test('advisories alone distinguish two configs', () {
+      const config = ServiceConfig(
+        fogViewMrEnclave: '1',
+        fogLedgerMrEnclave: '2',
+        fogReportMrEnclave: '3',
+        consensusMrEnclave: '4',
+        hardeningAdvisories: ['INTEL-SA-SOMETHING'],
+      );
+      const withExtraAdvisory = ServiceConfig(
+        fogViewMrEnclave: '1',
+        fogLedgerMrEnclave: '2',
+        fogReportMrEnclave: '3',
+        consensusMrEnclave: '4',
+        hardeningAdvisories: ['INTEL-SA-SOMETHING', 'MORE-OF-THE-SAME'],
+      );
+
+      expect(config, isNot(withExtraAdvisory));
+    });
   });
 }
