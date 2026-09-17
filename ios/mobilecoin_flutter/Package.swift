@@ -16,11 +16,12 @@ let package = Package(
         .library(name: "mobilecoin-flutter", targets: ["mobilecoin_flutter"])
     ],
     dependencies: [
-        // 6.0.x tags vendor libmobilecoin as a git submodule whose gitlink the reseeded
-        // libmobilecoin repository refuses. 6.1.0 takes it as a plain package dependency.
+        // 7.0.0 is the release that removes Mistyswap, so it is the first version the
+        // sources here can resolve now that they no longer name it. The floor moves rather
+        // than just the lock, because a 6.x floor will not resolve a 7.x major on its own.
         .package(
             url: "https://github.com/mobilecoinofficial/MobileCoin-Swift.git",
-            from: "6.1.0"
+            from: "7.0.0"
         )
     ],
     targets: [

@@ -26,7 +26,6 @@ import com.mobilecoin.lib.exceptions.TransactionBuilderException;
 import org.json.JSONException;
 
 import java.math.BigInteger;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -39,7 +38,6 @@ import io.flutter.plugin.common.MethodChannel;
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler;
 import io.flutter.plugin.common.MethodChannel.Result;
 import mistysign.MistysignAttestedSessionException;
-import mistyswap.AttestedMistySwapClient;
 
 /**
  * MobileCoinFlutterPlugin
@@ -133,8 +131,6 @@ public class MobileCoinFlutterPlugin implements FlutterPlugin, MethodCallHandler
                     return api.createMobileCoinClient(getCallArgument(call, "accountKey"),
                             getCallArgument(call, "fogUrl"),
                             getCallArgument(call, "consensusUrl"),
-                            call.argument("mistyswapUrl"), // can be null
-                            getCallArgument(call, "useTestNet"),
                             getCallArgument(call, "clientConfigId"));
                 case "MobileCoinClient#getAccountActivity":
                     BigInteger minTxOutBlockIndex = new BigInteger((String) getCallArgument(call, "minTxOutBlockIndex"));
@@ -302,41 +298,6 @@ public class MobileCoinFlutterPlugin implements FlutterPlugin, MethodCallHandler
                 return api.ristrettoPrivateToByteArray(getCallArgument(call, "id"));
             case "OnetimeKeys#createTxOutPublicKey":
                 return api.createTxOutPublicKey(getCallArgument(call, "txOutPrivateKeyId"), getCallArgument(call, "recipientSpendPublicKeyId"));
-            case "AttestedMistySwapClient#initiateOfframp":
-                return api.attestedMistySwapClientInitiateOfframp(
-                    getCallArgument(call, "mobileCoinClientId"),
-                    getCallArgument(call, "initiateOfframpRequestBytes"));
-            case "AttestedMistySwapClient#forgetOfframpRequestId":
-                return api.attestedMistySwapClientForgetOfframp(
-                    getCallArgument(call, "mobileCoinClientId"),
-                    getCallArgument(call, "forgetOfframpRequestBytes"));
-            case "AttestedMistySwapClient#getOfframpStatus":
-                return api.attestedMistySwapClientGetOfframpStatus(
-                    getCallArgument(call, "mobileCoinClientId"),
-                    getCallArgument(call, "getOfframpStatusRequestBytes"));
-            case "AttestedMistySwapClient#getOfframpDebugStatus":
-                return api.attestedMistySwapClientGetOfframpDebugInfo(
-                    getCallArgument(call, "mobileCoinClientId"),
-                    getCallArgument(call, "getOfframpDebugInfoRequestBytes"));
-            case "AttestedMistySwapClient#setupOnramp":
-                return api.attestedMistySwapClientSetupOnramp(
-                    getCallArgument(call, "mobileCoinClientId"),
-                    getCallArgument(call, "setupOnrampRequestBytes"));
-            case "AttestedMistySwapClient#forgetOnramp":
-                return api.attestedMistySwapClientForgetOnramp(
-                    getCallArgument(call, "mobileCoinClientId"),
-                    getCallArgument(call, "forgetOnrampRequestBytes"));
-            case "AttestedMistySwapClient#getOnrampStatus":
-                return api.attestedMistySwapClientGetOnrampStatus(
-                    getCallArgument(call, "mobileCoinClientId"),
-                    getCallArgument(call, "getOnrampStatusRequestBytes"));
-            case "AttestedMistySwapClient#getOnrampDebugInfo":
-                return api.attestedMistySwapClientGetOnrampDebugInfo(
-                    getCallArgument(call, "mobileCoinClientId"),
-                    getCallArgument(call, "getOnrampDebugInfoRequestBytes"));
-            case "AttestedMistySwapClient#getInfo":
-                return api.attestedMistySwapClientGetInfo(
-                    getCallArgument(call, "mobileCoinClientId"));
             case "MistysignAttestedSession#create":
                 return api.mistysignAttestedSessionCreate();
             case "MistysignAttestedSession#authBeginRequestData":
@@ -378,7 +339,7 @@ public class MobileCoinFlutterPlugin implements FlutterPlugin, MethodCallHandler
          * instance.
          */
         Integer createMobileCoinClient(Integer accountKey, String fogUrl, String consensusUrl,
-                @Nullable String mistySwapUrl, boolean useTestNet, Integer clientConfigId) throws InvalidUriException, AttestationException;
+                Integer clientConfigId) throws InvalidUriException;
 
         /**
          * Retrieves and returns the current balance of all coins of the given
@@ -713,24 +674,6 @@ public class MobileCoinFlutterPlugin implements FlutterPlugin, MethodCallHandler
          */
         int createTxOutPublicKey(int txOutPrivateKeyId , int recipientSpendPublicKeyId) throws Exception;
 
-        byte[] attestedMistySwapClientInitiateOfframp(int mobileCoinClientId, byte[] initiateOfframpRequestBytes) throws AttestationException, NetworkException;
-
-        byte[] attestedMistySwapClientForgetOfframp(int mobileCoinClientId, byte[] forgetOfframpRequestBytes) throws AttestationException, NetworkException;
-
-        byte[] attestedMistySwapClientGetOfframpStatus(int mobileCoinClientId, byte[] getOfframpStatusRequestBytes) throws AttestationException, NetworkException;
-
-        byte[] attestedMistySwapClientGetOfframpDebugInfo(int mobileCoinClientId, byte[] getOfframpDebugInfoRequestBytes) throws AttestationException, NetworkException;
-
-        byte[] attestedMistySwapClientSetupOnramp(int mobileCoinClientId, byte[] setupOnrampRequestBytes) throws AttestationException, NetworkException;
-
-        byte[] attestedMistySwapClientForgetOnramp(int mobileCoinClientId, byte[] forgetOnrampRequestBytes) throws AttestationException, NetworkException;
-
-        byte[] attestedMistySwapClientGetOnrampStatus(int mobileCoinClientId, byte[] getOnrampStatusRequestBytes) throws AttestationException, NetworkException;
-
-        byte[] attestedMistySwapClientGetOnrampDebugInfo(int mobileCoinClientId, byte[] getOnrampDebugInfoRequestBytes) throws AttestationException, NetworkException;
-
-        int attestedMistySwapClientGetInfo(int mobileCoinClientId) throws AttestationException, NetworkException;
-
         int mistysignAttestedSessionCreate() throws MistysignAttestedSessionException;
 
         byte[] mistysignAttestedSessionAuthBeginRequestData(int objectId, String responderId)
@@ -761,9 +704,9 @@ public class MobileCoinFlutterPlugin implements FlutterPlugin, MethodCallHandler
 
         @Override
         public Integer createMobileCoinClient(Integer accountKey, String fogUrl,
-                String consensusUrl, @Nullable String mistySwapUrl, boolean useTestNet, Integer clientConfigId)
-                throws InvalidUriException, AttestationException {
-            return FfiMobileCoinClient.create(accountKey, fogUrl, consensusUrl, mistySwapUrl, useTestNet,
+                String consensusUrl, Integer clientConfigId)
+                throws InvalidUriException {
+            return FfiMobileCoinClient.create(accountKey, fogUrl, consensusUrl,
                     clientConfigId);
         }
 
@@ -1073,81 +1016,6 @@ public class MobileCoinFlutterPlugin implements FlutterPlugin, MethodCallHandler
         @Override
         public int createTxOutPublicKey(int txOutPrivateKeyId, int recipientSpendPublicKeyId) {
             return FfiOnetimeKeys.createTxOutPublicKey(txOutPrivateKeyId, recipientSpendPublicKeyId);
-        }
-
-        @Override
-        public byte[] attestedMistySwapClientInitiateOfframp(int mobileCoinClientId, byte[] initiateOfframpRequestBytes) throws AttestationException, NetworkException {
-            final int mistySwapClientHash = FfiMobileCoinClient.mistySwapClientHashCode(mobileCoinClientId);
-            final AttestedMistySwapClient mistySwapClient =
-                    (AttestedMistySwapClient)ObjectStorage.objectForKey(mistySwapClientHash);
-            return mistySwapClient.initiateOfframp(initiateOfframpRequestBytes);
-        }
-
-        @Override
-        public byte[] attestedMistySwapClientForgetOfframp(int mobileCoinClientId, byte[] forgetOfframpRequestBytes) throws AttestationException, NetworkException {
-            final int mistySwapClientHash = FfiMobileCoinClient.mistySwapClientHashCode(mobileCoinClientId);
-            final AttestedMistySwapClient mistySwapClient =
-                    (AttestedMistySwapClient)ObjectStorage.objectForKey(mistySwapClientHash);
-            return mistySwapClient.forgetOfframp(forgetOfframpRequestBytes);
-        }
-
-        @Override
-        public byte[] attestedMistySwapClientGetOfframpStatus(int mobileCoinClientId, byte[] getOfframpStatusRequestBytes) throws AttestationException, NetworkException {
-            final int mistySwapClientHash = FfiMobileCoinClient.mistySwapClientHashCode(mobileCoinClientId);
-            final AttestedMistySwapClient mistySwapClient =
-                    (AttestedMistySwapClient)ObjectStorage.objectForKey(mistySwapClientHash);
-            return mistySwapClient.getOfframpStatus(getOfframpStatusRequestBytes);
-        }
-
-        @Override
-        public byte[] attestedMistySwapClientGetOfframpDebugInfo(int mobileCoinClientId, byte[] getOfframpDebugInfoRequestBytes) throws AttestationException, NetworkException {
-            final int mistySwapClientHash = FfiMobileCoinClient.mistySwapClientHashCode(mobileCoinClientId);
-            final AttestedMistySwapClient mistySwapClient =
-                    (AttestedMistySwapClient)ObjectStorage.objectForKey(mistySwapClientHash);
-            return mistySwapClient.getOfframpDebugInfo(getOfframpDebugInfoRequestBytes);
-        }
-
-        @Override
-        public byte[] attestedMistySwapClientSetupOnramp(int mobileCoinClientId, byte[] setupOnrampRequestBytes) throws AttestationException, NetworkException {
-            final int mistySwapClientHash = FfiMobileCoinClient.mistySwapClientHashCode(mobileCoinClientId);
-            final AttestedMistySwapClient mistySwapClient =
-                    (AttestedMistySwapClient)ObjectStorage.objectForKey(mistySwapClientHash);
-            return mistySwapClient.setupOnramp(setupOnrampRequestBytes);
-        }
-
-        @Override
-        public byte[] attestedMistySwapClientForgetOnramp(int mobileCoinClientId, byte[] forgetOnrampRequestBytes) throws AttestationException, NetworkException {
-            final int mistySwapClientHash = FfiMobileCoinClient.mistySwapClientHashCode(mobileCoinClientId);
-            final AttestedMistySwapClient mistySwapClient =
-                    (AttestedMistySwapClient)ObjectStorage.objectForKey(mistySwapClientHash);
-            return mistySwapClient.forgetOnramp(forgetOnrampRequestBytes);
-        }
-
-        @Override
-        public byte[] attestedMistySwapClientGetOnrampStatus(int mobileCoinClientId, byte[] getOnrampStatusRequestBytes) throws AttestationException, NetworkException {
-            final int mistySwapClientHash = FfiMobileCoinClient.mistySwapClientHashCode(mobileCoinClientId);
-            final AttestedMistySwapClient mistySwapClient =
-                    (AttestedMistySwapClient)ObjectStorage.objectForKey(mistySwapClientHash);
-            return mistySwapClient.getOnrampStatus(getOnrampStatusRequestBytes);
-        }
-
-        @Override
-        public byte[] attestedMistySwapClientGetOnrampDebugInfo(int mobileCoinClientId, byte[] getOnrampDebugInfoRequestBytes) throws AttestationException, NetworkException {
-            final int mistySwapClientHash = FfiMobileCoinClient.mistySwapClientHashCode(mobileCoinClientId);
-            final AttestedMistySwapClient mistySwapClient =
-                    (AttestedMistySwapClient)ObjectStorage.objectForKey(mistySwapClientHash);
-            return mistySwapClient.getOnrampDebugInfo(getOnrampDebugInfoRequestBytes);
-        }
-
-        @Override
-        public int attestedMistySwapClientGetInfo(int mobileCoinClientId) throws AttestationException, NetworkException {
-            final int mistySwapClientHash = FfiMobileCoinClient.mistySwapClientHashCode(mobileCoinClientId);
-            final AttestedMistySwapClient mistySwapClient =
-                    (AttestedMistySwapClient)ObjectStorage.objectForKey(mistySwapClientHash);
-            final byte[] getInfoResponseBytes = mistySwapClient.getInfo();
-            final int hashCode = Arrays.hashCode(getInfoResponseBytes);
-            ObjectStorage.addObject(hashCode, getInfoResponseBytes);
-            return hashCode;
         }
 
         @Override

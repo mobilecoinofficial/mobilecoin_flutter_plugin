@@ -8,36 +8,4 @@ export 'package:mobilecoin_flutter/src/mistysign_attested_session.dart';
 export 'package:mobilecoin_flutter/src/mobilecoin_client.dart';
 export 'package:mobilecoin_flutter/src/mobilecoin_config.dart';
 export 'package:mobilecoin_flutter/src/printable_wrapper.dart';
-export 'package:mobilecoin_flutter/src/protobufs/generated/mistyswap_common.pb.dart'
-    show GetInfoResponse;
-export 'package:mobilecoin_flutter/src/protobufs/generated/mistyswap_offramp.pb.dart'
-    show
-        InitiateOfframpRequest,
-        InitiateOfframpResponse,
-        OfframpResult,
-        OfframpResultCode,
-        OfframpState,
-        Offramp,
-        ForgetOfframpRequest,
-        ForgetOfframpResponse,
-        GetOfframpStatusRequest,
-        GetOfframpStatusResponse,
-        GetOfframpDebugInfoRequest,
-        GetOfframpDebugInfoResponse;
-export 'package:mobilecoin_flutter/src/protobufs/generated/mistyswap_offramp.pbenum.dart'
-    show OfframpResultCode;
-export 'package:mobilecoin_flutter/src/protobufs/generated/mistyswap_offramp.pbgrpc.dart'
-    show OfframpParams;
-export 'package:mobilecoin_flutter/src/protobufs/generated/mistyswap_onramp.pb.dart'
-    show
-        SetupOnrampRequest,
-        SetupOnrampResponse,
-        ForgetOnrampRequest,
-        ForgetOnrampResponse,
-        GetOnrampStatusRequest,
-        GetOnrampStatusResponse,
-        GetOnrampDebugInfoRequest,
-        GetOnrampDebugInfoResponse;
-export 'package:mobilecoin_flutter/src/protobufs/generated/mistyswap_onramp.pbenum.dart'
-    show OnrampResultCode, OnrampState;
 export 'package:mobilecoin_flutter/src/public_address.dart';

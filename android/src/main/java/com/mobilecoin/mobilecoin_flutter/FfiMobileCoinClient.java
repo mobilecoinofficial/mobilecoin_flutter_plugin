@@ -29,7 +29,6 @@ import com.mobilecoin.lib.MobileCoinClient;
 import com.mobilecoin.lib.OwnedTxOut;
 import com.mobilecoin.lib.PendingTransaction;
 import com.mobilecoin.lib.PublicAddress;
-import com.mobilecoin.lib.RandomLoadBalancer;
 import com.mobilecoin.lib.RistrettoPublic;
 import com.mobilecoin.lib.SenderMemo;
 import com.mobilecoin.lib.SenderWithPaymentIntentMemo;
@@ -42,7 +41,6 @@ import com.mobilecoin.lib.TxOutMemo;
 import com.mobilecoin.lib.TxOutMemoBuilder;
 import com.mobilecoin.lib.TxOutMemoType;
 import com.mobilecoin.lib.UnsignedLong;
-import com.mobilecoin.lib.TrustedIdentities;
 import com.mobilecoin.lib.exceptions.AttestationException;
 import com.mobilecoin.lib.exceptions.FeeRejectedException;
 import com.mobilecoin.lib.exceptions.FogReportException;
@@ -70,8 +68,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import consensus_common.ConsensusCommon;
-import mistyswap.AttestedMistySwapClient;
-import mistyswap.MistySwapUri;
 
 @Keep
 public class FfiMobileCoinClient {
@@ -79,7 +75,7 @@ public class FfiMobileCoinClient {
     private FfiMobileCoinClient() {}
 
     public static int create(int accountKeyId, String fogUrl, String consensusUrl,
-            @Nullable String mistySwapUrl, boolean useTestNet, Integer clientConfigId) throws InvalidUriException, AttestationException {
+            Integer clientConfigId) throws InvalidUriException {
         AccountKey accountKey = (AccountKey) ObjectStorage.objectForKey(accountKeyId);
         ClientConfig clientConfig = (ClientConfig) ObjectStorage.objectForKey(clientConfigId);
         MobileCoinClient mobileCoinClient = new MobileCoinClient(accountKey, Uri.parse(fogUrl),
@@ -88,19 +84,7 @@ public class FfiMobileCoinClient {
         final int mobileCoinClientHashCode = mobileCoinClient.hashCode();
         ObjectStorage.addObject(mobileCoinClientHashCode, mobileCoinClient);
 
-        if (!useTestNet && mistySwapUrl != null && !mistySwapUrl.isEmpty()) {
-            AttestedMistySwapClient mistySwapClient = new AttestedMistySwapClient(
-                    RandomLoadBalancer.create(new MistySwapUri(mistySwapUrl)),
-                    new ClientConfig.Service().withTrustedIdentities((new TrustedIdentities())),
-                    TransportProtocol.forGRPC());
-            ObjectStorage.addObject(mistySwapClientHashCode(mobileCoinClientHashCode), mistySwapClient);
-        }
         return mobileCoinClientHashCode;
-    }
-
-    static int mistySwapClientHashCode(int mobileCoinClientHashCode) {
-        // TODO: will this work?
-        return mobileCoinClientHashCode + 1;
     }
 
     public static String getBalance(int mobileClientId) throws InvalidFogResponse, NetworkException,

@@ -5,10 +5,6 @@ import 'package:flutter/services.dart';
 import 'package:mobilecoin_flutter/src/account_key.dart';
 import 'package:mobilecoin_flutter/src/attestation/mistysign_trusted_identities.dart';
 import 'package:mobilecoin_flutter/src/attestation/service_config.dart';
-import 'package:mobilecoin_flutter/src/extensions/string_extensions.dart';
-import 'package:mobilecoin_flutter/src/protobufs/generated/mistyswap_common.pb.dart';
-import 'package:mobilecoin_flutter/src/protobufs/generated/mistyswap_offramp.pb.dart';
-import 'package:mobilecoin_flutter/src/protobufs/generated/mistyswap_onramp.pb.dart';
 import 'package:mobilecoin_flutter/src/public_address.dart';
 import 'package:mobilecoin_flutter/src/ristretto_private.dart';
 import 'package:mobilecoin_flutter/src/ristretto_public.dart';
@@ -34,9 +30,6 @@ class MobileCoinFlutterPluginChannelApi {
       'accountKey': key.id,
       'fogUrl': key.config.fogUrl,
       'consensusUrl': key.config.consensusUrl,
-      // mistyswapUrl can be null, but must not be an empty string
-      'mistyswapUrl': key.config.mistyswapUrl.presence,
-      'useTestNet': key.config.useTestNet,
       'clientConfigId': key.config.attestClientConfig.id,
     };
 
@@ -507,7 +500,6 @@ class MobileCoinFlutterPluginChannelApi {
       ServiceConfig.fogLedgerMrEnclaveKey: serviceConfig.fogLedgerMrEnclave,
       ServiceConfig.fogReportMrEnclaveKey: serviceConfig.fogReportMrEnclave,
       ServiceConfig.consensusMrEnclaveKey: serviceConfig.consensusMrEnclave,
-      ServiceConfig.mistyswapMrEnclaveKey: serviceConfig.mistyswapMrEnclave,
       ServiceConfig.hardeningAdvisoriesKey:
           serviceConfig.hardeningAdvisories.join(','),
     };
@@ -685,151 +677,6 @@ class MobileCoinFlutterPluginChannelApi {
     return await _channel.invokeMethod(
       "OnetimeKeys#createTxOutPublicKey",
       params,
-    );
-  }
-
-  Future<InitiateOfframpResponse> attestedMistySwapClientInitiateOfframp({
-    required int mobileCoinClientId,
-    required InitiateOfframpRequest initiateOfframpRequest,
-  }) async {
-    final Map<String, dynamic> params = <String, dynamic>{
-      'mobileCoinClientId': mobileCoinClientId,
-      'initiateOfframpRequestBytes': initiateOfframpRequest.writeToBuffer(),
-    };
-    return InitiateOfframpResponse.fromBuffer(
-      await _channel.invokeMethod(
-        "AttestedMistySwapClient#initiateOfframp",
-        params,
-      ),
-    );
-  }
-
-  Future<ForgetOfframpResponse> attestedMistySwapClientForgetOfframp({
-    required int mobileCoinClientId,
-    required ForgetOfframpRequest forgetOfframpRequest,
-  }) async {
-    final Map<String, dynamic> params = <String, dynamic>{
-      'mobileCoinClientId': mobileCoinClientId,
-      'forgetOfframpRequestBytes': forgetOfframpRequest.writeToBuffer(),
-    };
-    return ForgetOfframpResponse.fromBuffer(
-      await _channel.invokeMethod(
-        "AttestedMistySwapClient#forgetOfframp",
-        params,
-      ),
-    );
-  }
-
-  Future<GetOfframpStatusResponse> attestedMistySwapClientGetOfframpStatus({
-    required int mobileCoinClientId,
-    required GetOfframpStatusRequest getOfframpStatusRequest,
-  }) async {
-    final Map<String, dynamic> params = <String, dynamic>{
-      'mobileCoinClientId': mobileCoinClientId,
-      'getOfframpStatusRequestBytes': getOfframpStatusRequest.writeToBuffer(),
-    };
-    return GetOfframpStatusResponse.fromBuffer(
-      await _channel.invokeMethod(
-        "AttestedMistySwapClient#getOfframpStatus",
-        params,
-      ),
-    );
-  }
-
-  Future<GetOfframpDebugInfoResponse>
-      attestedMistySwapClientGetOfframpDebugInfo({
-    required int mobileCoinClientId,
-    required GetOfframpDebugInfoRequest getOfframpDebugInfoRequest,
-  }) async {
-    final Map<String, dynamic> params = <String, dynamic>{
-      'mobileCoinClientId': mobileCoinClientId,
-      'getOfframpDebugInfoRequestBytes':
-          getOfframpDebugInfoRequest.writeToBuffer(),
-    };
-    return GetOfframpDebugInfoResponse.fromBuffer(
-      await _channel.invokeMethod(
-        "AttestedMistySwapClient#getOfframpDebugInfo",
-        params,
-      ),
-    );
-  }
-
-  Future<SetupOnrampResponse> attestedMistySwapClientSetupOnramp({
-    required int mobileCoinClientId,
-    required SetupOnrampRequest setupOnrampRequest,
-  }) async {
-    final Map<String, dynamic> params = <String, dynamic>{
-      'mobileCoinClientId': mobileCoinClientId,
-      'setupOnrampRequestBytes': setupOnrampRequest.writeToBuffer(),
-    };
-    return SetupOnrampResponse.fromBuffer(
-      await _channel.invokeMethod(
-        "AttestedMistySwapClient#setupOnramp",
-        params,
-      ),
-    );
-  }
-
-  Future<ForgetOnrampResponse> attestedMistySwapClientForgetOnramp({
-    required int mobileCoinClientId,
-    required ForgetOnrampRequest forgetOnrampRequest,
-  }) async {
-    final Map<String, dynamic> params = <String, dynamic>{
-      'mobileCoinClientId': mobileCoinClientId,
-      'forgetOnrampRequestBytes': forgetOnrampRequest.writeToBuffer(),
-    };
-    return ForgetOnrampResponse.fromBuffer(
-      await _channel.invokeMethod(
-        "AttestedMistySwapClient#forgetOnramp",
-        params,
-      ),
-    );
-  }
-
-  Future<GetOnrampStatusResponse> attestedMistySwapClientGetOnrampStatus({
-    required int mobileCoinClientId,
-    required GetOnrampStatusRequest getOnrampStatusRequest,
-  }) async {
-    final Map<String, dynamic> params = <String, dynamic>{
-      'mobileCoinClientId': mobileCoinClientId,
-      'getOnrampStatusRequestBytes': getOnrampStatusRequest.writeToBuffer(),
-    };
-    return GetOnrampStatusResponse.fromBuffer(
-      await _channel.invokeMethod(
-        "AttestedMistySwapClient#getOnrampStatus",
-        params,
-      ),
-    );
-  }
-
-  Future<GetOnrampDebugInfoResponse> attestedMistySwapClientGetOnrampDebugInfo({
-    required int mobileCoinClientId,
-    required GetOnrampDebugInfoRequest getOnrampDebugInfoRequest,
-  }) async {
-    final Map<String, dynamic> params = <String, dynamic>{
-      'mobileCoinClientId': mobileCoinClientId,
-      'getOnrampDebugInfoRequestBytes':
-          getOnrampDebugInfoRequest.writeToBuffer(),
-    };
-    return GetOnrampDebugInfoResponse.fromBuffer(
-      await _channel.invokeMethod(
-        "AttestedMistySwapClient#getOnrampDebugInfo",
-        params,
-      ),
-    );
-  }
-
-  Future<GetInfoResponse> attestedMistySwapClientGetInfo({
-    required int mobileCoinClientId,
-  }) async {
-    final Map<String, dynamic> params = <String, dynamic>{
-      'mobileCoinClientId': mobileCoinClientId,
-    };
-    return GetInfoResponse.fromBuffer(
-      await _channel.invokeMethod(
-        "AttestedMistySwapClient#getInfoResponse",
-        params,
-      ),
     );
   }
 

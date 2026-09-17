@@ -24,7 +24,6 @@ struct FfiMobileCoinClient {
             let fogViewMrEnclave = clientConfig.fogViewMrEnclaves
             let fogReportMrEnclave = clientConfig.fogReportMrEnclaves
             let fogLedgerMrEnclave = clientConfig.fogLedgerMrEnclaves
-            let mistyswapMrEnclave = clientConfig.mistyswapMrEnclaves
 
             // Ensure one or more valid MrEnclaves for each service thats required
             guard
@@ -41,43 +40,19 @@ struct FfiMobileCoinClient {
             let fogViewAttestation = Attestation(mrEnclaves: fogViewMrEnclave)
             let fogReportAttestation = Attestation(mrEnclaves: fogReportMrEnclave)
             let fogLedgerAttestation = Attestation(mrEnclaves: fogLedgerMrEnclave)
-            let mistyswapAttestation = Attestation(mrEnclaves: mistyswapMrEnclave)
-
-            let client: MobileCoinClient = try {
-                let transportProtocol = TransportProtocol.http
-
-                guard let mistyswapUrl = args["mistyswapUrl"] as? String
-                else {
-                    return try MobileCoinClient.make(
-                        accountKey: accountKey,
-                        config: MobileCoinClient.Config.make(
-                            consensusUrl: consensusUrl,
-                            consensusAttestation: consensusAttestation,
-                            fogUrl: fogUrl,
-                            fogViewAttestation: fogViewAttestation,
-                            fogKeyImageAttestation: fogLedgerAttestation,
-                            fogMerkleProofAttestation: fogLedgerAttestation,
-                            fogReportAttestation: fogReportAttestation,
-                            transportProtocol: transportProtocol
-                        ).get()
-                    ).get()
-                }
-                return try MobileCoinClient.make(
-                    accountKey: accountKey,
-                    config: MobileCoinClient.Config.make(
-                        consensusUrl: consensusUrl,
-                        consensusAttestation: consensusAttestation,
-                        fogUrl: fogUrl,
-                        fogViewAttestation: fogViewAttestation,
-                        fogKeyImageAttestation: fogLedgerAttestation,
-                        fogMerkleProofAttestation: fogLedgerAttestation,
-                        fogReportAttestation: fogReportAttestation,
-                        mistyswapUrl: mistyswapUrl,
-                        mistyswapAttestation: mistyswapAttestation,
-                        transportProtocol: transportProtocol
-                    ).get()
+            let client: MobileCoinClient = try MobileCoinClient.make(
+                accountKey: accountKey,
+                config: MobileCoinClient.Config.make(
+                    consensusUrl: consensusUrl,
+                    consensusAttestation: consensusAttestation,
+                    fogUrl: fogUrl,
+                    fogViewAttestation: fogViewAttestation,
+                    fogKeyImageAttestation: fogLedgerAttestation,
+                    fogMerkleProofAttestation: fogLedgerAttestation,
+                    fogReportAttestation: fogReportAttestation,
+                    transportProtocol: TransportProtocol.http
                 ).get()
-            }()
+            ).get()
 
             let hash: Int = ObjectIdentifier(client).hashValue
             ObjectStorage.addObject(client, forKey: hash)
