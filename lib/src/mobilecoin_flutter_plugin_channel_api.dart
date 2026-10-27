@@ -26,11 +26,17 @@ class MobileCoinFlutterPluginChannelApi {
   final MethodChannel _channel;
 
   Future<int> createMobileCoinClient(AccountKey key) async {
+    final fogResourceTimeout = key.config.fogResourceTimeout;
     final Map<String, dynamic> params = <String, dynamic>{
       'accountKey': key.id,
       'fogUrl': key.config.fogUrl,
       'consensusUrl': key.config.consensusUrl,
       'clientConfigId': key.config.attestClientConfig.id,
+      // Milliseconds, so a sub-second budget does not round to zero on the
+      // way across. Absent when the caller named none, which leaves the
+      // native default standing.
+      if (fogResourceTimeout != null)
+        'fogResourceTimeoutMillis': fogResourceTimeout.inMilliseconds,
     };
 
     return await _channel.invokeMethod("MobileCoinClient#create", params);
