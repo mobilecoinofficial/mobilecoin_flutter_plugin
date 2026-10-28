@@ -21,7 +21,7 @@ struct FfiMobileCoinClient {
         /// live one room to finish.
         ///
         /// A host that knows its users better can send
-        /// `fogResourceTimeoutMillis` and get its own figure instead.
+        /// `iosFogResourceTimeoutSeconds` and get its own figure instead.
         static let defaultFogResourceTimeout: TimeInterval = 300
 
         func execute(args: [String : Any], result: @escaping FlutterResult) throws {
@@ -71,9 +71,10 @@ struct FfiMobileCoinClient {
             // A non-positive budget would fail every transfer, so it reads as
             // a caller mistake rather than an instruction, and the default
             // stands.
-            let requestedMillis = args["fogResourceTimeoutMillis"] as? Int ?? 0
-            let fogResourceTimeout = requestedMillis > 0
-                ? TimeInterval(requestedMillis) / 1000
+            let requestedSeconds =
+                args["iosFogResourceTimeoutSeconds"] as? Int ?? 0
+            let fogResourceTimeout = requestedSeconds > 0
+                ? TimeInterval(requestedSeconds)
                 : Self.defaultFogResourceTimeout
 
             config.httpRequester = DefaultHttpRequester(

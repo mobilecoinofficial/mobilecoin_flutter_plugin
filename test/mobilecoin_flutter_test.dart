@@ -191,7 +191,8 @@ void main() {
   });
 
   group('createMobileCoinClient', () {
-    AccountKey accountKeyWith({Duration? fogResourceTimeout}) => AccountKey(
+    AccountKey accountKeyWith({int? iosFogResourceTimeoutSeconds}) =>
+        AccountKey(
           1,
           bip39Entropy: Uint8List(0),
           mnemonicPhrase: const [],
@@ -203,7 +204,7 @@ void main() {
             attestClientConfig: ClientConfig(7),
             fogAuthoritySpki: Uint8List(0),
             fogReportId: '',
-            fogResourceTimeout: fogResourceTimeout,
+            iosFogResourceTimeoutSeconds: iosFogResourceTimeoutSeconds,
           ),
         );
 
@@ -221,10 +222,10 @@ void main() {
 
       // An absent key is what leaves the native default standing, so sending
       // the key with a zero or null value would not mean the same thing.
-      expect(sent.arguments, isNot(contains('fogResourceTimeoutMillis')));
+      expect(sent.arguments, isNot(contains('iosFogResourceTimeoutSeconds')));
     });
 
-    test('sends the configured resource timeout in milliseconds', () async {
+    test('sends the configured resource timeout in seconds', () async {
       late MethodCall sent;
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
           .setMockMethodCallHandler(channel, (call) async {
@@ -233,17 +234,17 @@ void main() {
       });
 
       await MobileCoinFlutterPluginChannelApi.instance.createMobileCoinClient(
-        accountKeyWith(fogResourceTimeout: const Duration(milliseconds: 1500)),
+        accountKeyWith(iosFogResourceTimeoutSeconds: 600),
       );
 
-      // Milliseconds, not seconds: 1500 would round to 1 second going across
-      // as an integer count of seconds.
-      expect(sent.arguments['fogResourceTimeoutMillis'], 1500);
+      // The figure crosses as the caller set it, in the unit the native side
+      // hands to the SDK, so neither end converts.
+      expect(sent.arguments['iosFogResourceTimeoutSeconds'], 600);
     });
 
     test('rejects a non-positive timeout at construction', () {
       expect(
-        () => accountKeyWith(fogResourceTimeout: Duration.zero),
+        () => accountKeyWith(iosFogResourceTimeoutSeconds: 0),
         throwsA(isA<AssertionError>()),
       );
     });
