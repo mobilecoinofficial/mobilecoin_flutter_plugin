@@ -16,11 +16,6 @@ let package = Package(
         .library(name: "mobilecoin-flutter", targets: ["mobilecoin_flutter"])
     ],
     dependencies: [
-        // 7.1.0 is the release that lets a requester carry its own timeouts, which the
-        // client built below relies on. The floor moves rather than just the lock, so that
-        // a consumer holding a 7.0.x lock is made to resolve forward instead of failing to
-        // compile. (7.0.0 was the floor before this, as the release that removes Mistyswap,
-        // which these sources no longer name.)
         .package(
             url: "https://github.com/mobilecoinofficial/MobileCoin-Swift.git",
             from: "7.1.0"
