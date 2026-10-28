@@ -2,7 +2,10 @@
 
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mobilecoin_flutter/src/account_key.dart';
+import 'package:mobilecoin_flutter/src/attestation/client_config.dart';
 import 'package:mobilecoin_flutter/src/mobilecoin_client.dart';
+import 'package:mobilecoin_flutter/src/mobilecoin_config.dart';
 import 'package:mobilecoin_flutter/src/mobilecoin_flutter_plugin_channel_api.dart';
 import 'package:mobilecoin_flutter/src/public_address.dart';
 
@@ -183,6 +186,66 @@ void main() {
           rngSeed: seed,
         ),
         throwsA(isA<StateError>()),
+      );
+    });
+  });
+
+  group('createMobileCoinClient', () {
+    AccountKey accountKeyWith({int? iosFogResourceTimeoutSeconds}) =>
+        AccountKey(
+          1,
+          bip39Entropy: Uint8List(0),
+          mnemonicPhrase: const [],
+          publicAddress: 'address',
+          publicAddressHash: Uint8List(0),
+          config: MobileCoinConfig(
+            fogUrl: 'fog://example',
+            consensusUrl: 'mc://example',
+            attestClientConfig: ClientConfig(7),
+            fogAuthoritySpki: Uint8List(0),
+            fogReportId: '',
+            iosFogResourceTimeoutSeconds: iosFogResourceTimeoutSeconds,
+          ),
+        );
+
+    test('omits the resource timeout when the config does not include one',
+        () async {
+      late MethodCall sent;
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, (call) async {
+        sent = call;
+        return 3;
+      });
+
+      await MobileCoinFlutterPluginChannelApi.instance
+          .createMobileCoinClient(accountKeyWith());
+
+      // An absent key is what leaves the native default standing, so sending
+      // the key with a zero or null value would not mean the same thing.
+      expect(sent.arguments, isNot(contains('iosFogResourceTimeoutSeconds')));
+    });
+
+    test('sends the configured resource timeout in seconds', () async {
+      late MethodCall sent;
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, (call) async {
+        sent = call;
+        return 3;
+      });
+
+      await MobileCoinFlutterPluginChannelApi.instance.createMobileCoinClient(
+        accountKeyWith(iosFogResourceTimeoutSeconds: 600),
+      );
+
+      // The figure crosses as the caller set it, in the unit the native side
+      // hands to the SDK, so neither end converts.
+      expect(sent.arguments['iosFogResourceTimeoutSeconds'], 600);
+    });
+
+    test('rejects a non-positive timeout at construction', () {
+      expect(
+        () => accountKeyWith(iosFogResourceTimeoutSeconds: 0),
+        throwsA(isA<AssertionError>()),
       );
     });
   });
