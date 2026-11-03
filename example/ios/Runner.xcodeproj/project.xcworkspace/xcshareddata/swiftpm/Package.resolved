@@ -14,8 +14,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/mobilecoinofficial/MobileCoin-Swift.git",
       "state" : {
-        "revision" : "ba36c3dae1d4c455cb6f8f97f3823b293fb64c5c",
-        "version" : "7.0.0"
+        "revision" : "d83539828dbda4f30e1ed1d26d777e1554cab92f",
+        "version" : "7.1.0"
       }
     },
     {
