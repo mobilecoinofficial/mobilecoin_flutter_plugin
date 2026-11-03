@@ -191,7 +191,7 @@ void main() {
   });
 
   group('createMobileCoinClient', () {
-    AccountKey accountKeyWith({int? iosFogResourceTimeoutSeconds}) =>
+    AccountKey accountKeyWith({int? iosHttpResourceTimeoutSeconds}) =>
         AccountKey(
           1,
           bip39Entropy: Uint8List(0),
@@ -204,7 +204,7 @@ void main() {
             attestClientConfig: ClientConfig(7),
             fogAuthoritySpki: Uint8List(0),
             fogReportId: '',
-            iosFogResourceTimeoutSeconds: iosFogResourceTimeoutSeconds,
+            iosHttpResourceTimeoutSeconds: iosHttpResourceTimeoutSeconds,
           ),
         );
 
@@ -222,7 +222,7 @@ void main() {
 
       // An absent key is what leaves the native default standing, so sending
       // the key with a zero or null value would not mean the same thing.
-      expect(sent.arguments, isNot(contains('iosFogResourceTimeoutSeconds')));
+      expect(sent.arguments, isNot(contains('iosHttpResourceTimeoutSeconds')));
     });
 
     test('sends the configured resource timeout in seconds', () async {
@@ -234,17 +234,17 @@ void main() {
       });
 
       await MobileCoinFlutterPluginChannelApi.instance.createMobileCoinClient(
-        accountKeyWith(iosFogResourceTimeoutSeconds: 600),
+        accountKeyWith(iosHttpResourceTimeoutSeconds: 600),
       );
 
       // The figure crosses as the caller set it, in the unit the native side
       // hands to the SDK, so neither end converts.
-      expect(sent.arguments['iosFogResourceTimeoutSeconds'], 600);
+      expect(sent.arguments['iosHttpResourceTimeoutSeconds'], 600);
     });
 
     test('rejects a non-positive timeout at construction', () {
       expect(
-        () => accountKeyWith(iosFogResourceTimeoutSeconds: 0),
+        () => accountKeyWith(iosHttpResourceTimeoutSeconds: 0),
         throwsA(isA<AssertionError>()),
       );
     });

@@ -20,9 +20,15 @@ struct FfiMobileCoinClient {
         /// still the SDK's idle timeout's judgement; this only gives a slow
         /// live one room to finish.
         ///
+        /// Fog scanning is what the figure is sized for, but it is not what
+        /// the figure is limited to: `MobileCoinClient` builds one requester
+        /// and `HttpProtocolConnectionFactory` hands it to the consensus and
+        /// blockchain connections as well, so a transaction submit runs under
+        /// this same budget.
+        ///
         /// A host that knows its users better can send
-        /// `iosFogResourceTimeoutSeconds` and get its own figure instead.
-        static let defaultFogResourceTimeout: TimeInterval = 300
+        /// `iosHttpResourceTimeoutSeconds` and get its own figure instead.
+        static let defaultHttpResourceTimeout: TimeInterval = 300
 
         func execute(args: [String : Any], result: @escaping FlutterResult) throws {
             guard
@@ -72,13 +78,13 @@ struct FfiMobileCoinClient {
             // a caller mistake rather than an instruction, and the default
             // stands.
             let requestedSeconds =
-                args["iosFogResourceTimeoutSeconds"] as? Int ?? 0
-            let fogResourceTimeout = requestedSeconds > 0
+                args["iosHttpResourceTimeoutSeconds"] as? Int ?? 0
+            let httpResourceTimeout = requestedSeconds > 0
                 ? TimeInterval(requestedSeconds)
-                : Self.defaultFogResourceTimeout
+                : Self.defaultHttpResourceTimeout
 
             config.httpRequester = DefaultHttpRequester(
-                resourceTimeout: fogResourceTimeout)
+                resourceTimeout: httpResourceTimeout)
 
             let client: MobileCoinClient = try MobileCoinClient.make(
                 accountKey: accountKey,
