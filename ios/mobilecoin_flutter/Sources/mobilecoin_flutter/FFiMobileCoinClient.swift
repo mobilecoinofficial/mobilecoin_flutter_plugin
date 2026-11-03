@@ -7,6 +7,29 @@ import MobileCoin
 struct FfiMobileCoinClient {
 
     struct Create: Command {
+        /// The budget for one whole HTTP transfer, start to finish, when the
+        /// caller names none of its own.
+        ///
+        /// The SDK defaults this to its idle timeout, which leaves a transfer
+        /// no room to be slow without also being idle. A balance update is
+        /// many sequential fog round trips, and on an account with a large
+        /// RNG set one query has a lot to return, so on a slow link a
+        /// transfer that is still arriving gets cut off — and one failed
+        /// round trip fails the whole scan, leaving the wallet's view of the
+        /// chain frozen where it was. Whether a transfer is alive at all is
+        /// still the SDK's idle timeout's judgement; this only gives a slow
+        /// live one room to finish.
+        ///
+        /// Fog scanning is what the figure is sized for, but it is not what
+        /// the figure is limited to: `MobileCoinClient` builds one requester
+        /// and `HttpProtocolConnectionFactory` hands it to the consensus and
+        /// blockchain connections as well, so a transaction submit runs under
+        /// this same budget.
+        ///
+        /// A host that knows its users better can send
+        /// `iosHttpResourceTimeoutSeconds` and get its own figure instead.
+        static let defaultHttpResourceTimeout: TimeInterval = 300
+
         func execute(args: [String : Any], result: @escaping FlutterResult) throws {
             guard
                 let accountKeyId = args["accountKey"] as? Int,
@@ -40,18 +63,32 @@ struct FfiMobileCoinClient {
             let fogViewAttestation = Attestation(mrEnclaves: fogViewMrEnclave)
             let fogReportAttestation = Attestation(mrEnclaves: fogReportMrEnclave)
             let fogLedgerAttestation = Attestation(mrEnclaves: fogLedgerMrEnclave)
+            var config = try MobileCoinClient.Config.make(
+                consensusUrl: consensusUrl,
+                consensusAttestation: consensusAttestation,
+                fogUrl: fogUrl,
+                fogViewAttestation: fogViewAttestation,
+                fogKeyImageAttestation: fogLedgerAttestation,
+                fogMerkleProofAttestation: fogLedgerAttestation,
+                fogReportAttestation: fogReportAttestation,
+                transportProtocol: TransportProtocol.http
+            ).get()
+
+            // A non-positive budget would fail every transfer, so it reads as
+            // a caller mistake rather than an instruction, and the default
+            // stands.
+            let requestedSeconds =
+                args["iosHttpResourceTimeoutSeconds"] as? Int ?? 0
+            let httpResourceTimeout = requestedSeconds > 0
+                ? TimeInterval(requestedSeconds)
+                : Self.defaultHttpResourceTimeout
+
+            config.httpRequester = DefaultHttpRequester(
+                resourceTimeout: httpResourceTimeout)
+
             let client: MobileCoinClient = try MobileCoinClient.make(
                 accountKey: accountKey,
-                config: MobileCoinClient.Config.make(
-                    consensusUrl: consensusUrl,
-                    consensusAttestation: consensusAttestation,
-                    fogUrl: fogUrl,
-                    fogViewAttestation: fogViewAttestation,
-                    fogKeyImageAttestation: fogLedgerAttestation,
-                    fogMerkleProofAttestation: fogLedgerAttestation,
-                    fogReportAttestation: fogReportAttestation,
-                    transportProtocol: TransportProtocol.http
-                ).get()
+                config: config
             ).get()
 
             let hash: Int = ObjectIdentifier(client).hashValue
